@@ -67,7 +67,7 @@ pacf(m2$residuals,lag.max =36)
 
 Note que la pendiente de la regresión resulta significativa, y ahora los residuales parecen estables y aunque persiste la autocorrelación, ésta no es tan fuerte. Como persiste la autocorrelación, usaremos un modelo de series de tiempo para que tenga en cuenta la estructura de autcorrelación presente en los residuales.
 ```{r series tasas}
-m3=arima(c3ts,order=c(0,0,1),xreg=c1ts,include.mean=F)
+m3=arima(tsc3,order=c(0,0,1),xreg=tsc1,include.mean=F)
 m3
 library(lmtest)
 coeftest(m3)
