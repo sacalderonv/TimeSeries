@@ -55,7 +55,7 @@ acf(m1$residuals,lag=36)
 
 Note que en el ajuste del modelo, las pruebas sobre los parámetros resultan  significativas, es decir son diferentes de cero. Vale la pena notar también que los residuales del modelo paracen no ser IID, en el sentido que no todos presentan la misma distribución, por ejemplo, la media de las observaciones antes del tiempo t=1000 parace ser muy distinta a la medias después del tiempo t=1000. Adicionalmente, al ver la estructural de autocorrelación temporal, podemos ver que los residuales resultan altamente autocorrelacionados violando el supuesto de independencia. En términos de econometría, lo que quiere decir esto es que las dos variables no están cointegradas, es decir, no hay una relación de equilibrio a largo plazo(estacionaria) entre las dos variables. 
 
-Vesmos ahora el ajuste de los cambios de las tasas.
+Veamos ahora el ajuste de los cambios de las tasas.
 
 ```{r ajuste cambios en tasas}
 m2=lm(tsc3 ~ -1+tsc1) 
