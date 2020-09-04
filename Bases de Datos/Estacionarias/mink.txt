@@ -1,0 +1,17 @@
+Series del numero de visones (mink) y de ratas azmizcleras (muskrat) en 
+              Canada 
+
+Datos anuales desde 1848 a 1911 
+Los datos estan 
+
+ROW     mink      musk   year
+   1    37123    224347   1848
+   2    34712    179075   1849
+   3    29619    175472   1850
+
+.....
+  62    17857    302195   1909
+  63    21788    749142   1910
+  64    33008    963597   1911
+
+/Users/sergiocalderonv/Documents/Documentos Mac Book Sergio/Cursos/Time Series/Series de Tiempo Univariadas 2019-II/Bases de Datos
