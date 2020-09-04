@@ -33,7 +33,7 @@ acf(sercamrelint,type='partial')
 ```{r Colcap}
 library(xts)
 library(readxl)
-Colcap  <- read_excel("Documents/GitHub/TimeSeries/Bases de Datos/Datos históricos COLCAP-3.xlsx")
+Colcap<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/Datos históricos COLCAP-3.xlsx")
 
 TsColCap=xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
 plot(TsColCap)
