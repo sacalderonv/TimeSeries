@@ -16,7 +16,7 @@ tipos88 <- read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases d
 Intanual=tipos88$V5  #Tipo de interés Anual
 plot(as.ts(Intanual))
 ```
-#Creando y graficando la serie de retornos
+#Creando y graficando la serie de retornos para ver los cambios
 
 ```{r retornos interes}
 camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])

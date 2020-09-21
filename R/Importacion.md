@@ -11,7 +11,7 @@ plot(as.ts(Intanual))
 ```
 
 ![](Importacion_files/figure-gfm/importacion-1.png)<!-- --> \#Creando y
-graficando la serie de retornos
+graficando la serie de retornos para ver los cambios
 
 ``` r
 camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
