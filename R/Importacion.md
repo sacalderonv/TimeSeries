@@ -1,16 +1,23 @@
+Importacion
+================
+
 \#Creación de un objeto de Series de Tiempo y gráficas \#\# Serie de
 interés
 
-    tipos88 <- read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/Estacionarias/tipos88.dat", quote="\"", comment.char="")
-    Intanual=tipos88$V5  #Tipo de interés Anual
-    plot(as.ts(Intanual))
+``` r
+tipos88 <- read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/Estacionarias/tipos88.dat", quote="\"", comment.char="")
+Intanual=tipos88$V5  #Tipo de interés Anual
+plot(as.ts(Intanual))
+```
 
-![](Importacion_files/figure-markdown_strict/importacion-1.png)
-\#Creando y graficando la serie de retornos
+![](Importacion_files/figure-gfm/importacion-1.png)<!-- --> \#Creando y
+graficando la serie de retornos
 
-    camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
-    sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
-    sercamrelint
+``` r
+camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
+sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
+sercamrelint
+```
 
     ##                Jan           Feb           Mar           Apr           May
     ## 1988 -0.0647016108 -0.0741533020 -0.0070054419  0.0293291983 -0.0632213053
@@ -61,21 +68,29 @@ interés
     ## 2001  0.0155524130  0.0714589640
     ## 2002
 
-    plot(sercamrelint)
+``` r
+plot(sercamrelint)
+```
 
-![](Importacion_files/figure-markdown_strict/retornos%20interes-1.png)
+![](Importacion_files/figure-gfm/retornos%20interes-1.png)<!-- -->
 
-    acf(sercamrelint,ci.type='ma')
+``` r
+acf(sercamrelint,ci.type='ma')
+```
 
-![](Importacion_files/figure-markdown_strict/retornos%20interes-2.png)
+![](Importacion_files/figure-gfm/retornos%20interes-2.png)<!-- -->
 
-    acf(sercamrelint,type='partial')
+``` r
+acf(sercamrelint,type='partial')
+```
 
-![](Importacion_files/figure-markdown_strict/retornos%20interes-3.png)
+![](Importacion_files/figure-gfm/retornos%20interes-3.png)<!-- -->
 
 \#Serie COLCAP
 
-    library(xts)
+``` r
+library(xts)
+```
 
     ## Loading required package: zoo
 
@@ -86,17 +101,23 @@ interés
     ## 
     ##     as.Date, as.Date.numeric
 
-    library(readxl)
-    Colcap<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/Datos históricos COLCAP-3.xlsx")
+``` r
+library(readxl)
+Colcap<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/Datos históricos COLCAP-3.xlsx")
 
-    TsColCap=xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
+TsColCap=xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
+```
 
     ## Warning in as.POSIXlt.POSIXct(x, tz = tz): unknown timezone '%Y-%m-%d'
 
-    plot(TsColCap)
+``` r
+plot(TsColCap)
+```
 
-![](Importacion_files/figure-markdown_strict/Colcap-1.png)
+![](Importacion_files/figure-gfm/Colcap-1.png)<!-- -->
 
-    acf(TsColCap)
+``` r
+acf(TsColCap)
+```
 
-![](Importacion_files/figure-markdown_strict/Colcap-2.png)
+![](Importacion_files/figure-gfm/Colcap-2.png)<!-- -->
