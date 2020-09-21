@@ -1,0 +1,45 @@
+---
+title: "Arboles"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Métodos Basados en Árboles
+
+Los árboles binarios son el componente básico de la mayoría de los métodos estadísticos basados en árboles.\\
+Binario quiere decir, que cada rama del árbol puede ser dividido dentro de 2 sub-ramas Estos árboles son comúnmente referidos a árboles de decisión.
+
+
+```{r importación y Gráficas}
+
+
+da=read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/GDPC1.txt",header=T) 
+gdp = diff(log(da$rgdp))
+tdx = da$year + (da$mon/12)
+tdx = tdx[-1]
+plot(tdx,gdp,xlab='año',ylab='tasa-PIB',type='l') 
+length(gdp)
+
+```
+
+## Configuración y Arbol
+
+
+
+```{r Configuración y Arbol}
+
+gdp = round(gdp*100,2)
+X = cbind(gdp[4:273],gdp[3:272],gdp[2:271],gdp[1:270])
+colnames(X) = c("gdp","gdp1","gdp2","gdp3")
+require(tree)
+t1 = tree(gdp~.,data=data.frame(X))
+summary(t1)
+
+plot(t1)
+text(t1,pretty=0)
+```
+
+
