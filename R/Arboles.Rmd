@@ -43,3 +43,24 @@ text(t1,pretty=0)
 ```
 
 
+# Etapa de Pronóstico
+
+
+```{r Pronóstico}
+library(NTS)
+PM2.5 = scan(file="/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/d-Shanghai-1317.txt")
+tdx = c(1:length(PM2.5))/365+2013
+par(mfcol=c(2,1))
+plot(tdx,PM2.5,xlab='year',ylab='PM2.5',type='l') 
+acf(PM2.5,lag=800)
+m1 = NNsetting(PM2.5,nfore=365,lags=c(1:10,365:370))
+names(m1)
+X= m1$X; y = m1$y; predX = m1$predX; predY = m1$predY
+t1 = tree(y~.,data=data.frame(X))
+par(mfcol=c(1,1))
+plot(t1)
+text(t1,pretty=0) 
+pt1 = predict(t1,newdata=data.frame(predX)) 
+er3 = pt1-predY
+```
+

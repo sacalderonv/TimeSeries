@@ -55,3 +55,38 @@ text(t1,pretty=0)
 ```
 
 ![](Arboles_files/figure-gfm/Configuración%20y%20Arbol-1.png)<!-- -->
+
+# Etapa de Pronóstico
+
+``` r
+library(NTS)
+PM2.5 = scan(file="/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/d-Shanghai-1317.txt")
+tdx = c(1:length(PM2.5))/365+2013
+par(mfcol=c(2,1))
+plot(tdx,PM2.5,xlab='year',ylab='PM2.5',type='l') 
+acf(PM2.5,lag=800)
+```
+
+![](Arboles_files/figure-gfm/Pronóstico-1.png)<!-- -->
+
+``` r
+m1 = NNsetting(PM2.5,nfore=365,lags=c(1:10,365:370))
+names(m1)
+```
+
+    ## [1] "X"     "y"     "predX" "predY"
+
+``` r
+X= m1$X; y = m1$y; predX = m1$predX; predY = m1$predY
+t1 = tree(y~.,data=data.frame(X))
+par(mfcol=c(1,1))
+plot(t1)
+text(t1,pretty=0) 
+```
+
+![](Arboles_files/figure-gfm/Pronóstico-2.png)<!-- -->
+
+``` r
+pt1 = predict(t1,newdata=data.frame(predX)) 
+er3 = pt1-predY
+```
