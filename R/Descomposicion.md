@@ -8,8 +8,8 @@ similar deberá hacerse para las series ISE y ACC de la Base de datos
 Base\_Accidentes.xlsx,
 
 Las primeras tres metodologías se basarán en el supuesto que una serie
-de tiempo observable puede descompuesta en una componente de tendencia y
-una componente estacional, es decir, se \(\{X_{t}\}\) puede
+de tiempo observable puede ser descompuesta en una componente de
+tendencia y una componente estacional, es decir, \(\{X_{t}\}\) puede
 descomponerse de la siguiente forma aditiva \[
 X_{t}=m_{t}+S_{t}+Y_{t},
 \] donde \[m_{t}:\text{función que cambia suavemente,}\]\\
