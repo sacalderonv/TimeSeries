@@ -12,9 +12,9 @@ de tiempo observable puede descompuesta en una componente de tendencia y
 una componente estacional, es decir, se \(\{X_{t}\}\) puede
 descomponerse de la siguiente forma aditiva \[
 X_{t}=m_{t}+S_{t}+Y_{t},
-\] donde \(m_{t}:\text{función que cambia suavemente,}\)\\
-\(S_{t}:\text{función de periodo conocido d,}\)\\
-\(Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}\)\\ Un
+\] donde \[m_{t}:\text{función que cambia suavemente,}\]\\
+\[S_{t}:\text{función de periodo conocido d,}\]\\
+\[Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}\]\\ Un
 modelo multiplicativo puede ser considerado como modelo alternativo al
 aditivo, \[
 X_{t}=m_{t}\times S_{t} \times Y_{t},
