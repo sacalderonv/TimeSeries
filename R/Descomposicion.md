@@ -9,7 +9,7 @@ Base\_Accidentes.xlsx,
 
 Las primeras tres metodologías se basarán en el supuesto que una serie
 de tiempo observable puede ser descompuesta en una componente de
-tendencia y una componente estacional, es decir, \(\{X_{t}\}\) puede
+tendencia y una componente estacional, es decir, (\(\{X_{t}\}\)) puede
 descomponerse de la siguiente forma aditiva \[
 X_{t}=m_{t}+S_{t}+Y_{t},
 \] donde \[m_{t}:\text{función que cambia suavemente,}\]\\
