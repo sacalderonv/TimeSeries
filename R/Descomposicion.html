@@ -378,13 +378,11 @@ summary {
 <div id="métodos-de-descomposición-de-series-de-tiempo" class="section level2">
 <h2>Métodos de Descomposición de Series de tiempo</h2>
 <p>Vamos a hacer un análisis Inicial a la serie de pasajeros. Un análisis similar deberá hacerse para las series ISE y ACC de la Base de datos Base_Accidentes.xlsx,</p>
-<p>Las primeras tres metodologías se basarán en el supuesto que una serie de tiempo observable puede descompuesta en una componente de tendencia y una componente estacional, es decir, se <span class="math inline">\(\{X_{t}\}\)</span> puede descomponerse de la siguiente forma aditiva <span class="math display">\[\begin{equation}
-\label{ModeloEstructural}
+<p>Las primeras tres metodologías se basarán en el supuesto que una serie de tiempo observable puede descompuesta en una componente de tendencia y una componente estacional, es decir, se <span class="math inline">\(\{X_{t}\}\)</span> puede descomponerse de la siguiente forma aditiva <span class="math display">\[
 X_{t}=m_{t}+S_{t}+Y_{t},
-\end{equation}\]</span> donde <span class="math inline">\(m_{t}:\text{función que cambia suavemente,}\)</span>\ <span class="math inline">\(S_{t}:\text{función de periodo conocido d,}\)</span>\ <span class="math inline">\(Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}\)</span>\ Un modelo multiplicativo puede ser considerado como modelo alternativo al aditivo, <span class="math display">\[\begin{equation}
-\label{ModeloEstructuralMult}
+\]</span> donde <span class="math inline">\(m_{t}:\text{función que cambia suavemente,}\)</span>\ <span class="math inline">\(S_{t}:\text{función de periodo conocido d,}\)</span>\ <span class="math inline">\(Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}\)</span>\ Un modelo multiplicativo puede ser considerado como modelo alternativo al aditivo, <span class="math display">\[
 X_{t}=m_{t}\times S_{t} \times Y_{t},
-\end{equation}\]</span></p>
+\]</span></p>
 <pre class="r"><code>data(&quot;AirPassengers&quot;)
 plot(AirPassengers)
 #####Transformación Box-Cox
