@@ -1,4 +1,4 @@
---
+---
 title: "Descomposición"
 output: github_document
 ---
