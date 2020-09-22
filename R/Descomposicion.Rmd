@@ -53,14 +53,69 @@ plot(lAirPass)
 ```
 # Descomposición usando promedios Móviles
 ## Para tendencia
-```{r Promedios Móviles para tendencia}
+```{r PMtendencia}
 fltr <- c(1/2, rep(1, times = 11), 1/2)/12
 fltr
 ## estimate of trend
 lAirPass.trend <- filter(lAirPass, filter = fltr, method = "convo", sides = 2)
 ## plot the trend
-x11()
+#x11()
 plot.ts(lAirPass.trend, ylab = "Trend", cex = 1)
 
 ```
+# Efecto estacional a través del tiempo
+
+```{r PM Estacional}
+lAirPass.1T <- lAirPass - lAirPass.trend
+
+## plot the monthly seasonal effects
+plot.ts(lAirPass.1T, ylab = "Seasonal effect", xlab = "Month", cex = 1)
+
+## length of ts
+ll <- length(lAirPass.1T)
+## frequency (ie, 12)
+ff <- frequency(lAirPass.1T)
+## number of periods (years); %/% is integer division
+periods <- ll%/%ff
+## index of cumulative month
+index <- seq(1, ll, by = ff) - 1
+## get mean by month
+mm <- numeric(ff)
+for (i in 1:ff) {
+  mm[i] <- mean(lAirPass.1T[index + i], na.rm = TRUE)
+}
+## subtract mean to make overall mean=0
+mm <- mm - mean(mm)
+
+## plot the monthly seasonal effects
+plot.ts(mm, ylab = "Seasonal effect", xlab = "Month", cex = 1)
+
+## create ts object for season
+lAirPass.seas <- ts(rep(mm, periods + 1)[seq(ll)], start = start(lAirPass.1T), 
+               frequency = ff)
+
+
+## random errors over time
+lAirPass.err <- lAirPass - lAirPass.trend - lAirPass.seas
+
+
+## plot the obs ts, trend & seasonal effect
+plot(cbind(lAirPass, lAirPass.trend, lAirPass.seas, lAirPass.err), main = "", yax.flip = TRUE)
+
+```
+# Dos funciones que hacen la descomposición de forma interna y automática
+Una función específica para filtros de promedios móviles también puede ser usada y es 
+ma del paquete forecast, donde order=d, note que hay una ligera diferencia por el 1/2 de los datos en los extremos
+```{r dos funciones}
+lAirPass.trendma=forecast::ma(lAirPass,order=13)
+lAirPass.trendma-lAirPass.trend
+
+####Uso de la función decompose
+deslAirPass=decompose(lAirPass)
+plot(deslAirPass)
+deslAirPass
+```
+
+
+
 
