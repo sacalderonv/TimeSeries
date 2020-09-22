@@ -62,5 +62,28 @@ plot(t1)
 text(t1,pretty=0) 
 pt1 = predict(t1,newdata=data.frame(predX)) 
 er3 = pt1-predY
+mean(abs(er3))
+sqrt(mean(er3ˆ2))
+```
+# Residuales del Modelo
+
+```{r Residuales}
+pp1 =predict(t1,newdata=data.frame(X))
+resi= y-pp1
+acf(resi)
+
+```
+# Poda del Árbo
+
+```{r Poda}
+cv.t1 = cv.tree(t1)
+plot(cv.t1$size,cv.t1$dev,type="b")
+prune.t1= prune.tree(t1,best=4)
+plot(prune.t1)
+text(prune.t1,pretty=0)
+prun = predict(prune.t1,newdata=data.frame(predX)) 
+per =predY-prun
+mean(abs(per))
+sqrt(mean(per^2))
 ```
 
