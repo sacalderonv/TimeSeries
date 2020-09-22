@@ -9,7 +9,7 @@ Base\_Accidentes.xlsx,
 
 Las primeras tres metodologías se basarán en el supuesto que una serie
 de tiempo observable puede ser descompuesta en una componente de
-tendencia y una componente estacional, es decir, (\(\{X_{t}\}\)) puede
+tendencia y una componente estacional, es decir, \(\{X_{t}\}\) puede
 descomponerse de la siguiente forma aditiva \[
 X_{t}=m_{t}+S_{t}+Y_{t},
 \] donde \[m_{t}:\text{función que cambia suavemente,}\]\\
@@ -17,8 +17,16 @@ X_{t}=m_{t}+S_{t}+Y_{t},
 \[Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}\]\\ Un
 modelo multiplicativo puede ser considerado como modelo alternativo al
 aditivo, \[
-X_{t}=m_{t}\times S_{t} \times Y_{t},
-\]
+X_{t}=m_{t}\times S_{t} \times Y_{t}.
+\] Sin embargo es necesario primero hacer una transformación de Box-Cox
+para Estabilizar la varianza marginal.
+
+\[
+ f_{\lambda}(u_{t})= 
+ \lambda^{-1}(u^{\lambda}_{t}-1),   si \ u_{t} \geq 0, para\  \lambda>0
+ \] o \[
+ f_{\lambda}(u_{t})= \ln(u_{t}), \ si\  u_{t}>0, \ para\  \lambda=0
+ \]
 
 ``` r
 data("AirPassengers")
@@ -74,4 +82,9 @@ FitAR::BoxCox(air.arima)
 
 ``` r
 lAirPass=log(AirPassengers)
+par(mfrow=c(2,1))
+plot(AirPassengers)
+plot(lAirPass)
 ```
+
+![](Descomposicion_files/figure-gfm/importación%20y%20Gráficas-4.png)<!-- -->
