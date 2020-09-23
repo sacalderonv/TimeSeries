@@ -116,6 +116,63 @@ plot(deslAirPass)
 deslAirPass
 ```
 
+# Otras ténicas de descomposición
 
+Existe mas formas de hacer de descomposición de series de tiempo, por ejemplo está
+Descomposción X11 usando el paquete seasonal, cuyo argumento teórico se puede ver el libro Seasonal Adjustment Methods and Real Time Trend-Cycle Estimation (Statistics for Social and Behavioral Sciences)
+Estela Bee Dagum, Silvia Bianconcini
+
+```{r X11}
+library(seasonal)
+library(ggplot2)
+library(fpp)
+
+AirPassengers %>% seas(x11="") -> fit  #%>% Operador Pipe
+autoplot(fit) + ggtitle("X11 decomposition of Aipassengers")
+
+
+data(elecequip)
+autoplot(elecequip)
+elecequip %>% seas(x11="") -> fit
+autoplot(elecequip, series="Data") +
+  autolayer(trendcycle(fit), series="Trend") +
+  autolayer(seasadj(fit), series="Seasonally Adjusted") +
+  xlab("Year") + ylab("New orders index") +
+  ggtitle("Electrical equipment manufacturing (Euro area)") +
+  scale_colour_manual(values=c("gray","blue","red"),
+                      breaks=c("Data","Seasonally Adjusted","Trend"))
+```
+# Descomposición STL
+
+```{r STL}
+library(dplyr)
+library(fpp)
+###La base de datos "elecequip" está en en el paquete fpp
+###Note que el operador %>% pipe permite concatenar múltiples dplyr operaciones
+###Manufacture of electrical equipment: computer, electronic and optical products
+elecequip %>%
+  stats::stl(t.window=13, s.window="periodic", robust=TRUE) %>%
+  autoplot()
+
+```
+
+# Pronóstico basados en descomposición
+```{r Pronósticos Basados en Descomposición}
+fit <- stl(elecequip, t.window=13, s.window="periodic",
+           robust=TRUE)
+fit %>% seasadj() %>% naive() %>%
+  autoplot() + ylab("Nuevo índices ordenados.") +
+  ggtitle("Pronóstico Naive de la componente ajusta estacionalmente")
+###El método naive consiste en que la predicción es el último valor real de la serie(o el de una caminata aleatoria).
+#Ahora se re-estacionalizan los datos añadiendo 
+###Los pronósticos de la componente estacional.
+fit %>% forecast(method="naive") %>%
+  autoplot() + ylab("New orders index")
+
+###Note que la obtención de los pronósticos  es obtenida paso a paso.
+###Otra forma de hacerlo es usando la función stlf
+
+fcast <- stlf(elecequip, method='naive')
+```
 
 

@@ -367,3 +367,118 @@ deslAirPass
     ## 
     ## attr(,"class")
     ## [1] "decomposed.ts"
+
+# Otras ténicas de descomposición
+
+Existe mas formas de hacer de descomposición de series de tiempo, por
+ejemplo está Descomposción X11 usando el paquete seasonal, cuyo
+argumento teórico se puede ver el libro Seasonal Adjustment Methods and
+Real Time Trend-Cycle Estimation (Statistics for Social and Behavioral
+Sciences) Estela Bee Dagum, Silvia Bianconcini
+
+``` r
+library(seasonal)
+library(ggplot2)
+library(fpp)
+```
+
+    ## Loading required package: fma
+
+    ## Loading required package: expsmooth
+
+    ## Loading required package: lmtest
+
+    ## Loading required package: zoo
+
+    ## 
+    ## Attaching package: 'zoo'
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     as.Date, as.Date.numeric
+
+    ## Loading required package: tseries
+
+``` r
+AirPassengers %>% seas(x11="") -> fit  #%>% Operador Pipe
+autoplot(fit) + ggtitle("X11 decomposition of Aipassengers")
+```
+
+![](Descomposicion_files/figure-gfm/X11-1.png)<!-- -->
+
+``` r
+data(elecequip)
+autoplot(elecequip)
+```
+
+![](Descomposicion_files/figure-gfm/X11-2.png)<!-- -->
+
+``` r
+elecequip %>% seas(x11="") -> fit
+autoplot(elecequip, series="Data") +
+  autolayer(trendcycle(fit), series="Trend") +
+  autolayer(seasadj(fit), series="Seasonally Adjusted") +
+  xlab("Year") + ylab("New orders index") +
+  ggtitle("Electrical equipment manufacturing (Euro area)") +
+  scale_colour_manual(values=c("gray","blue","red"),
+                      breaks=c("Data","Seasonally Adjusted","Trend"))
+```
+
+![](Descomposicion_files/figure-gfm/X11-3.png)<!-- --> \# Descomposición
+STL
+
+``` r
+library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
+library(fpp)
+###La base de datos "elecequip" está en en el paquete fpp
+###Note que el operador %>% pipe permite concatenar múltiples dplyr operaciones
+###Manufacture of electrical equipment: computer, electronic and optical products
+elecequip %>%
+  stats::stl(t.window=13, s.window="periodic", robust=TRUE) %>%
+  autoplot()
+```
+
+![](Descomposicion_files/figure-gfm/STL-1.png)<!-- -->
+
+# Pronóstico basados en descomposición
+
+``` r
+fit <- stl(elecequip, t.window=13, s.window="periodic",
+           robust=TRUE)
+fit %>% seasadj() %>% naive() %>%
+  autoplot() + ylab("Nuevo índices ordenados.") +
+  ggtitle("Pronóstico Naive de la componente ajusta estacionalmente")
+```
+
+![](Descomposicion_files/figure-gfm/Pronósticos%20Basados%20en%20Descomposición-1.png)<!-- -->
+
+``` r
+###El método naive consiste en que la predicción es el último valor real de la serie(o el de una caminata aleatoria).
+#Ahora se re-estacionalizan los datos añadiendo 
+###Los pronósticos de la componente estacional.
+fit %>% forecast(method="naive") %>%
+  autoplot() + ylab("New orders index")
+```
+
+![](Descomposicion_files/figure-gfm/Pronósticos%20Basados%20en%20Descomposición-2.png)<!-- -->
+
+``` r
+###Note que la obtención de los pronósticos  es obtenida paso a paso.
+###Otra forma de hacerlo es usando la función stlf
+
+fcast <- stlf(elecequip, method='naive')
+```
