@@ -176,6 +176,7 @@ fcast <- stlf(elecequip, method='naive')
 ```
 
 #Suavizamiento Exponencial
+Si no se desea alguna componente, hay que establecer los parámetros en cero.
 
 ```{r Suavizamiento exponencial}
 HWAP=HoltWinters(lAirPass,seasonal="additive")
@@ -184,7 +185,12 @@ ajustados=fitted(HWAP)
 plot(ajustados)
 ajustados
 HWAP
-predictionHWAP_1=forecast(HWAP,h=12,level =0.95)
+predictionHWAP_1=forecast(HWAP,h=12,level =0.95,lambda = 0)
+predictionHWAP_1
+plot(predictionHWAP_1)
+predictionHWAP_2=predict(HWAP,n.ahead = 12, prediction.interval = T, level = 0.95)
+predictionHWAP_2=forecast::InvBoxCox(predictionHWAP_2,lambda=0)
+
 
 ```
 
