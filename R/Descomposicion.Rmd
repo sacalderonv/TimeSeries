@@ -175,4 +175,16 @@ fit %>% forecast(method="naive") %>%
 fcast <- stlf(elecequip, method='naive')
 ```
 
+#Suavizamiento Exponencial
+
+```{r Suavizamiento exponencial}
+HWAP=HoltWinters(lAirPass,seasonal="additive")
+plot(HWAP)
+ajustados=fitted(HWAP)
+plot(ajustados)
+ajustados
+HWAP
+predictionHWAP_1=forecast(HWAP,h=12,level =0.95)
+
+```
 
