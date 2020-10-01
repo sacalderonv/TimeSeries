@@ -43,8 +43,12 @@ text(t1,pretty=0)
 ```
 
 
-# Etapa de Pronóstico
+# Ejemplo completo
 
+Considere la medición diaria de PM2.5 (materia particular fina con un diámetro menor a 2.5 mm) de Shanghai, China, desde el 1 de enero de 2013 al 31 de mayo de 2017. Los datos originales son por hora, medidos en unidades (𝜇g / m3), y se puede descargar de www.stateair.net, que es parte del programa de monitoreo de la calidad del aire del Departamento de Estado de EE. UU.\\
+Tomamos el promedio de datos por hora como la medida de PM2.5 para un día determinado. Para simplificar el análisis, eliminamos la observación del 29 de febrero de 2016 para que cada año tenga el mismo número de observaciones.\\
+Se toman 365 observaciones, es decir el último año como muestra de prueba, es decir nos quedan 1246 para el entrenamiento.\\
+En el árbol, se ve que la variable rezago-1 yt_1 es la variable explicativa más importante, y las variables rezagadas estacionales yt_370 y yt_367 también son importantes.
 
 ```{r Pronóstico}
 library(NTS)
@@ -52,18 +56,18 @@ PM2.5 = scan(file="/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Da
 tdx = c(1:length(PM2.5))/365+2013
 par(mfcol=c(2,1))
 plot(tdx,PM2.5,xlab='year',ylab='PM2.5',type='l') 
-acf(PM2.5,lag=800)
-m1 = NNsetting(PM2.5,nfore=365,lags=c(1:10,365:370))
+acf(PM2.5,lag=800)###Chequeamos un ciclo anual
+m1 = NNsetting(PM2.5,nfore=365,lags=c(1:10,365:370))###configuración prueba y entrenamiento al igual que las covariables.Es decir, los rezagos son y_1,....,y_10, y y_365,..,y_370, debido al ciclo anual.
 names(m1)
 X= m1$X; y = m1$y; predX = m1$predX; predY = m1$predY
 t1 = tree(y~.,data=data.frame(X))
 par(mfcol=c(1,1))
 plot(t1)
 text(t1,pretty=0) 
-pt1 = predict(t1,newdata=data.frame(predX)) 
-er3 = pt1-predY
+pt1 = predict(t1,newdata=data.frame(predX)) ###Predicción sobre la muestra de prueba
+er3 = pt1-predY ###Errores de predicción
 mean(abs(er3))
-sqrt(mean(er3ˆ2))
+sqrt(mean(er3^2)) ###Promedio de los errores de predicción al cuadrado
 ```
 # Residuales del Modelo
 
@@ -71,15 +75,16 @@ sqrt(mean(er3ˆ2))
 pp1 =predict(t1,newdata=data.frame(X))
 resi= y-pp1
 acf(resi)
+plot(resi,type='l')
 
 ```
-# Poda del Árbo
+# Poda del Árbol
 
 ```{r Poda}
 cv.t1 = cv.tree(t1)
-plot(cv.t1$size,cv.t1$dev,type="b")
+plot(cv.t1$size,cv.t1$dev,type="b")##Parece que el tamaño del árbol es 4
 prune.t1= prune.tree(t1,best=4)
-plot(prune.t1)
+plot(prune.t1)   ####Gráfica de árbol con la poda
 text(prune.t1,pretty=0)
 prun = predict(prune.t1,newdata=data.frame(predX)) 
 per =predY-prun
@@ -87,3 +92,10 @@ mean(abs(per))
 sqrt(mean(per^2))
 ```
 
+```{r Residuales modelo después de la poda}
+pp1_tune =predict(prune.t1,newdata=data.frame(X))
+resi_tune= y-pp1_tune
+acf(resi_tune)
+plot(resi_tune,type='l')
+
+```

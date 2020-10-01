@@ -173,15 +173,16 @@ fit %>% forecast(method="naive") %>%
 
 ###Note que la obtención de los pronósticos  es obtenida paso a paso.
 ###Otra forma de hacerlo es usando la función stlf
+fcast1 <- stlf(elecequip, method='naive')
+fcast <- stlf(elecequip, method='ets')
 
-fcast <- stlf(elecequip, method='naive')
 ```
 
 #Suavizamiento Exponencial
 Si no se desea alguna componente, hay que establecer los parámetros en cero.
 
 ```{r Suavizamiento exponencial}
-HWAP=HoltWinters(lAirPass,seasonal="additive")
+HWAP=stats::HoltWinters(lAirPass,seasonal="additive")
 plot(HWAP)
 ajustados=fitted(HWAP)
 plot(ajustados)
