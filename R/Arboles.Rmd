@@ -27,8 +27,8 @@ length(gdp)
 
 ## Configuración y Arbol
 
-
-
+# yt=g(y_t-1,y_t-2,y_t-3)+a_t
+# Se debe empezar desde el tiempo t=4 porque hay 3 condiciones iniciales.
 ```{r Configuración y Arbol}
 
 gdp = round(gdp*100,2)
@@ -74,9 +74,9 @@ sqrt(mean(er3^2)) ###Promedio de los errores de predicción al cuadrado
 ```{r Residuales}
 pp1 =predict(t1,newdata=data.frame(X))
 resi= y-pp1
-acf(resi)
+acf(resi,lag.max = 400)
 plot(resi,type='l')
-
+hist(resi)
 ```
 # Poda del Árbol
 
