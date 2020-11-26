@@ -92,7 +92,7 @@ plot(dlogAirPass)
 ## Identificación del Modelo Usando ACF y PACF
 ```{r pasajeros3}
 ####Identificación de los Órdenes Autoregresivos
-acf(dlogAirPass,lag.max = 24)  ###Se requiere un MA de orden muy grande
+acf(dlogAirPass,lag.max = 24,ci.type='ma')  ###Se requiere un MA de orden muy grande
 pacf(dlogAirPass,lag.max = 24)  ####Puede ser un autoregresivo de orden 12
 ```
 
