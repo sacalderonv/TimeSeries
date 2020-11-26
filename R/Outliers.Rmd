@@ -1,0 +1,45 @@
+---
+title: "Outliers"
+output: 
+      github_document: default
+      html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Outliers en Modelos ARIMA
+Vamos a considerar el análisis de outliers para modelos ARIMA o SARIMA.
+
+La base fundamental del análisis de outliers se basa en en análisis de intervención. Vamos a empezar con unos ejercicios de simulación. La librería base es tsoutliers.
+
+```{r simulación aditivo }
+library(tsoutliers)
+library(forecast)
+###### Simulación Outlier aditivo
+
+set.seed(12)
+n=200
+serie=arima.sim(n=n,list(ar=(0.5)))
+serie2=serie
+serie2[50]=serie2[50]+6
+
+par(mfrow=c(1,2))
+plot(serie,ylim=c(-3,6),main="Serie original")
+plot(serie2,ylim=c(-3,6),main="Outlier aditivo")
+```
+
+Después de simular un outlier aditivo en el tiempo $t=50$ con impacto de 6, basada en una serie que proviene de de un modelo AR con $\phi=0.5$.
+
+En seguida vamos ajustar dos modelos, uno vía el procedimiento automático y el otro el verdadero modelo.
+```{r ajuste de dos modelo}
+auto.arima(serie2)
+auto.arima(serie)
+fit= arima(serie2,order=c(1,0,0),include.mean = F)
+fit
+resi= residuals(fit)
+plot(resi)
+```
+
+
