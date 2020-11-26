@@ -38,11 +38,11 @@ plot(serie2,ylim=c(-3,6),main="Outlier aditivo")
 Después de simular un outlier aditivo en el tiempo *t* = 50 con impacto
 de 6, basada en una serie que proviene de de un modelo AR con *ϕ* = 0.5.
 
-En seguida vamos ajustar dos modelos, uno vía el procedimiento
-automático y el otro el verdadero modelo.
+En seguida vamos ajustar los modelos a las series con y sin outlier vía
+el procedimiento automático.
 
 ``` r
-auto.arima(serie2)
+auto.arima(serie2)###Ajuste para el modelo con outlier
 ```
 
     ## Series: serie2 
@@ -57,7 +57,7 @@ auto.arima(serie2)
     ## AIC=594.24   AICc=594.36   BIC=604.13
 
 ``` r
-auto.arima(serie)
+auto.arima(serie)###Ajuste para el modelo sin outlier
 ```
 
     ## Series: serie 
@@ -93,3 +93,50 @@ plot(resi)
 ```
 
 ![](Outliers_files/figure-gfm/ajuste%20de%20dos%20modelo-1.png)<!-- -->
+Note que el residual correspodiente a la observación 50 es bastante
+grande.
+
+Detección de outliers: procedimiento automático
+-----------------------------------------------
+
+``` r
+coef= coefs2poly(fit)
+coef
+```
+
+    ## $arcoefs
+    ## [1] 0.4001684
+    ## 
+    ## $macoefs
+    ## numeric(0)
+    ## 
+    ## attr(,"class")
+    ## [1] "ArimaPars"
+
+``` r
+outliers= tsoutliers::locate.outliers(resi,coef)
+outliers###tstat se compara con C=3
+```
+
+    ##   type ind  coefhat   tstat
+    ## 1   AO  50 6.073156 6.70443
+
+``` r
+?tso####Detección automática de outliers, donde el modelo que se propone es via auto.arima
+tso(serie2)
+```
+
+    ## Series: serie2 
+    ## Regression with ARIMA(1,0,0) errors 
+    ## 
+    ## Coefficients:
+    ##          ar1    AO50
+    ##       0.4693  6.0844
+    ## s.e.  0.0622  0.8598
+    ## 
+    ## sigma^2 estimated as 0.9111:  log likelihood=-273.59
+    ## AIC=553.19   AICc=553.31   BIC=563.08
+    ## 
+    ## Outliers:
+    ##   type ind time coefhat tstat
+    ## 1   AO  50   50   6.084 7.077

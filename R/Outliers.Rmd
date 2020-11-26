@@ -32,14 +32,25 @@ plot(serie2,ylim=c(-3,6),main="Outlier aditivo")
 
 Después de simular un outlier aditivo en el tiempo $t=50$ con impacto de 6, basada en una serie que proviene de de un modelo AR con $\phi=0.5$.
 
-En seguida vamos ajustar dos modelos, uno vía el procedimiento automático y el otro el verdadero modelo.
+En seguida vamos ajustar los modelos a las series con y sin outlier vía el procedimiento automático.
 ```{r ajuste de dos modelo}
-auto.arima(serie2)
-auto.arima(serie)
+auto.arima(serie2)###Ajuste para el modelo con outlier
+auto.arima(serie)###Ajuste para el modelo sin outlier
 fit= arima(serie2,order=c(1,0,0),include.mean = F)
 fit
 resi= residuals(fit)
 plot(resi)
 ```
+Note que el residual correspodiente a la observación 50 es bastante grande.
 
+## Detección de outliers: procedimiento automático
+
+```{r detección automática de outliers }
+coef= coefs2poly(fit)
+coef
+outliers= tsoutliers::locate.outliers(resi,coef)
+outliers###tstat se compara con C=3
+?tso####Detección automática de outliers, donde el modelo que se propone es via auto.arima
+tso(serie2)
+```
 
