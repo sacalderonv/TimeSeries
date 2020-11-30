@@ -53,4 +53,17 @@ outliers###tstat se compara con C=3
 ?tso####Detección automática de outliers, donde el modelo que se propone es via auto.arima
 tso(serie2)
 ```
+## Simulación Outlier cambio de nivel
+```{r Cambio de nivel}
+set.seed(12)
+n=500
+serie=arima.sim(n=n,list(ar=0.3))
+serie2=serie
+serie2[100:n]=serie2[100:n]+4
+par(mfrow=c(1,2))
+plot(serie,ylim=c(-3,7),main="Serie original")
+plot(serie2,ylim=c(-3,7),ylab="Serie")
+plot(serie2,ylim=c(-3,7),main="Outlier cambio de nivel")
+```
+
 
