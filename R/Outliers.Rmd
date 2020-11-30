@@ -67,3 +67,5 @@ plot(serie2,ylim=c(-3,7),main="Outlier cambio de nivel")
 ```
 
 
+
+
