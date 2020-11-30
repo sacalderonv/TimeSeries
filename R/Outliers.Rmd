@@ -66,6 +66,25 @@ plot(serie2,ylim=c(-3,7),ylab="Serie")
 plot(serie2,ylim=c(-3,7),main="Outlier cambio de nivel")
 ```
 
+```{r Ajuste cambio de nivel}
+fit= Arima(serie2,order=c(1,0,0),include.mean = F)
+fit
+resi= residuals(fit)
+coef= coefs2poly(fit)
+outliers= locate.outliers(resi,coef,cval=5)###cval=3.5 por defecto
+outliers
+xreg = outliers.effects(outliers, n)
+xreg
+tso(serie2)
+salida_tso=tso(y=serie2,types=c("LS"))
+plot(salida_tso$yadj)####Esta serie es sin el efecto de los outliers
+plot(tso(y=serie2,types=c("LS")))
+tso(y=serie2,xreg=xreg,tsmethod="arima",args.tsmethod=list(include.mean=FALSE,order=c(1,0,0)))#####Yo especifico el modelo
+
+Arima(serie2,order=c(1,0,0),xreg=xreg,include.mean = F)
+
+
+```
 
 
 
