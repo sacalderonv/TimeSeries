@@ -759,3 +759,37 @@ Arima(serie2,order=c(1,0,0),xreg=xreg,include.mean = F)
     ## 
     ## sigma^2 estimated as 0.8897:  log likelihood=-679.29
     ## AIC=1364.59   AICc=1364.63   BIC=1377.23
+
+Pronóstico con outliers
+-----------------------
+
+Para el pronóstico, debo tener en cuenta los valores futuros de la
+variable de intervención.
+
+``` r
+##### Pronóstico 
+fit= Arima(serie2,order=c(1,0,0),include.mean = F)
+fit2= Arima(serie2,order=c(1,0,0),include.mean = F,xreg=xreg)
+pronostico=  forecast(object=fit,h=15)  #4.093698                      
+regresoras=c(rep(1,15))
+pronostico_out=forecast(object=fit2,xreg=regresoras,h=15) 
+```
+
+    ## Warning in forecast.forecast_ARIMA(object = fit2, xreg = regresoras, h = 15):
+    ## xreg contains different column names from the xreg used in training. Please
+    ## check that the regressors are in the same order.
+
+``` r
+par(mfrow=c(1,2))
+plot(pronostico,ylim=c(-3,7))
+plot(pronostico_out,ylim=c(-3,7)) ###Note la reducción en la varianza de las predicciones 
+```
+
+![](Outliers_files/figure-gfm/ajuste%20y%20creación%20de%20la%20variablde%20intervención%20para%20pronóstico-1.png)<!-- -->
+
+``` r
+plot(pronostico$residuals,ylim=c(-3,5))
+plot(pronostico_out$residuals,ylim=c(-3,5))  
+```
+
+![](Outliers_files/figure-gfm/ajuste%20y%20creación%20de%20la%20variablde%20intervención%20para%20pronóstico-2.png)<!-- -->

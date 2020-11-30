@@ -85,6 +85,26 @@ Arima(serie2,order=c(1,0,0),xreg=xreg,include.mean = F)
 
 
 ```
+## Pronóstico con outliers
+Para el pronóstico, debo tener en cuenta los valores futuros de la variable de intervención.
+
+```{r ajuste y creación de la variablde intervención para pronóstico}
+##### Pronóstico 
+fit= Arima(serie2,order=c(1,0,0),include.mean = F)
+fit2= Arima(serie2,order=c(1,0,0),include.mean = F,xreg=xreg)
+pronostico=  forecast(object=fit,h=15)  #4.093698                      
+regresoras=c(rep(1,15))
+pronostico_out=forecast(object=fit2,xreg=regresoras,h=15) 
+par(mfrow=c(1,2))
+plot(pronostico,ylim=c(-3,7))
+plot(pronostico_out,ylim=c(-3,7)) ###Note la reducción en la varianza de las predicciones 
+
+
+plot(pronostico$residuals,ylim=c(-3,5))
+plot(pronostico_out$residuals,ylim=c(-3,5))  
+
+```
+
 
 
 
