@@ -793,3 +793,132 @@ plot(pronostico_out$residuals,ylim=c(-3,5))
 ```
 
 ![](Outliers_files/figure-gfm/ajuste%20y%20creación%20de%20la%20variablde%20intervención%20para%20pronóstico-2.png)<!-- -->
+
+\#\#\#Ejemplo Serie de Pasajeros
+
+``` r
+library(lmtest)
+```
+
+    ## Loading required package: zoo
+
+    ## 
+    ## Attaching package: 'zoo'
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     as.Date, as.Date.numeric
+
+``` r
+data("AirPassengers")
+serie <- AirPassengers
+ajuste=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 )
+resi= residuals(ajuste)
+coef= coefs2poly(ajuste)
+outliers= locate.outliers(resi,coef)
+outliers
+```
+
+    ##   type ind     coefhat     tstat
+    ## 1   AO  29  0.08716944  3.736147
+    ## 2   AO  62 -0.08410177 -3.604320
+    ## 3   AO 135 -0.10318382 -3.902051
+
+``` r
+n=length(serie)
+xreg = outliers.effects(outliers,n )
+
+###El siguiente procedimiento busca que al ajustar, en el modelo con el efecto de los outliers, se busquen si hay mas outliers.
+analisis=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=xreg)
+analisis
+```
+
+    ## Series: serie 
+    ## Regression with ARIMA(0,1,1)(0,1,1)[12] errors 
+    ## Box Cox transformation: lambda= 0 
+    ## 
+    ## Coefficients:
+    ##           ma1     sma1    AO29     AO62    AO135
+    ##       -0.2898  -0.5246  0.0893  -0.0804  -0.1034
+    ## s.e.   0.0990   0.0746  0.0228   0.0226   0.0257
+    ## 
+    ## sigma^2 estimated as 0.001067:  log likelihood=263.03
+    ## AIC=-514.06   AICc=-513.38   BIC=-496.81
+
+``` r
+resi_analisis= residuals(analisis)
+coef_analisis= coefs2poly(analisis)
+outliers_analisis= locate.outliers(resi_analisis,coef_analisis)
+outliers_analisis
+```
+
+    ##   type ind     coefhat     tstat
+    ## 1   LS  54 -0.09604727 -3.923821
+
+``` r
+xreg_analisis = outliers.effects(outliers_analisis,n )
+####Se pone "AO" en types porque en la localización de outliers únicamente encontró aditivos. Se incluye los efectos de los outliers, así que ahora encontró un outlier cambio de nivel en el tiempo 54.  
+total_outliers=cbind(xreg,xreg_analisis)
+analisis_final=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=total_outliers)
+analisis_final
+```
+
+    ## Series: serie 
+    ## Regression with ARIMA(0,1,1)(0,1,1)[12] errors 
+    ## Box Cox transformation: lambda= 0 
+    ## 
+    ## Coefficients:
+    ##           ma1     sma1    AO29     AO62    AO135     LS54
+    ##       -0.3320  -0.4965  0.0959  -0.0803  -0.1032  -0.0967
+    ## s.e.   0.0909   0.0759  0.0218   0.0216   0.0248   0.0249
+    ## 
+    ## sigma^2 estimated as 0.0009703:  log likelihood=270.03
+    ## AIC=-526.06   AICc=-525.15   BIC=-505.93
+
+``` r
+resi_final= residuals(analisis_final)
+coef_final= coefs2poly(analisis_final)
+outliers_final= locate.outliers(resi_final,coef_final)
+outliers_final
+```
+
+    ## [1] type    ind     coefhat tstat  
+    ## <0 rows> (or 0-length row.names)
+
+``` r
+###No se encontraron mas outliers
+###Verificar los supuestos del modelo.
+```
+
+``` r
+###Creación de las variable de intervención
+pasos_adel=12
+num_outliers=dim(total_outliers)[2]
+regresoras_aditivos=matrix(c(rep(0,pasos_adel*(num_outliers-1))),pasos_adel,num_outliers-1)
+regresoras_LS=matrix(c(rep(1,pasos_adel)),pasos_adel,1)
+regresoras=cbind(regresoras_aditivos,regresoras_LS)
+colnames(regresoras)=colnames(total_outliers)
+
+pronostico_out=forecast(object=analisis_final,xreg=regresoras,h=pasos_adel) 
+pronostico_out
+```
+
+    ##          Point Forecast    Lo 80    Hi 80    Lo 95    Hi 95
+    ## Jan 1961       449.8404 432.2367 468.1610 423.1985 478.1595
+    ## Feb 1961       424.7048 404.7981 445.5905 394.6407 457.0593
+    ## Mar 1961       500.6276 473.8772 528.8880 460.3000 544.4884
+    ## Apr 1961       492.0941 462.9524 523.0702 448.2309 540.2497
+    ## May 1961       508.9298 476.1319 543.9870 459.6342 563.5124
+    ## Jun 1961       582.3461 542.0245 625.6673 521.8223 649.8898
+    ## Jul 1961       670.5677 621.1525 723.9140 596.4852 753.8510
+    ## Aug 1961       666.7261 614.8142 723.0213 588.9904 754.7215
+    ## Sep 1961       556.8647 511.3170 606.4696 488.7336 634.4934
+    ## Oct 1961       497.1427 454.6262 543.6352 433.6116 569.9820
+    ## Nov 1961       428.9600 390.7509 470.9052 371.9219 494.7454
+    ## Dec 1961       475.9017 431.8949 524.3925 410.2711 552.0311
+
+``` r
+plot(pronostico_out)
+```
+
+![](Outliers_files/figure-gfm/Pronóstico-1.png)<!-- -->

@@ -106,5 +106,52 @@ plot(pronostico_out$residuals,ylim=c(-3,5))
 ```
 
 
+###Ejemplo Serie de Pasajeros
 
+```{r Pasajeros}
+library(lmtest)
+data("AirPassengers")
+serie <- AirPassengers
+ajuste=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 )
+resi= residuals(ajuste)
+coef= coefs2poly(ajuste)
+outliers= locate.outliers(resi,coef)
+outliers
+n=length(serie)
+xreg = outliers.effects(outliers,n )
+
+###El siguiente procedimiento busca que al ajustar, en el modelo con el efecto de los outliers, se busquen si hay mas outliers.
+analisis=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=xreg)
+analisis
+resi_analisis= residuals(analisis)
+coef_analisis= coefs2poly(analisis)
+outliers_analisis= locate.outliers(resi_analisis,coef_analisis)
+outliers_analisis
+xreg_analisis = outliers.effects(outliers_analisis,n )
+####Se pone "AO" en types porque en la localización de outliers únicamente encontró aditivos. Se incluye los efectos de los outliers, así que ahora encontró un outlier cambio de nivel en el tiempo 54.  
+total_outliers=cbind(xreg,xreg_analisis)
+analisis_final=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=total_outliers)
+analisis_final
+resi_final= residuals(analisis_final)
+coef_final= coefs2poly(analisis_final)
+outliers_final= locate.outliers(resi_final,coef_final)
+outliers_final
+###No se encontraron mas outliers
+###Verificar los supuestos del modelo.
+
+```
+
+```{r Pronóstico}
+###Creación de las variable de intervención
+pasos_adel=12
+num_outliers=dim(total_outliers)[2]
+regresoras_aditivos=matrix(c(rep(0,pasos_adel*(num_outliers-1))),pasos_adel,num_outliers-1)
+regresoras_LS=matrix(c(rep(1,pasos_adel)),pasos_adel,1)
+regresoras=cbind(regresoras_aditivos,regresoras_LS)
+colnames(regresoras)=colnames(total_outliers)
+
+pronostico_out=forecast(object=analisis_final,xreg=regresoras,h=pasos_adel) 
+pronostico_out
+plot(pronostico_out)
+```
 
