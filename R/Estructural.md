@@ -20,33 +20,68 @@ la componente estacional, *x*<sub>*j*<sub>*t*</sub></sub> es la
 *j*−ésima variable regresora o explicativa, y *ε*<sub>*t*</sub> es la
 componente irregular o de error.
 
-Veamos una primera propuesta de modelo para cada una de las componentes.
-La propuesta La componente de tendencia *μ*<sub>*t*</sub> se puede ver
-como una extensión dinámica del modelo de regresión de intercepto y
-pendiente:
+Ejemplo Pasajeros
+-----------------
 
-*μ*<sub>*t* + 1</sub> = *μ*<sub>*t*</sub> + *ν*<sub>*t*</sub> + *η*<sub>*t* + 1</sub>,    *η*<sub>*t* + 1</sub> ∼ *N*(0, *σ*<sub>*η*</sub><sup>2</sup>)
+``` r
+library(KFKSDS)
+library(rucm)
+```
 
-*ν*<sub>*t* + 1</sub> = *ν*<sub>*t*</sub> + *ζ*<sub>*t* + 1</sub>,    *ζ*<sub>*t* + 1</sub> ∼ *N*(0, *σ*<sub>*ζ*</sub><sup>2</sup>)
+    ## Loading required package: KFAS
 
-La componente estacional *γ*<sub>*t*</sub> puede ser escrita como:
+``` r
+library(readr)
+library(stsm)
+data("AirPassengers")
+estimationm1=stats::StructTS(log(AirPassengers), type = "BSM")
+plot(log(AirPassengers))
+```
 
-*γ*<sub>*t*</sub> =  − ∑<sub>*j*</sub>*γ*<sub>*t* + 1 − *j*</sub> + *ω*<sub>*t*</sub>,   *ω*<sub>*t*</sub> ∼ *N*(0, *σ*<sub>*ω*</sub><sup>2</sup>)
-La condición principal es que la la suma de las componentes estacionales
-en un ciclo completo es cero. \\
+![](Estructural_files/figure-gfm/Ejemplo%20Pasajeros-1.png)<!-- -->
 
-La componente cíclica trata de capturar los efectos cíclicos en etapas
-de tiempo mas grandes que las capturadas por la componente estacional.
-Para el caso de ciclos económicos, ellos intentan capturar los ciclos de
-negocios los cuales se esperan que tengan un periodo entre 1.5 y 12
-años, es decir 2*π*/*λ*<sub>*c*</sub>.\\ La componente cíclica
-determinística puede ser escrita como
-*c*<sub>*t*</sub> = *c̃*
-Mientras que la componente cíclica también puede considerar se de la
-siguiente manera con 0 &lt; *ρ*<sub>*c*</sub> ≤ 1:
-*c*<sub>*t* + 1</sub> = *ρ*<sub>*c*</sub>\[*c*<sub>*t*</sub>cos *λ*<sub>*c*</sub> + *c*<sub>*t*</sub><sup>\*</sup>sin *λ*<sub>*c*</sub>\] + *ω̃*<sub>*t*</sub>,   *ω̃*<sub>*t*</sub> ∼ *N*(0, *σ*<sub>*ω̃*</sub><sup>2</sup>)
-*c*<sub>*t* + 1</sub><sup>\*</sup> = *ρ*<sub>*c*</sub>\[ − *c*<sub>*t*</sub>sin *λ*<sub>*c*</sub> + *c*<sub>*t*</sub><sup>\*</sup>sin *λ*<sub>*c*</sub>\] + *ω̃*<sub>*t*</sub><sup>\*</sup>,   *ω̃*<sub>*t*</sub><sup>\*</sup> ∼ *N*(0, *σ*<sub>*ω̃*<sup>\*</sup></sub><sup>2</sup>)
-Se puede observar que *λ*<sub>*c*</sub> es la frecuencia del ciclo, la
-cual pasa a ser un parámetro del modelo o identificado por el
-periodograma.\\ Los modelos presentados anteriormente para las
-diferentes componentes no son lo únicos.
+``` r
+plot(cbind(fitted(estimationm1), resids=resid(estimationm1)), main = "Airpassengers")
+```
+
+![](Estructural_files/figure-gfm/Modelo%20Basico%20Estructural%20Pasajeros-1.png)<!-- -->
+
+``` r
+m1 <- StructTS(log(AirPassengers), type = "BSM")$coef[c(4,1:3)]
+print(m1)
+```
+
+    ##      epsilon        level        slope         seas 
+    ## 0.0000000000 0.0007718511 0.0000000000 0.0013969062
+
+``` r
+#### Con librería rucm
+
+serie=log(AirPassengers)
+model=ucm(serie~0, serie, irregular = TRUE, irregular.var = NA, level = TRUE,
+    level.var = NA, slope = TRUE, slope.var = NA, season = TRUE,
+    season.length = 12, season.var = NA, cycle = FALSE, cycle.period = NA,
+    cycle.var = NA)
+## Gráfica de las componentes de tendencia
+
+plot(model$s.level, col = "blue")
+```
+
+![](Estructural_files/figure-gfm/Usando%20RUCM-1.png)<!-- -->
+
+``` r
+plot(model$s.slope, col = "blue")
+```
+
+![](Estructural_files/figure-gfm/Usando%20RUCM-2.png)<!-- -->
+
+``` r
+plot(model$s.season,col="blue")
+```
+
+![](Estructural_files/figure-gfm/Usando%20RUCM-3.png)<!-- -->
+
+``` r
+##Pronóstico
+pron=predict(model, n.ahead = 12)
+```

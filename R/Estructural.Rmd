@@ -17,22 +17,47 @@ $$Y_{t}=\mu_{t}+\gamma_{t}+c_{t}+\sum \beta_{j} x_j_t+\varepsilon_{t}$$
 
 donde $\mu_{t}$ es una componente de variación lenta llamada tendencia,  $\gamma_{t}$ es una componente periódica de periodo fijo llamada \textit{estacional}, $c_{t}$ es la componente cíclica de periodo mayor a la componente estacional, $x_j_t$ es la $j-$ésima variable regresora o explicativa, y $\varepsilon_{t}$ es la componente  irregular o de error.
 
-Veamos una primera propuesta de modelo para cada una de las componentes. La propuesta La componente de tendencia $\mu_{t}$ se puede ver como una extensión dinámica del modelo de regresión de intercepto y pendiente:
 
-$$\mu_{t+1}=\mu_{t}+\nu_{t}+\eta_{t+1},\  \  \  \  \eta_{t+1}\sim N(0,\sigma^{2}_{\eta})$$
+## Ejemplo Pasajeros
 
-$$\nu_{t+1}=\nu_{t}+\zeta_{t+1},\  \  \  \  \zeta_{t+1}\sim N(0,\sigma^{2}_{\zeta})$$
+```{r Ejemplo Pasajeros}
+library(KFKSDS)
+library(rucm)
+library(readr)
+library(stsm)
+data("AirPassengers")
+estimationm1=stats::StructTS(log(AirPassengers), type = "BSM")
+plot(log(AirPassengers))
+```
 
-La componente estacional $\gamma_{t}$ puede ser escrita como:
+```{r Modelo Basico Estructural Pasajeros}
+plot(cbind(fitted(estimationm1), resids=resid(estimationm1)), main = "Airpassengers")
+m1 <- StructTS(log(AirPassengers), type = "BSM")$coef[c(4,1:3)]
+print(m1)
+```
 
-$$\gamma_{t}=-\sum_{j} \gamma_{t+1-j}+\omega_{t},\  \  \  \omega_{t}\sim N(0,\sigma^{2}_{\omega})$$
-La condición principal es que la la suma de las componentes estacionales en un ciclo completo es cero. \\
+```{r Usando RUCM}
+#### Con librería rucm
 
-La componente cíclica trata de capturar los efectos cíclicos en etapas de tiempo mas grandes que las capturadas por la componente estacional. Para el caso de ciclos económicos, ellos intentan capturar los ciclos de negocios los cuales se esperan que tengan un periodo entre 1.5 y 12 años, es decir $2\pi/\lambda_{c}$.\\
-La componente cíclica determinística puede ser escrita como
-$$c_t=\widetilde{c} $$
-Mientras que la componente cíclica también puede considerar se de la siguiente manera con $0<\rho_c\leq1$:
-$$c_{t+1}=\rho_c[c_{t}\cos \lambda_{c}+c_{t}^{\ast}\sin \lambda_{c}]+\widetilde{\omega}_{t},\  \  \  \widetilde{\omega}_{t}\sim N(0,\sigma^{2}_{\widetilde{\omega}})$$
-$$c^{\ast}_{t+1}=\rho_c[-c_{t}\sin \lambda_{c}+c_{t}^{\ast}\sin \lambda_{c}]+\widetilde{\omega}^{\ast}_{t},\  \  \  \widetilde{\omega}^{\ast}_{t}\sim N(0,\sigma^{2}_{\widetilde{\omega}^{\ast}})$$
-Se puede observar que $\lambda_{c}$ es la frecuencia del ciclo, la cual pasa a ser un parámetro del modelo o identificado por el periodograma.\\
-\textbf{Nota:}Los modelos presentados anteriormente para las diferentes componentes no son lo únicos.
+serie=log(AirPassengers)
+model=ucm(serie~0, serie, irregular = TRUE, irregular.var = NA, level = TRUE,
+    level.var = NA, slope = TRUE, slope.var = NA, season = TRUE,
+    season.length = 12, season.var = NA, cycle = FALSE, cycle.period = NA,
+    cycle.var = NA)
+## Gráfica de las componentes de tendencia
+
+plot(model$s.level, col = "blue")
+plot(model$s.slope, col = "blue")
+plot(model$s.season,col="blue")
+
+
+```
+
+```{r Pronostico}
+##Pronóstico
+pron=predict(model, n.ahead = 12)
+pron
+```
+
+
+
