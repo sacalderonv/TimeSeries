@@ -10,7 +10,8 @@ modelos de Espacio-Estado. Por ésta razón, es necesario tener el
 pre-requisito de los modelos de espacio-estado y el filtro de Kalman, el
 libro base será el libro de Durbin y Koopman. Consideraremos el
 siguiente modelo estructural para la serie de tiempo {*Y*<sub>*t*</sub>}
-$$Y\_{t}=\\mu\_{t}+\\gamma\_{t}+c\_{t}+\\sum\_{j=1}^{k}\\beta\_{j}x\_{jt}+\\varepsilon\_{t}$$
+
+$Y\_{t}=\\mu\_{t}+\\gamma\_{t}+c\_{t}+\\sum\_{j=1}^{k}\\beta\_{j}x\_{jt}+\\varepsilon\_{t}$
 donde *μ*<sub>*t*</sub> es una componente de variación lenta llamada ,
 *γ*<sub>*t*</sub> es una componente periódica de periodo fijo llamada ,
 *c*<sub>*t*</sub> es la componente cíclica de periodo mayor a la

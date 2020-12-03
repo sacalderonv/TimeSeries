@@ -12,7 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Modelos Estructurales
 
 En la presente sección, vamos a introducir una metodología para el análisis de series de tiempo vía modelos estructurales a través de los modelos de Espacio-Estado. Por ésta razón, es necesario tener el pre-requisito de los modelos de espacio-estado y el filtro de Kalman, el libro base será el libro de Durbin y Koopman. Consideraremos el siguiente modelo estructural para la serie de tiempo $\{Y_{t}\}$
-$$Y_{t}=\mu_{t}+\gamma_{t}+c_{t}+\sum_{j=1}^{k}\beta_{j}x_{jt}+\varepsilon_{t}$$
+
+$Y_{t}=\mu_{t}+\gamma_{t}+c_{t}+\sum_{j=1}^{k}\beta_{j}x_{jt}+\varepsilon_{t}$
 donde $\mu_{t}$ es una componente de variación lenta llamada \textit{tendencia},  $\gamma_{t}$ es una componente periódica de periodo fijo llamada \textit{estacional}, $c_{t}$ es la componente cíclica de periodo mayor a la componente estacional, $x_{jt}$ es la $j-$ésima variable regresora o explicativa, y $\varepsilon_{t}$ es la componente  irregular o de error.
 
 Veamos una primera propuesta de modelo para cada una de las componentes. La propuesta La componente de tendencia $\mu_{t}$ se puede ver como una extensión dinámica del modelo de regresión de intercepto y pendiente:
