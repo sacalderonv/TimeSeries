@@ -59,5 +59,18 @@ pron=predict(model, n.ahead = 12)
 pron
 ```
 
+## Espectral
 
+La idea del análisis espectral es descubrir si hay ciclos ocultos, y cuales los correspondientes armónicos asociadosa a estos ciclos.
 
+```{r Espectral}
+data(AirPassengers)
+AirPassengers
+plot(AirPassengers)
+
+logdiffAir=diff(log(AirPassengers))
+
+Espectropasajeros=spectrum(logdiffAir, log="no", spans=c(2,2))
+```
+
+Note que como el periodo de la serie es 12,entonces la frecuencia 1 indica, en verdad que la frecuencia es 1/12, es decir hay un ciclo de periodo $1/(1/12)=12$.  Por qué nos enfocamos en la frecuencia 1, por que allí es donde aparece el primer pico alto. Los demás picos altos son evidentes, porque el periodograma nos sólo muestra la frecuencia asociada al ciclo estacional sino en múltiplos de la frecuencia también.
