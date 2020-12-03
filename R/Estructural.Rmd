@@ -1,0 +1,33 @@
+---
+title: "Estructural"
+output:
+  github_document: default
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Modelos Estructurales
+
+En la presente sección, vamos a introducir una metodología para el análisis de series de tiempo vía modelos estructurales a través de los modelos de Espacio-Estado. Por ésta razón, es necesario tener el pre-requisito de los modelos de espacio-estado y el filtro de Kalman, el libro base será el libro de Durbin y Koopman. Consideraremos el siguiente modelo estructural para la serie de tiempo $\{Y_{t}\}$
+$$Y_{t}=\mu_{t}+\gamma_{t}+c_{t}+\sum_{j=1}^{k}\beta_{j}x_{jt}+\varepsilon_{t}$$
+donde $\mu_{t}$ es una componente de variación lenta llamada \textit{tendencia},  $\gamma_{t}$ es una componente periódica de periodo fijo llamada \textit{estacional}, $c_{t}$ es la componente cíclica de periodo mayor a la componente estacional, $x_{jt}$ es la $j-$ésima variable regresora o explicativa, y $\varepsilon_{t}$ es la componente  irregular o de error.
+
+Veamos una primera propuesta de modelo para cada una de las componentes. La propuesta La componente de tendencia $\mu_{t}$ se puede ver como una extensión dinámica del modelo de regresión de intercepto y pendiente:
+$$\mu_{t+1}=\mu_{t}+\nu_{t}+\eta_{t+1},\  \  \  \  \eta_{t+1}\sim N(0,\sigma^{2}_{\eta})$$
+$$\nu_{t+1}=\nu_{t}+\zeta_{t+1},\  \  \  \  \zeta_{t+1}\sim N(0,\sigma^{2}_{\zeta})$$
+
+La componente estacional $\gamma_{t}$ puede ser escrita como:
+$$\gamma_{t}=-\sum_{j=1}^{s-1}\gamma_{t+1-j}+\omega_{t},\  \  \  \omega_{t}\sim N(0,\sigma^{2}_{\omega})$$
+La condición principal es que la la suma de las componentes estacionales en un ciclo completo es cero. \\
+
+La componente cíclica trata de capturar los efectos cíclicos en etapas de tiempo mas grandes que las capturadas por la componente estacional. Para el caso de ciclos económicos, ellos intentan capturar los ciclos de negocios los cuales se esperan que tengan un periodo entre 1.5 y 12 años, es decir $2\pi/\lambda_{c}$.\\
+La componente cíclica determinística puede ser escrita como
+$$c_t=\widetilde{c} cos\lambda_ct+ \widetilde{c^*}sin\lambda_c t $$
+Mientras que la componente cíclica también puede considerar se de la siguiente manera con $0<\rho_c\leq1$:
+$$c_{t+1}=\rho_c[c_{t}\cos \lambda_{c}+c_{t}^{\ast}\sin \lambda_{c}]+\widetilde{\omega}_{t},\  \  \  \widetilde{\omega}_{t}\sim N(0,\sigma^{2}_{\widetilde{\omega}})$$
+$$c^{\ast}_{t+1}=\rho_c[-c_{t}\sin \lambda_{c}+c_{t}^{\ast}\sin \lambda_{c}]+\widetilde{\omega}^{\ast}_{t},\  \  \  \widetilde{\omega}^{\ast}_{t}\sim N(0,\sigma^{2}_{\widetilde{\omega}^{\ast}})$$
+Se puede observar que $\lambda_{c}$ es la frecuencia del ciclo, la cual pasa a ser un parámetro del modelo o identificado por el periodograma.\\
+\textbf{Nota:}Los modelos presentados anteriormente para las diferentes componentes no son lo únicos.
