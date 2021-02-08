@@ -21,12 +21,21 @@ head(r3)
 
     ## [1] 3.70 3.75 3.80 3.77 3.80 3.76
 
+``` r
+str(r1)
+```
+
+    ##  num [1:2467] 3.24 3.32 3.29 3.26 3.29 3.29 3.31 3.29 3.2 3.15 ...
+
 Gráficas de las Series
 ----------------------
 
 Note que como los datos son semanales, debemos darles ese formato:
 
 ![](IntroSeriesUnivariadas_files/figure-gfm/GráficasTasas-1.png)<!-- -->
+
+    ##  Time-Series [1:2467] from 1962 to 2009: 3.24 3.32 3.29 3.26 3.29 3.29 3.31 3.29 3.2 3.15 ...
+
 Vamos a hacer la gráficas de dispersión de las variables directamente, y
 de las variables en cambios(transformadas).
 
@@ -92,7 +101,7 @@ Note que en el ajuste del modelo, las pruebas sobre los parámetros
 resultan significativas, es decir son diferentes de cero. Vale la pena
 notar también que los residuales del modelo paracen no ser IID, en el
 sentido que no todos presentan la misma distribución, por ejemplo, la
-media de las observaciones antes del tiempo t=1000 parace ser muy
+media de las observaciones antes del tiempo t=1000 parece ser muy
 distinta a la medias después del tiempo t=1000. Adicionalmente, al ver
 la estructural de autocorrelación temporal, podemos ver que los
 residuales resultan altamente autocorrelacionados violando el supuesto
