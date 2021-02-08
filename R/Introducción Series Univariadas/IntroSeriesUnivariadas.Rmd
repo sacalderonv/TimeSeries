@@ -12,9 +12,9 @@ Vamos a cargar los datos de las series de las tasas de interés.
 
 
 ```{r cargadatos }
-r1=read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/w-gs1yr.txt",header=T)[,4] 
+r1=read.table("w-gs1yr.txt",header=T)[,4] 
 
-r3=read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/w-gs3yr.txt",header=T)[,4]
+r3=read.table("w-gs3yr.txt",header=T)[,4]
 head(r1)
 head(r3)
 ```
