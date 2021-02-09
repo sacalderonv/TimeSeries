@@ -86,6 +86,12 @@ acf(sercamrelint,type='partial')
 
 ![](Importacion_files/figure-gfm/retornos%20interes-3.png)<!-- -->
 
+``` r
+str(sercamrelint)
+```
+
+    ##  Time-Series [1:170] from 1988 to 2002: -0.0647 -0.07415 -0.00701 0.02933 -0.06322 ...
+
 \#Serie COLCAP
 
 ``` r
@@ -121,3 +127,66 @@ acf(TsColCap)
 ```
 
 ![](Importacion_files/figure-gfm/Colcap-2.png)<!-- -->
+
+``` r
+str(TsColCap)
+```
+
+    ## An 'xts' object on 2016-02-10/2020-02-06 containing:
+    ##   Data: num [1:974, 1] 1200 1199 1209 1210 1200 ...
+    ##   Indexed by objects of class: [Date] TZ: UTC
+    ##   xts Attributes:  
+    ##  NULL
+
+``` r
+library(TSstudio)
+data(EURO_Brent)
+library(zoo)
+
+ts_info(EURO_Brent)
+```
+
+    ##  The EURO_Brent series is a zoo object with 1 variable and 392 observations
+    ##  Frequency: monthly 
+    ##  Start time: May 1987 
+    ##  End time: Dec 2019
+
+``` r
+class(EURO_Brent)####Es un objeto zoo y es una serie regularmente espaciada
+```
+
+    ## [1] "zooreg" "zoo"
+
+``` r
+head(index(EURO_Brent))
+```
+
+    ## [1] "May 1987" "Jun 1987" "Jul 1987" "Aug 1987" "Sep 1987" "Oct 1987"
+
+``` r
+class(index(EURO_Brent))
+```
+
+    ## [1] "yearmon"
+
+``` r
+attributes(index(EURO_Brent))
+```
+
+    ## $class
+    ## [1] "yearmon"
+
+``` r
+###Podemos cambiar la clase
+index(EURO_Brent) <- as.Date(index(EURO_Brent))
+head(EURO_Brent)
+```
+
+    ## 1987-05-01 1987-06-01 1987-07-01 1987-08-01 1987-09-01 1987-10-01 
+    ##      18.58      18.86      19.86      18.98      18.31      18.76
+
+``` r
+class(index(EURO_Brent))
+```
+
+    ## [1] "Date"
