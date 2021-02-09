@@ -25,6 +25,7 @@ sercamrelint
 plot(sercamrelint)
 acf(sercamrelint,ci.type='ma')
 acf(sercamrelint,type='partial')
+str(sercamrelint)
 ```
 
 #Serie COLCAP
@@ -39,6 +40,22 @@ TsColCap=xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
 plot(TsColCap)
 
 acf(TsColCap)
+str(TsColCap)
+```
 
+```{r TSstudio}
+library(TSstudio)
+data(EURO_Brent)
+library(zoo)
+
+ts_info(EURO_Brent)
+class(EURO_Brent)####Es un objeto zoo y es una serie regularmente espaciada
+head(index(EURO_Brent))
+class(index(EURO_Brent))
+attributes(index(EURO_Brent))
+###Podemos cambiar la clase
+index(EURO_Brent) <- as.Date(index(EURO_Brent))
+head(EURO_Brent)
+class(index(EURO_Brent))
 ```
 
