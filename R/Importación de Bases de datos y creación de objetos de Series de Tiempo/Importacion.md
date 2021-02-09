@@ -5,7 +5,7 @@ Importacion
 interés
 
 ``` r
-tipos88 <- read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/Estacionarias/tipos88.dat", quote="\"", comment.char="")
+tipos88 <- read.table("tipos88.dat", quote="\"", comment.char="")
 Intanual=tipos88$V5  #Tipo de interés Anual
 plot(as.ts(Intanual))
 ```
@@ -103,7 +103,7 @@ library(xts)
 
 ``` r
 library(readxl)
-Colcap<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/Datos históricos COLCAP-3.xlsx")
+Colcap<- read_excel("Datos históricos COLCAP-3.xlsx")
 
 TsColCap=xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
 ```
