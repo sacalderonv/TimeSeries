@@ -28,6 +28,12 @@ acf(sercamrelint,type='partial')
 str(sercamrelint)
 ```
 
+```{r grafico interactivo}
+library(dygraphs)
+dygraph(sercamrelint,main="Gráfico de Retorno Interés Anual", ylab="Cambop relativos del tipo de interés anual")%>% dyRangeSelector()
+```
+
+
 #Serie COLCAP
 
 
