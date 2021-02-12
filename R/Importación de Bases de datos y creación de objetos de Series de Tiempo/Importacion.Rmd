@@ -1,14 +1,16 @@
 ---
 title: "Importacion"
 output: github_document
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Creación de un objeto de Series de Tiempo y gráficas
+## Creación de un objeto de Series de Tiempo y gráficas
 ## Serie de interés
+
 Este script se basa en el libro: Hands-on Time Series Analysis with R(2019) del autor Rami Krispin.
 
 ```{r importacion}
@@ -17,7 +19,10 @@ tipos88 <- read.table("tipos88.dat", quote="\"", comment.char="")
 Intanual=tipos88$V5  #Tipo de interés Anual
 plot(as.ts(Intanual))
 ```
-# Creando y graficando la serie de retornos para ver los cambios
+
+## Creando y graficando la serie de retornos para ver los cambios
+
+
 El objeto ts es un formato para series de tiempo univariadas regulares. Las caraterísticas de una serie regular son; Ciclo o periodo(unidad de tiempo regular y repetitiva que divide la serie en ubconjuntos consecutivos e igualmente espaciados), Frecuencia(define la longitud o el número de unidades de un cíclo) y las marcas de tiempo(provee el tiempo en que cada observación fue obtenida y puede ser usada como índice de la serie. La diferencia($\delta$) entre los tiempos de dos observaciones consecutivas debe ser igual).
 
 Este objeto ts tiene dos elementos: los valores de la serie y sus correspondientes marcas de tiempo.
@@ -51,7 +56,7 @@ dygraph(sercamrelint,main="Gráfico de Retorno Interés Anual", ylab="Cambios re
 ```
 
 
-#Serie COLCAP
+## Serie COLCAP
 
 
 ```{r Colcap}
