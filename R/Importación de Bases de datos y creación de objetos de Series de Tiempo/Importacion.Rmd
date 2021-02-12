@@ -56,27 +56,14 @@ dygraph(sercamrelint,main="Gráfico de Retorno Interés Anual", ylab="Cambios re
 ```
 
 
-## Serie COLCAP
 
-
-```{r Colcap}
-library(xts)
-library(readxl)
-Colcap<- read_excel("Datos históricos COLCAP-3.xlsx")
-
-TsColCap=xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
-plot(TsColCap)
-
-acf(TsColCap)
-str(TsColCap)
-```
-El Paquete zoo para trabajar con series regulares e irregulares espaciadas en el tiempo. Tiene dos componentes: la estructura de los datos y el vector de índices.
+El Paquete zoo se puede usar para trabajar con series regulares e irregulares espaciadas en el tiempo. Tiene dos componentes: la estructura de los datos y el vector de índices.
 ```{r TSstudio}
 data(EURO_Brent)
 library(zoo)####
 
 ts_info(EURO_Brent)
-class(EURO_Brent)####Es un objeto zoo y es una serie regularmente espaciada
+class(EURO_Brent)####Es un objeto zoo y es una serie regularmente espaciada zooreg
 head(index(EURO_Brent))
 class(index(EURO_Brent))
 attributes(index(EURO_Brent))
@@ -85,5 +72,83 @@ index(EURO_Brent) <- as.Date(index(EURO_Brent))
 head(EURO_Brent)
 class(index(EURO_Brent))
 
+```
+## Creación de objetos zoo
+Vamos a crear objetos reguslar e irregularmente espaciados
+```{r creacion de objetos zoo}
+data(US_indicators)
+str(US_indicators)
+Ventas_vehiculos1=zoo(x=US_indicators$`Vehicle Sales`,frequency=12)  #Crea un objeto zoo de frecuencia 12, note que el crea el índice automáticamente
+class(Ventas_vehiculos1)
+frequency(Ventas_vehiculos1)
+head(Ventas_vehiculos1)
+class(index(Ventas_vehiculos1))
+###establecemos cual es el índice
+Ventas_vehiculos2=zoo(x = US_indicators$`Vehicle Sales`,
+                         order.by = US_indicators$Date,
+frequency = 12)
+head(Ventas_vehiculos2)
+class(Ventas_vehiculos2)
+class(index(Ventas_vehiculos2))
+#TSstudio::ts_plot(Ventas_vehiculos1)
+TSstudio::ts_plot(Ventas_vehiculos2)
+plot(Ventas_vehiculos1)
+plot(Ventas_vehiculos2)
+is.regular(Ventas_vehiculos1,strict = TRUE)
+is.regular(Ventas_vehiculos1,strict = FALSE)
+
+
+is.regular(Ventas_vehiculos2,strict = TRUE) ###Por contener año bisiesto no es estrictamente una serie regualr.
+is.regular(Ventas_vehiculos2,strict = FALSE)
+```
+
+##  Paquete xts
+
+El paquete xts(extensible time series) es una extsnión del paquete zoo y provee la clase xts y un conjunto de funciones y herramientas para pre-procesamiento, manipulacion y visualización de series de tiempo. Recuerde que una clase xts es un objeto zoo con atributos adicionales. 
+```{r xts}
+library(xts)
+library(readxl)
+data("Michigan_CS")###De TSstudio
+ts_info(Michigan_CS)
+class(Michigan_CS) #xts y zoo, lo cual es estándar en objeto xts.
+frequency(Michigan_CS)
+is.regular(Michigan_CS, strict = TRUE)
+head(Michigan_CS)
+plot(Michigan_CS)
+```
+
+```{r covertir dataframe en objeto xts}
+US_indicators
+str(US_indicators)
+
+US_indicators_xts=xts(x = US_indicators[,c("Vehicle Sales",
+   "Unemployment Rate")],frequency = 12,
+order.by = US_indicators$Date)
+head(US_indicators_xts)
+ts_info(US_indicators_xts)
+class(US_indicators_xts)
+frequency(US_indicators_xts)
+####Retornando a los datos de Michigan
+periodicity(Michigan_CS)
+periodicity(US_indicators_xts)
+
+tclass(Michigan_CS)
+
+tclass(US_indicators_xts)
+
+tformat(Michigan_CS) <- "%m-%d-%Y"
+head(Michigan_CS)
+```
+
+
+
+```{r Colcap}
+Colcap<- read_excel("Datos históricos COLCAP-3.xlsx")
+
+TsColCap=xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
+plot(TsColCap)
+
+acf(TsColCap)
+str(TsColCap)
 ```
 
