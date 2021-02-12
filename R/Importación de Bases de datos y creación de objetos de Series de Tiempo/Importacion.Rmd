@@ -152,3 +152,38 @@ acf(TsColCap)
 str(TsColCap)
 ```
 
+
+## Fecha y formatos de hora
+El pauqte base provee 2 tipos de clases de fechas y horas:
+
+Date:Es una representación simple usando el formato de fecha YYYY-m-d
+
+POSIXct/POSIXlt: También conocido como Clases DateTime  y el formato estandar es YYYY-m-d H:M:S. 
+```{r Fecha y formatos de tiempo}
+library(lubridate)
+#Formato Date
+fecha <- as.Date("2014-5-12")
+fecha
+class(fecha)  
+
+
+###Formato POSIXct/POSIXlt
+hora_ct <- as.POSIXct("2014-5-12 20:05:35", tz = "EST")
+hora_ct
+class(hora_ct)
+```
+
+```{r Reformateando y convirtiendo objetos de fecha}
+url <-
+   "https://github.com/PacktPublishing/Hands-On-Time-Series-Analysis-with-R/raw/master/Chapter02/dates_formats.csv"
+dates_df <- read.csv(url, stringsAsFactors = FALSE)
+str(dates_df)
+###Convierte directamente de caractér a Fecha
+dates_df$Japanese_format_new <- as.Date(dates_df$Japanese_format)
+
+head(dates_df[, c("Japanese_format", "Japanese_format_new")])
+identical(dates_df$Japanese_format, dates_df$Japanese_format_new)
+class(dates_df$Japanese_format)  ###Los diferentes formatos uno caractér y el otro fecha
+class(dates_df$Japanese_format_new)
+```
+
