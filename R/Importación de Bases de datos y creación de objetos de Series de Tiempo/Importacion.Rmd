@@ -9,28 +9,45 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #Creación de un objeto de Series de Tiempo y gráficas
 ## Serie de interés
-
+Este script se basa en el libro: Hands-on Time Series Analysis with R(2019) del autor Rami Krispin.
 
 ```{r importacion}
+library(TSstudio)
 tipos88 <- read.table("tipos88.dat", quote="\"", comment.char="")
 Intanual=tipos88$V5  #Tipo de interés Anual
 plot(as.ts(Intanual))
 ```
-#Creando y graficando la serie de retornos para ver los cambios
+# Creando y graficando la serie de retornos para ver los cambios
+El objeto ts es un formato para series de tiempo univariadas regulares. Las caraterísticas de una serie regular son; Ciclo o periodo(unidad de tiempo regular y repetitiva que divide la serie en ubconjuntos consecutivos e igualmente espaciados), Frecuencia(define la longitud o el número de unidades de un cíclo) y las marcas de tiempo(provee el tiempo en que cada observación fue obtenida y puede ser usada como índice de la serie. La diferencia($\delta$) entre los tiempos de dos observaciones consecutivas debe ser igual).
+
+Este objeto ts tiene dos elementos: los valores de la serie y sus correspondientes marcas de tiempo.
+
+El problema con el objeto ts es que las marcas de tiempo no soporta mútiples cíclos, es decir, series diarias con ciclos semanales y ciclos anuales. Adicionalmente, en los casos en que la marca de tiempo de la serie tenga más de dos elementos, como la fecha o la hora, no es posible recuperar el valor original de la marca de tiempo de la serie, ya que uno o más elementos se pierden durante el proceso de transformación. Ver ejemplo página 73, en donde el día de la fecha se pierde al transformarse el data frame en una objeto ts.
 
 ```{r retornos interes}
 camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
 sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
 sercamrelint
-plot(sercamrelint)
+plot(sercamrelint,main="Cambios relativos")
+plot.ts(sercamrelint)
 acf(sercamrelint,ci.type='ma')
 acf(sercamrelint,type='partial')
 str(sercamrelint)
+head(time(sercamrelint),20)
+head(cycle(sercamrelint),15)
+frequency(sercamrelint)
+deltat(sercamrelint)###en este caso es 1/12
+ts_info(sercamrelint)
 ```
+
+```{r gráfico interactivo}
+TSstudio::ts_plot(sercamrelint,title="",slider=TRUE)
+```
+
 
 ```{r grafico interactivo}
 library(dygraphs)
-dygraph(sercamrelint,main="Gráfico de Retorno Interés Anual", ylab="Cambop relativos del tipo de interés anual")%>% dyRangeSelector()
+dygraph(sercamrelint,main="Gráfico de Retorno Interés Anual", ylab="Cambios relativos del tipo de interés anual")%>% dyRangeSelector()
 ```
 
 
@@ -48,11 +65,10 @@ plot(TsColCap)
 acf(TsColCap)
 str(TsColCap)
 ```
-
+El Paquete zoo para trabajar con series regulares e irregulares espaciadas en el tiempo. Tiene dos componentes: la estructura de los datos y el vector de índices.
 ```{r TSstudio}
-library(TSstudio)
 data(EURO_Brent)
-library(zoo)
+library(zoo)####
 
 ts_info(EURO_Brent)
 class(EURO_Brent)####Es un objeto zoo y es una serie regularmente espaciada
@@ -63,5 +79,6 @@ attributes(index(EURO_Brent))
 index(EURO_Brent) <- as.Date(index(EURO_Brent))
 head(EURO_Brent)
 class(index(EURO_Brent))
+
 ```
 
