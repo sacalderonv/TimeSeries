@@ -178,12 +178,105 @@ url <-
    "https://github.com/PacktPublishing/Hands-On-Time-Series-Analysis-with-R/raw/master/Chapter02/dates_formats.csv"
 dates_df <- read.csv(url, stringsAsFactors = FALSE)
 str(dates_df)
-###Convierte directamente de caractér a Fecha
+###Convierte directamente de caractér a Fecha, note que el el objeto cracater tiene la misma estructuta ISO8601, entonces no se necesita especificar el formato.
 dates_df$Japanese_format_new <- as.Date(dates_df$Japanese_format)
 
 head(dates_df[, c("Japanese_format", "Japanese_format_new")])
 identical(dates_df$Japanese_format, dates_df$Japanese_format_new)
 class(dates_df$Japanese_format)  ###Los diferentes formatos uno caractér y el otro fecha
 class(dates_df$Japanese_format_new)
+
+###El siguiente ejemplo muestra que debe especificarse el formato cuando el caracter no tiene structura ISO 8601
+head(dates_df$US_format)
+dates_df$US_format_new <- as.Date(dates_df$US_format, format = "%m/%d/%Y")
+head(dates_df$US_format_new)
+###Para entender el formato, ver páginas 45 y 51.
+###Note otro ejemplo
+head(dates_df$US_long_format)
+dates_df$US_long_format_new <- as.Date(dates_df$US_long_format, format =
+   "%A, %B %d, %Y")
+head(dates_df$US_long_format_new)
+class(dates_df$US_long_format_new)
+```
+
+## Reformateando y conversión de objetos de hora
+
+```{r Ojetos de hora}
+time_str <- "2018-12-31 23:59:59"
+class(time_str)
+###Convertimos el obejto caractér en POSIXct
+time_posix_ct1 <- as.POSIXct(time_str)
+class(time_posix_ct1)
+
+#Comparemos los dos objetos
+
+time_str
+time_posix_ct1
+
+####Valores numéricos a POSIXct basado en el punto de origen
+time_numeric <- 1546318799   #El valor numérico reprsenta el número de segundos trasncurridos desde el punto de origen
+class(time_numeric)
+time_posix_ct2 <- as.POSIXct(time_numeric, origin = "1970-01-01")  
+print(c(time_posix_ct1, time_posix_ct2))
+ identical(time_posix_ct1, time_posix_ct2)
+ 
+ ####Note que los ejemplos anteriores no requieren el paso de reformateo
+ time_US_str <- "Monday, December 31, 2018 11:59:59 PM"
+ time_posix_ct3 <- as.POSIXct(time_US_str, format = "%A, %B %d, %Y %I:%M:%S
+%p")
+  time_posix_ct3
+identical(time_posix_ct1, time_posix_ct2, time_posix_ct3)
+
+```
+
+## Creación de Fechas o indices de horas
+
+```{r Creación de Fechas o indices de horas}
+daily_index <- seq.Date(from = as.Date("2016-01-01"), # Starting date
+                           to = as.Date("2018-12-31"), # Ending date
+                           by = "day") # Defining the time intervals
+
+head(daily_index)
+####Creación de índices cada tres días.
+daily_3_index <- seq.Date(from = as.Date("2016-01-01"),
+                             to = as.Date("2018-12-31"),
+by = "3 days")
+head(daily_3_index)
+
+###Otra forma de hacerlo en decir cuantos peridos de tiempo se requiere
+hourly_index <- seq.POSIXt(from = as.POSIXct("2018-06-01"), by = "hours",
+   length.out = 48)
+str(hourly_index)
+head(hourly_index)
+tail(hourly_index)
+```
+
+## Usando el paquete lubridate
+
+```{r Lubridate}
+library(lubridate)
+time_US_str <- "Monday, December 31, 2018 11:59:59 PM"
+class(time_US_str)
+time_US_str
+
+time_base <- as.POSIXct(time_US_str,
+                           format = "%A, %B %d, %Y %I:%M:%S %p")
+ class(time_base)
+time_base
+#Sys.setlocale(locale="es_ES.UTF-8")   ###Establece fecha en español
+#Sys.setlocale(locale="en_US.UTF-8")
+time_Col_str="Lunes, Diciembre 31, 2018 11:59:59 PM"
+time_Col_base <- as.POSIXct(time_Col_str,
+                           format = "%A, %B %d, %Y %I:%M:%S %p")
+time_Col_base
+class(time_Col_base)
+
+time_lubridate <- mdy_hms(time_US_str, tz = "EST")
+class(time_lubridate)
+time_lubridate
+
+yday(time_lubridate)
+qday(time_lubridate)
+day(time_lubridate)
 ```
 
