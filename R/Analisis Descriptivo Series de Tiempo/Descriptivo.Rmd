@@ -39,7 +39,7 @@ Note que aquí podemos ver varias características: Estacionalidad(no es tan evi
 Veamos ahora la tasa de desempleo de Colombia. Hay que hacerle un ajuste a la base de datos porque está en order descendente en el tiempo.
 
 ## Including Plots
-```{r Desempleo y empleo}
+```{r Desempleo y empleo importacion y ajuste}
 library(readxl)
 library(tidyverse)
 DesempleoyEmpleo <- read_excel("DesempleoyEmpleo.xlsx", range="A9:C249")
@@ -49,4 +49,22 @@ tail(DesempleoyEmpleo)
 head(DesempleoyEmpleo_1)
 ```
 
+```{r creacion serie desempleo}
+library(zoo)
+library(xts)
+Fechas=as.yearmon(DesempleoyEmpleo_1$Fecha)
+Desempleo_Col_xts=xts(x = DesempleoyEmpleo_1$Tasadedesempleo,frequency = 12,
+order.by = Fechas)
+ts_info(Desempleo_Col_xts)
+plot(Desempleo_Col_xts)
+```
+
+```{r grafico TSstudio Desemplo Col}
+ts_plot(Desempleo_Col_xts,
+           title = "Tasa de Desemplo Mensual Colombia",
+           Ytitle = "Tasa de Desempleo(%)",
+           Xtitle = "Año",
+           Xgrid = TRUE,
+Ygrid = TRUE)
+```
 
