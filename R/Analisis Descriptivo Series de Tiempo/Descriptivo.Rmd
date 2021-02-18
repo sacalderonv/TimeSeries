@@ -67,4 +67,4 @@ ts_plot(Desempleo_Col_xts,
            Xgrid = TRUE,
 Ygrid = TRUE)
 ```
-
+Qué características presenta esta serie?
