@@ -1,0 +1,52 @@
+---
+title: "Analisis Descriptivo Series de Tiempo"
+output: github_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Gráfico de una Serie de tiempo
+
+Vamos a analizar de forma descriptiva algunas serie de tiempo. Empezaremos por la serie de desempleo de los Estados Unidos que viene en el paquete TSstudio.
+```{r DesempleoUS}
+library(TSstudio)
+data(USUnRate)
+ts_info(USUnRate)
+plot(USUnRate,main = "US Monthly Unemployment Rate",ylab="Unemployment Rate (%)")
+```
+La serie es medida mensula, es decir, presenta una frecuencia de 12.
+Qué carcaterísticas podemos observar?
+* Tendencia?
+* Estacionalidad?
+* Cíclos?
+* Varianza marginal no constante?
+Vamos a seleccionar un periodo de tiempo mas corto
+
+```{r DesempleoUS selec periodo}
+ unemployment <- window(USUnRate, start = c(1990,1))
+   ts_plot(unemployment,
+           title = "US Monthly Unemployment Rate",
+           Ytitle = "Unemployment Rate (%)",
+           Xtitle = "Year",
+           Xgrid = TRUE,
+Ygrid = TRUE)
+```
+Note que aquí podemos ver varias características: Estacionalidad(no es tan evidente), tres periodos de cíclos, el primero de 1990 a 2000,el segundo de 2000 a 2007, y el tercero de 2007 a 2019. No parece tener una hetocedasticidad marginal.
+
+Veamos ahora la tasa de desempleo de Colombia. Hay que hacerle un ajuste a la base de datos porque está en order descendente en el tiempo.
+
+## Including Plots
+```{r Desempleo y empleo}
+library(readxl)
+library(tidyverse)
+DesempleoyEmpleo <- read_excel("DesempleoyEmpleo.xlsx", range="A9:C249")
+str(DesempleoyEmpleo)
+DesempleoyEmpleo_1=DesempleoyEmpleo %>% map_df(rev)
+tail(DesempleoyEmpleo)
+head(DesempleoyEmpleo_1)
+```
+
+
