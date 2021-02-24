@@ -26,13 +26,13 @@ Qué carcaterísticas podemos observar?
 Vamos a seleccionar un periodo de tiempo mas corto
 
 ```{r DesempleoUS selec periodo}
- unemployment <- window(USUnRate, start = c(1990,1))
-   ts_plot(unemployment,
-           title = "US Monthly Unemployment Rate",
-           Ytitle = "Unemployment Rate (%)",
-           Xtitle = "Year",
-           Xgrid = TRUE,
-Ygrid = TRUE)
+# unemployment <- window(USUnRate, start = c(1990,1))
+#   ts_plot(unemployment,
+#           title = "US Monthly Unemployment Rate",
+#           Ytitle = "Unemployment Rate (%)",
+#           Xtitle = "Year",
+#           Xgrid = TRUE,
+#Ygrid = TRUE)
 ```
 Note que aquí podemos ver varias características: Estacionalidad(no es tan evidente), tres periodos de cíclos, el primero de 1990 a 2000,el segundo de 2000 a 2007, y el tercero de 2007 a 2019. No parece tener una hetocedasticidad marginal.
 
@@ -87,7 +87,31 @@ o mas específicamente
 $$y_t=\beta_0+\beta_1 t +a_t$$
 ```{r chicken2}
 summary(fit <- lm(chicken~time(chicken), na.action=NULL))
-plot(chicken, ylab="cents per pound") 
+plot(chicken, ylab="centavos por libra") 
 abline(fit,col = "red") # Se añade la recta ajusta
+###Eliminamos la tendencia con la predicción la recta
+ElimiTendchick=chicken-predict(fit)
+plot(ElimiTendchick,main="Serie Chicken Sin tendencia")
+```
+
+```{r Caminata Aletoria con Drift}
+#set.seed(154) 
+w = rnorm(200); x = cumsum(w) 
+wd = w +.2; xd = cumsum(wd)
+plot.ts(xd, ylim=c(-5,55), main="Caminata Aletoria", ylab='')
+lines(x, col=4); abline(h=0, col=4, lty=2); abline(a=0, b=.2, lty=2)
+
+```
+
+```{r sin tendencia chicken}
+fit = lm(chicken~time(chicken), na.action=NULL) # Regresión sobre el tiempo
+par(mfrow=c(2,1))
+plot(resid(fit), type="o", main="sin tendencia") 
+plot(diff(chicken), type="o", main="Primera Diferencia") 
+par(mfrow=c(3,1)) # plot ACFs
+acf(chicken, 48, main="Pollo")
+acf(resid(fit), 48, main="Sin tendencia") 
+acf(diff(chicken), 48, main="Primera Diferencia")
+
 ```
 
