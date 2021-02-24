@@ -60,12 +60,12 @@ plot(Desempleo_Col_xts)
 ```
 
 ```{r grafico TSstudio Desemplo Col}
-ts_plot(Desempleo_Col_xts,
-           title = "Tasa de Desemplo Mensual Colombia",
-           Ytitle = "Tasa de Desempleo(%)",
-           Xtitle = "Año",
-           Xgrid = TRUE,
-Ygrid = TRUE)
+#ts_plot(Desempleo_Col_xts,
+#           title = "Tasa de Desemplo Mensual Colombia",
+#           Ytitle = "Tasa de Desempleo(%)",
+#           Xtitle = "Año",
+#           Xgrid = TRUE,
+#Ygrid = TRUE)
 ```
 Qué características presenta esta serie?
 
