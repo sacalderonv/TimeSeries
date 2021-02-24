@@ -68,3 +68,26 @@ ts_plot(Desempleo_Col_xts,
 Ygrid = TRUE)
 ```
 Qué características presenta esta serie?
+
+
+## Análisis de Tendencias
+Vamos a ver la forma de estimar la tendencia y/o eliminarla.
+```{r chicken1}
+library(astsa)
+library(TSstudio)
+data(chicken)
+ts_info(chicken)
+plot(chicken,main="Precio Mensual de la Libra de Pollo en Estados Unidos", ylab="Precio en Centavos de Dólar")
+#ts_plot(chicken)
+```
+Al parecer la serie de precios mensuales del pollo presenta una tendencia creciente al parecer lineal, es decir
+$$y_t=\mu_t+a_t$$
+o mas específicamente
+
+$$y_t=\beta_0+\beta_1 t +a_t$$
+```{r chicken2}
+summary(fit <- lm(chicken~time(chicken), na.action=NULL))
+plot(chicken, ylab="cents per pound") 
+abline(fit,col = "red") # Se añade la recta ajusta
+```
+
