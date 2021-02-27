@@ -95,7 +95,7 @@ plot(ElimiTendchick,main="Serie Chicken Sin tendencia")
 ```
 
 ```{r Caminata Aletoria con Drift}
-#set.seed(154) 
+set.seed(154) 
 w = rnorm(200); x = cumsum(w) 
 wd = w +.2; xd = cumsum(wd)
 plot.ts(xd, ylim=c(-5,55), main="Caminata Aletoria", ylab='')
@@ -104,14 +104,84 @@ lines(x, col=4); abline(h=0, col=4, lty=2); abline(a=0, b=.2, lty=2)
 ```
 
 ```{r sin tendencia chicken}
+par(mar = c(2,2,2,2))
 fit = lm(chicken~time(chicken), na.action=NULL) # Regresión sobre el tiempo
 par(mfrow=c(2,1))
 plot(resid(fit), type="o", main="sin tendencia") 
 plot(diff(chicken), type="o", main="Primera Diferencia") 
-par(mfrow=c(3,1)) # plot ACFs
-acf(chicken, 48, main="Pollo")
-acf(resid(fit), 48, main="Sin tendencia") 
-acf(diff(chicken), 48, main="Primera Diferencia")
+
 
 ```
+```{r acf chicken}
+par(mar = c(3,2,3,2))
+par(mfrow=c(3,1)) # plot ACFs
+acf(chicken, 48, main="ACF Pollo")
+acf(resid(fit), 48, main="ACF Sin tendencia") 
+acf(diff(chicken), 48, main="ACF Primera Diferencia")
+```
+
+## Transformación de Box-Cox para Estabilizar la Varianza Marginal
+ En ocaciones la serie presenta varianza marginal no constante a lo largo del tiempo, lo cual hace necesario tener en cuenta tal caracaterística. 
+En este caso, se siguiere hacer una transformación de potencia para estabilizar la varianza. Esta familia de transformaciones se llaman transformaciones Box-Cox.
+
+\begin{equation}
+	\label{BoxCox}
+	f_{\lambda}(u_{t})= \begin{cases}
+		\lambda^{-1}(u^{\lambda}_{t}-1), &  \text{si  $u_{t} \geq 0$, para $\lambda>0$,}\\
+		\ln(u_{t}), &\text{ si $u_{t}>0$, para $\lambda=0$}.
+	\end{cases}
+	\
+\end{equation}
+
+```{r BoxCox}
+data("AirPassengers")
+plot(AirPassengers)
+#####Transformación Box-Cox
+library(FitAR)
+library(forecast)
+forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = 0, upper = 2)  
+##method="loglik"
+FitAR::BoxCox(AirPassengers)
+
+lAirPass=log(AirPassengers)
+par(mfrow=c(2,1))
+plot(AirPassengers)
+plot(lAirPass)
+```
+
+Vamos a correr lo mismo pero en Python para la transformacion de BoxCox
+
+```{r configuración, include=FALSE}
+library(reticulate)
+use_condaenv(condaenv = "Python38andR", conda = "auto", required = TRUE)
+#pandas=import("pandas")
+```
+
+```{python}
+#import sys
+#print(sys.path)
+import pandas as pd
+import matplotlib.pylab as plt
+data = pd.read_csv('AirPassengers.csv')
+print(data)
+print('\n Data Types:')
+print(data.dtypes)
+con=data['Month']
+data['Month']=pd.to_datetime(data['Month'])
+##data.set_index('Month', inplace=True)
+pasajeros=data.set_index('Month')
+#check datatype of index
+
+#convert to time series:
+ts = pasajeros['NPassengers']
+ts.head(10)
+
+####Graficar la Serie#####
+plt.plot(ts)
+plt.title('AirPassengers')
+plt.show()
+
+
+```
+
 
