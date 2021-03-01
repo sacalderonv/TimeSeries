@@ -170,6 +170,8 @@ use_condaenv(condaenv = "Python38andR", conda = "auto", required = TRUE)
 knitr::knit_engines$set(python = reticulate::eng_python) 
 ```
 
+
+
 ```{python}
 #import sys
 #print(sys.path)
