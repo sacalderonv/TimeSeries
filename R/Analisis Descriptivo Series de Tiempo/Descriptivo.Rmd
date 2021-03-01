@@ -139,22 +139,35 @@ plot(AirPassengers)
 #####Transformación Box-Cox
 library(FitAR)
 library(forecast)
-forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = 0, upper = 2)  
+forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = 0, upper = 2) ###Me etrega el valor de lambda 
 ##method="loglik"
-FitAR::BoxCox(AirPassengers)
+FitAR::BoxCox(AirPassengers)###Me entrega una gráfica
 
 lAirPass=log(AirPassengers)
+par(mar = c(3,2,3,2))
 par(mfrow=c(2,1))
-plot(AirPassengers)
-plot(lAirPass)
+plot(AirPassengers,main="Serie de Pasajeros sin Transformar")
+plot(lAirPass,main="Series con Trnaformación BoxCox")
 ```
+Note que ahora usamos la misma función para verificar si en verdad la varianza fue estabilizada.ç
+
+```{r R BoxCox chequeo Series transformada}
+FitAR::BoxCox(lAirPass)
+forecast::BoxCox.lambda(lAirPass, method = "guerrero", lower = -1, upper = 2)
+```
+
+
+
+
 
 Vamos a correr lo mismo pero en Python para la transformacion de BoxCox
 
 ```{r configuración, include=FALSE}
+library(knitr) 
 library(reticulate)
 use_condaenv(condaenv = "Python38andR", conda = "auto", required = TRUE)
 #pandas=import("pandas")
+knitr::knit_engines$set(python = reticulate::eng_python) 
 ```
 
 ```{python}
@@ -182,6 +195,33 @@ plt.title('AirPassengers')
 plt.show()
 
 
+
+
 ```
+
+```{python}
+ts.index
+pasajeros.index.freq='MS'
+ts.index.freq='MS'
+ts.index
+
+#####Transformación Box-Cox
+import scipy as sp
+import scipy.stats ####En ocasiones puede funcionar la línea 46 sin ésta línea.
+print(sp.stats.boxcox(ts,alpha=0.05))
+sp.stats.boxcox(data['NPassengers'],alpha=0.05)
+logAirp=sp.stats.boxcox(data['NPassengers'],lmbda=0)
+data = data.assign(logAirp=logAirp)   
+
+logpasajeros=data.set_index('Month')   
+logAirPass=  logpasajeros['logAirp'] 
+#plt.plot(logAirPass)
+#plt.show()
+sp.stats.boxcox(logAirp,alpha=0.05)
+###Note que la transformación Box-Cox si sutión efecto.
+
+
+```
+
 
 
