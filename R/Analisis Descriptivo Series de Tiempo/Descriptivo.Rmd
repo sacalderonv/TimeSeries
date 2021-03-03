@@ -202,7 +202,7 @@ plt.show()
 ```
 
 ```{python}
-ts.index
+ts.index.freq
 pasajeros.index.freq='MS'
 ts.index.freq='MS'
 ts.index
@@ -223,6 +223,28 @@ sp.stats.boxcox(logAirp,alpha=0.05)
 ###Note que la transformación Box-Cox si sutión efecto.
 
 
+```
+
+## Gráficas de Retardos
+Vamos a hacer gráficos de dispersión para chequear que tipos de relaciones hay entre los retardos de la variable interés. Vamos a trabajar con algunas series, por ejemplo:
+* Índice ambiental mensual (soi)(Southern Oscillation Index), el cual mide los cambios en la presión del aire, relacionados con las temperaturas de la superficie del mar en el Océano Pacífico central.
+* la serie rec (reclutamiento asociada al soi), número de nuevos peces.
+* Consumo mensual de gas natural en EE. UU.(USgas) medido en Billones de pies cúbicos.
+Esto permite chequear si hay posibles relaciones no-lineales.
+```{r dispersión retardos_1}
+library(astsa)
+data("soi")
+ts_info(soi)
+?soi
+plot(soi)
+par(mar = c(3,2,3,2))
+astsa::lag1.plot(soi, 12)  ###El 12 indica cuantos retardos y_t-k contra y_t 
+###Hacer la gráfica con x11()
+```
+
+```{r dispersion retardos_2}
+par(mar = c(3,2,3,2))
+lag2.plot(soi, rec, 8)   #El 2 es porque intervenienen dos serie de tiempo.
 ```
 
 
