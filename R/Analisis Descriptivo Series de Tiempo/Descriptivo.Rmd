@@ -167,12 +167,12 @@ library(knitr)
 library(reticulate)
 use_condaenv(condaenv = "Python38andR", conda = "auto", required = TRUE)
 #pandas=import("pandas")
-knitr::knit_engines$set(python = reticulate::eng_python) 
+#knitr::knit_engines$set(python = reticulate::eng_python) 
 ```
 
 
 
-```{python}
+```{python inicio}
 #import sys
 #print(sys.path)
 import pandas as pd
@@ -201,7 +201,7 @@ plt.show()
 
 ```
 
-```{python}
+```{python inicio_1}
 ts.index.freq
 pasajeros.index.freq='MS'
 ts.index.freq='MS'
