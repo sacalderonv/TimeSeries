@@ -1,6 +1,7 @@
 ---
 title: "Analisis Descriptivo Series de Tiempo"
 output: github_document
+#output: html_document
 always_allow_html: true
 ---
 
@@ -162,68 +163,68 @@ forecast::BoxCox.lambda(lAirPass, method = "guerrero", lower = -1, upper = 2)
 
 Vamos a correr lo mismo pero en Python para la transformacion de BoxCox
 
-```{r configuración, include=FALSE}
-library(knitr) 
-library(reticulate)
-use_condaenv(condaenv = "Python38andR", conda = "auto", required = TRUE)
+#```{r configuración, include=FALSE}
+#library(knitr) 
+#library(reticulate)
+#use_condaenv(condaenv = "Python38andR", conda = "auto", required = TRUE)
 #pandas=import("pandas")
 #knitr::knit_engines$set(python = reticulate::eng_python) 
-```
+#```
 
 
 
-```{python inicio}
+#```{python inicio}
 #import sys
 #print(sys.path)
-import pandas as pd
-import matplotlib.pylab as plt
-data = pd.read_csv('AirPassengers.csv')
-print(data)
-print('\n Data Types:')
-print(data.dtypes)
-con=data['Month']
-data['Month']=pd.to_datetime(data['Month'])
+#import pandas as pd
+#import matplotlib.pylab as plt
+#data = pd.read_csv('AirPassengers.csv')
+#print(data)
+#print('\n Data Types:')
+#print(data.dtypes)
+#con=data['Month']
+#data['Month']=pd.to_datetime(data['Month'])
 ##data.set_index('Month', inplace=True)
-pasajeros=data.set_index('Month')
+#pasajeros=data.set_index('Month')
 #check datatype of index
 
 #convert to time series:
-ts = pasajeros['NPassengers']
-ts.head(10)
+#ts = pasajeros['NPassengers']
+#ts.head(10)
 
 ####Graficar la Serie#####
-plt.plot(ts)
-plt.title('AirPassengers')
-plt.show()
+#plt.plot(ts)
+#plt.title('AirPassengers')
+#plt.show()
 
 
 
 
-```
+#```
 
-```{python inicio_1}
-ts.index.freq
-pasajeros.index.freq='MS'
-ts.index.freq='MS'
-ts.index
+#```{python inicio_1}
+#ts.index.freq
+#pasajeros.index.freq='MS'
+#ts.index.freq='MS'
+#ts.index
 
 #####Transformación Box-Cox
-import scipy as sp
-import scipy.stats ####En ocasiones puede funcionar la línea 46 sin ésta línea.
-print(sp.stats.boxcox(ts,alpha=0.05))
-sp.stats.boxcox(data['NPassengers'],alpha=0.05)
-logAirp=sp.stats.boxcox(data['NPassengers'],lmbda=0)
-data = data.assign(logAirp=logAirp)   
+#import scipy as sp
+#import scipy.stats ####En ocasiones puede funcionar la línea 46 sin ésta línea.
+#print(sp.stats.boxcox(ts,alpha=0.05))
+#sp.stats.boxcox(data['NPassengers'],alpha=0.05)
+#logAirp=sp.stats.boxcox(data['NPassengers'],lmbda=0)
+#data = data.assign(logAirp=logAirp)   
 
-logpasajeros=data.set_index('Month')   
-logAirPass=  logpasajeros['logAirp'] 
+#logpasajeros=data.set_index('Month')   
+#logAirPass=  logpasajeros['logAirp'] 
 #plt.plot(logAirPass)
 #plt.show()
-sp.stats.boxcox(logAirp,alpha=0.05)
+#sp.stats.boxcox(logAirp,alpha=0.05)
 ###Note que la transformación Box-Cox si sutión efecto.
 
 
-```
+#```
 
 ## Gráficas de Retardos
 Vamos a hacer gráficos de dispersión para chequear que tipos de relaciones hay entre los retardos de la variable interés. Vamos a trabajar con algunas series, por ejemplo:
@@ -236,7 +237,8 @@ library(astsa)
 data("soi")
 ts_info(soi)
 ?soi
-plot(soi)
+par(mar = c(2,2,2,2))
+plot(soi, main="Indice soi")
 par(mar = c(3,2,3,2))
 astsa::lag1.plot(soi, 12)  ###El 12 indica cuantos retardos y_t-k contra y_t 
 ###Hacer la gráfica con x11()
@@ -245,6 +247,11 @@ astsa::lag1.plot(soi, 12)  ###El 12 indica cuantos retardos y_t-k contra y_t
 ```{r dispersion retardos_2}
 par(mar = c(3,2,3,2))
 lag2.plot(soi, rec, 8)   #El 2 es porque intervenienen dos serie de tiempo.
+```
+Note que con la función ts_lags de TSstudio podemos hacer una gráfica similar.
+```{r dispersion con TSstudio}
+ts_lags(soi,lags=1:12)
+
 ```
 
 
