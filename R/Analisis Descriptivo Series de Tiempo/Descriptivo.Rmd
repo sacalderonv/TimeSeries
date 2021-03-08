@@ -237,6 +237,7 @@ library(astsa)
 data("soi")
 ts_info(soi)
 ?soi
+
 par(mar = c(2,2,2,2))
 plot(soi, main="Indice soi")
 par(mar = c(3,2,3,2))
@@ -251,6 +252,24 @@ lag2.plot(soi, rec, 8)   #El 2 es porque intervenienen dos serie de tiempo.
 Note que con la función ts_lags de TSstudio podemos hacer una gráfica similar.
 ```{r dispersion con TSstudio}
 ts_lags(soi,lags=1:12)
+
+```
+
+## La función de autocorrelación simple o gráfico ACF
+
+Cuando el proceso es estacionario, o al menos nompresenta tendencia, podemos usar el gráfico acf para explorar las posibles relaciones lineales a diferentes rezagos. En seguida mostramos la función de autocorrelación para el índice soi y la serie de nuevos peces. 
+
+```{r acf1}
+#pdf('/Users/sergiocalderon/Documents/Documentos - iMac de Sergio/Documentos iMac Sergio/Notas de Clase/Notas de clase/Notas de Clase Series de Tiempo Univariadas/Graficas/ACFsoiRec.pdf',paper="USr")
+par(mfrow=c(2,1))
+par(mar = c(2.7,2,2.7,2))
+acf(soi, 48, main="Southern Oscillation Index")
+acf(rec, 48, main="Recruitment")
+#dev.off()
+```
+
+```{r ccf}
+ccf(soi, rec, 48, main="SOI vs Recruitment", ylab="CCF")
 
 ```
 
