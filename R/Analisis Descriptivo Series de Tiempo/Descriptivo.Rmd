@@ -243,11 +243,17 @@ plot(soi, main="Indice soi")
 par(mar = c(3,2,3,2))
 astsa::lag1.plot(soi, 12)  ###El 12 indica cuantos retardos y_t-k contra y_t 
 ###Hacer la gráfica con x11()
+
+
 ```
 
 ```{r dispersion retardos_2}
+#pdf('/Users/sergiocalderon/Documents/Documentos - iMac de Sergio/Documentos iMac Sergio/Notas de Clase/Notas de clase/Notas de Clase Series de Tiempo Univariadas/Graficas/DispersionSoiRec.pdf',paper="USr")
 par(mar = c(3,2,3,2))
-lag2.plot(soi, rec, 8)   #El 2 es porque intervenienen dos serie de tiempo.
+lag2.plot(soi, rec, 8)   #El 2 de lag2.plot es porque intervenienen dos serie de tiempo.
+
+#dev.off()
+lag2.plot(soi, rec, 8,corr=F)
 ```
 Note que con la función ts_lags de TSstudio podemos hacer una gráfica similar.
 ```{r dispersion con TSstudio}
@@ -270,8 +276,108 @@ acf(rec, 48, main="Recruitment")
 
 ```{r ccf}
 ccf(soi, rec, 48, main="SOI vs Recruitment", ylab="CCF")
+```
+## Detección de cíclos y estacionalidades
+Podemos usar la función *TSstudio::ts_heatmap* para crear un mapa de calor. Este es un gráfico tridimensional, en donde en el eje x están los meses, y en el eje y están los años. Note en este caso que los meses de Diciembre,Enero, Febrero y Marzo presentan los valores mas oscuros, es decir los valores mas grandes a lo largo de los años, en contraste con los meses de Mayo a Septiembre  que presentan colores mas claros. Este es un típico comportamiento de la presencia de un cíclo estacional en la serie.    El flujo de color es horizontal.
 
+```{r consumo gas}
+ ts_plot(USgas,
+           title = "US Monthly Natural Gas consumption",
+           Ytitle = "Billion Cubic Feet",
+           Xtitle = "Year",
+           Xgrid = TRUE,
+           Ygrid = TRUE)
 ```
 
 
+```{r ciclos1}
+TSstudio::ts_heatmap(USgas,title = "Mapa de Calor - Consumo de Gas Natural en EEUU")
+```
+Voy enfocarme en un periodo de la serie
 
+```{r serie desempleo en un periodo}
+ unemployment <- window(USUnRate, start = c(1990,1))
+   ts_plot(unemployment,
+           title = "US Monthly Unemployment Rate",
+           Ytitle = "Unemployment Rate (%)",
+           Xtitle = "Year",
+           Xgrid = TRUE,
+Ygrid = TRUE)
+```
+* The first cycle occurred between 1990 and 2000, which was close to an 11-year cycle
+* The second cycle started in 2000 and ended in 2007, which was a 7-year cycle
+* A third cycle, which began in 2007 and as of May 2019 has not been completed yet, which means that this has continued for more than 12 years
+
+
+
+```{r ciclos2}
+ts_heatmap(USUnRate,title = "Mapa de Calor - Tasa de Desempleo EEUU")
+```
+En este ejemplo, el flujo de color de la Tasa de Desempleo es vertical, lo que indica el estado del ciclo. En este caso, las franjas verticales más claras representan el final de un ciclo y el comienzo del siguiente. Asimismo, las franjas verticales más oscuras representan los picos del ciclo.
+
+## Explorando mas herramientas para detección de Estacionalidad
+
+Pueden haber múltiples estacionalidades(por lo general ocurren en series de alta frecuencia: diaria, cada hora, cada media y asi sucesivamente.) o una única estacionalidad.
+
+```{r mas acerca de estacionalidad}
+library(UKgrid)
+UKgrid_xts <- extract_grid(type = "xts",
+                              columns = "ND",
+                              aggregate = "hourly",
+                              na.rm = TRUE)
+#extract_grid solo funciona para el conjunto de datos UKgrid
+ts_plot(UKgrid_xts,
+            title = "National Hourly Demand UK Grid",
+            Ytitle = "Megawatts",
+            Xtitle = "Year",
+            Xgrid = TRUE,
+            Ygrid = TRUE)
+```
+## Medidas descriptivas
+
+```{r descriptivo consumo de Gas}
+USgas_df <- data.frame(year = floor(time(USgas)), month = cycle(USgas),USgas = as.numeric(USgas))
+
+USgas_df$month <- factor(month.abb[USgas_df$month], levels = month.abb)
+
+library(dplyr)
+USgas_summary <- USgas_df %>%group_by(month) %>%summarise(mean= mean(USgas),sd = sd(USgas))
+USgas_summary
+
+ library(plotly)
+  plot_ly (data = USgas_summary, x = ~ month, y = ~ mean, type = "bar", name   = "Mean") %>%
+   layout (title = "USgas - Monthly Average", yaxis =list(title = "Mean",   range = c(1500, 2700)))
+  
+  monthplot(USgas)
+```
+Note que basados en las estadísticas descriptivas podemos ver que las medias son distintas para algunos meses, incluso sin quitar la tendencia. A una misma conclusión llegamos basados en los gráficos. Estas son típicas características de que hay presente un ciclo estacional en la serie.
+
+Por otro lado, la primera indicación de la posible existencia de múltiples patrones estacionales en la serie es una frecuencia alta, como por diaria, horaria y en minutos. En esos casos, hay más de una forma de establecer la frecuencia de la serie. Por ejemplo, si capturamos una serie de tiempo de frecuencia diaria, la frecuencia de la serie se puede configurar de la siguiente manera:
+* Diariamente (o 365), asumiendo que el ciclo más apropiado es un año completo
+* Días de semana (o 7) siempre que la oscilación del día de la semana sea más dominante que la del ciclo de año completo.
+
+Al utilizar estadísticas descriptiva con este tipo de series, tendrá sentido aplicar este método para cada frecuencia potencial de la serie (o al menos las principales) con el fin de examinar si existe una indicación del patrón estacional. 
+
+Por ejemplo, UKgrid es una serie de tiempo por horas, que la marca automáticamente como sospechosa de tener múltiples patrones estacionales. Potencialmente, como se mencionó anteriormente, la demanda horaria de electricidad podría tener tres patrones estacionales diferentes:
+
+* Horaria: Este es probablemente el principal patrón estacional de la serie, ya que existe una relación directa entre la demanda de energía eléctrica y la hora del día (hay alta demanda durante el día y baja demanda durante la noche).
+Día de la semana: La demanda de electricidad a lo largo del día se deriva, potencialmente, del día de la semana. Tendría sentido esperar un alto consumo durante los días laborables y una menor tasa de consumo durante el fin de semana.
+Mensual: como los patrones climáticos varían a lo largo del año, la cantidad de luz del día y otros factores estacionales podrían afectar la demanda de electricidad.
+
+```{r multiples patrones estacionales_1}
+library(xts)
+UKgrid_df <- data.frame(time = index(UKgrid_xts), UKgrid=as.numeric(UKgrid_xts))
+str(UKgrid_df)
+```
+Ahora crearemos características estacionales basados en los periodos que deseamos explorar, por ejemplo hora del día,o día de la semana, o mes del año usando lubridate.
+
+```{r creando patrones}
+library(lubridate)
+UKgrid_df$hour <- hour(UKgrid_df$time)
+UKgrid_df$weekday <- wday(UKgrid_df$time, label = TRUE, abbr = TRUE)
+UKgrid_df$month <- factor(month.abb[month(UKgrid_df$time)], levels =   month.abb)
+head(UKgrid_df)
+```
+
+
+## Usando Regresión para Descubrir un cíclo
