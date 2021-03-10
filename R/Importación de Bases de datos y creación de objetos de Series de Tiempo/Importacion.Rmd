@@ -1,6 +1,7 @@
 ---
 title: "Importacion"
-output: github_document
+#output: github_document
+output: html_document
 always_allow_html: true
 ---
 
@@ -23,7 +24,7 @@ plot(as.ts(Intanual))
 ## Creando y graficando la serie de retornos para ver los cambios
 
 
-El objeto ts es un formato para series de tiempo univariadas regulares. Las caraterísticas de una serie regular son; Ciclo o periodo(unidad de tiempo regular y repetitiva que divide la serie en ubconjuntos consecutivos e igualmente espaciados), Frecuencia(define la longitud o el número de unidades de un cíclo) y las marcas de tiempo(provee el tiempo en que cada observación fue obtenida y puede ser usada como índice de la serie. La diferencia($\delta$) entre los tiempos de dos observaciones consecutivas debe ser igual).
+El objeto ts es un formato para series de tiempo univariadas regulares. Las caraterísticas de una serie regular son; Ciclo o periodo(unidad de tiempo regular y repetitiva que divide la serie en subconjuntos consecutivos e igualmente espaciados), Frecuencia(define la longitud o el número de unidades de un cíclo) y las marcas de tiempo(provee el tiempo en que cada observación fue obtenida y puede ser usada como índice de la serie. La diferencia($\delta$) entre los tiempos de dos observaciones consecutivas debe ser igual).
 
 Este objeto ts tiene dos elementos: los valores de la serie y sus correspondientes marcas de tiempo.
 
@@ -37,6 +38,7 @@ plot(sercamrelint,main="Cambios relativos")
 plot.ts(sercamrelint)
 acf(sercamrelint,ci.type='ma')
 acf(sercamrelint,type='partial')
+
 str(sercamrelint)
 head(time(sercamrelint),20)
 head(cycle(sercamrelint),15)
@@ -74,7 +76,7 @@ class(index(EURO_Brent))
 
 ```
 ## Creación de objetos zoo
-Vamos a crear objetos reguslar e irregularmente espaciados
+Vamos a crear objetos regular e irregularmente espaciados
 ```{r creacion de objetos zoo}
 data(US_indicators)
 str(US_indicators)
@@ -104,7 +106,7 @@ is.regular(Ventas_vehiculos2,strict = FALSE)
 
 ##  Paquete xts
 
-El paquete xts(extensible time series) es una extsnión del paquete zoo y provee la clase xts y un conjunto de funciones y herramientas para pre-procesamiento, manipulacion y visualización de series de tiempo. Recuerde que una clase xts es un objeto zoo con atributos adicionales. 
+El paquete xts(extensible time series) es una extensión del paquete zoo y provee la clase xts y un conjunto de funciones y herramientas para pre-procesamiento, manipulación y visualización de series de tiempo. Recuerde que una clase xts es un objeto zoo con atributos adicionales. 
 ```{r xts}
 library(xts)
 library(readxl)
@@ -154,7 +156,7 @@ str(TsColCap)
 
 
 ## Fecha y formatos de hora
-El pauqte base provee 2 tipos de clases de fechas y horas:
+El paquete base provee 2 tipos de clases de fechas y horas:
 
 Date:Es una representación simple usando el formato de fecha YYYY-m-d
 
@@ -178,7 +180,7 @@ url <-
    "https://github.com/PacktPublishing/Hands-On-Time-Series-Analysis-with-R/raw/master/Chapter02/dates_formats.csv"
 dates_df <- read.csv(url, stringsAsFactors = FALSE)
 str(dates_df)
-###Convierte directamente de caractér a Fecha, note que el el objeto cracater tiene la misma estructuta ISO8601, entonces no se necesita especificar el formato.
+###Convierte directamente de caractér a Fecha, note que  el objeto caracter tiene la misma estructura ISO8601, entonces no se necesita especificar el formato.
 dates_df$Japanese_format_new <- as.Date(dates_df$Japanese_format)
 
 head(dates_df[, c("Japanese_format", "Japanese_format_new")])
@@ -186,7 +188,7 @@ identical(dates_df$Japanese_format, dates_df$Japanese_format_new)
 class(dates_df$Japanese_format)  ###Los diferentes formatos uno caractér y el otro fecha
 class(dates_df$Japanese_format_new)
 
-###El siguiente ejemplo muestra que debe especificarse el formato cuando el caracter no tiene structura ISO 8601
+###El siguiente ejemplo muestra que debe especificarse el formato cuando el caracter no tiene structura ISO8601
 head(dates_df$US_format)
 dates_df$US_format_new <- as.Date(dates_df$US_format, format = "%m/%d/%Y")
 head(dates_df$US_format_new)
@@ -204,7 +206,7 @@ class(dates_df$US_long_format_new)
 ```{r Ojetos de hora}
 time_str <- "2018-12-31 23:59:59"
 class(time_str)
-###Convertimos el obejto caractér en POSIXct
+###Convertimos el objeto caractér en POSIXct
 time_posix_ct1 <- as.POSIXct(time_str)
 class(time_posix_ct1)
 
@@ -214,7 +216,7 @@ time_str
 time_posix_ct1
 
 ####Valores numéricos a POSIXct basado en el punto de origen
-time_numeric <- 1546318799   #El valor numérico reprsenta el número de segundos trasncurridos desde el punto de origen
+time_numeric <- 1546318799   #El valor numérico representa el número de segundos trasncurridos desde el punto de origen
 class(time_numeric)
 time_posix_ct2 <- as.POSIXct(time_numeric, origin = "1970-01-01")  
 print(c(time_posix_ct1, time_posix_ct2))
@@ -224,7 +226,7 @@ print(c(time_posix_ct1, time_posix_ct2))
  time_US_str <- "Monday, December 31, 2018 11:59:59 PM"
  time_posix_ct3 <- as.POSIXct(time_US_str, format = "%A, %B %d, %Y %I:%M:%S
 %p")
-  time_posix_ct3
+ time_posix_ct3
 identical(time_posix_ct1, time_posix_ct2, time_posix_ct3)
 
 ```
@@ -243,7 +245,7 @@ daily_3_index <- seq.Date(from = as.Date("2016-01-01"),
 by = "3 days")
 head(daily_3_index)
 
-###Otra forma de hacerlo en decir cuantos peridos de tiempo se requiere
+###Otra forma de hacerlo en decir cuantos periodos de tiempo se requiere
 hourly_index <- seq.POSIXt(from = as.POSIXct("2018-06-01"), by = "hours",
    length.out = 48)
 str(hourly_index)
@@ -264,7 +266,7 @@ time_base <- as.POSIXct(time_US_str,
  class(time_base)
 time_base
 #Sys.setlocale(locale="es_ES.UTF-8")   ###Establece fecha en español
-#Sys.setlocale(locale="en_US.UTF-8")
+Sys.setlocale(locale="en_US.UTF-8")
 time_Col_str="Lunes, Diciembre 31, 2018 11:59:59 PM"
 time_Col_base <- as.POSIXct(time_Col_str,
                            format = "%A, %B %d, %Y %I:%M:%S %p")
