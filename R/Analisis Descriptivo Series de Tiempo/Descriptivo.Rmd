@@ -1,7 +1,7 @@
 ---
 title: "Analisis Descriptivo Series de Tiempo"
-output: github_document
-#output: html_document
+#output: github_document
+output: html_document
 always_allow_html: true
 ---
 
@@ -360,16 +360,18 @@ Al utilizar estadísticas descriptiva con este tipo de series, tendrá sentido a
 
 Por ejemplo, UKgrid es una serie de tiempo por horas, que la marca automáticamente como sospechosa de tener múltiples patrones estacionales. Potencialmente, como se mencionó anteriormente, la demanda horaria de electricidad podría tener tres patrones estacionales diferentes:
 
-* Horaria: Este es probablemente el principal patrón estacional de la serie, ya que existe una relación directa entre la demanda de energía eléctrica y la hora del día (hay alta demanda durante el día y baja demanda durante la noche).
-Día de la semana: La demanda de electricidad a lo largo del día se deriva, potencialmente, del día de la semana. Tendría sentido esperar un alto consumo durante los días laborables y una menor tasa de consumo durante el fin de semana.
-Mensual: como los patrones climáticos varían a lo largo del año, la cantidad de luz del día y otros factores estacionales podrían afectar la demanda de electricidad.
+* Horaria: Este es probablemente el principal patrón estacional de la serie, ya que existe una relación directa entre la demanda de energía eléctrica y la hora del día (hay alta demanda durante el día y baja demanda durante la noche o al contrario).
+* Día de la semana: La demanda de electricidad a lo largo del día se deriva, potencialmente, del día de la semana. Tendría sentido esperar un alto consumo durante los días laborables y una menor tasa de consumo durante el fin de semana.
+* Mensual: como los patrones climáticos varían a lo largo del año, la cantidad de luz del día y otros factores estacionales podrían afectar la demanda de electricidad.
+
+Usando el paquete <b>lubridate</b> crearemos las características.
 
 ```{r multiples patrones estacionales_1}
 library(xts)
 UKgrid_df <- data.frame(time = index(UKgrid_xts), UKgrid=as.numeric(UKgrid_xts))
 str(UKgrid_df)
 ```
-Ahora crearemos características estacionales basados en los periodos que deseamos explorar, por ejemplo hora del día,o día de la semana, o mes del año usando lubridate.
+Ahora crearemos características estacionales basados en los periodos que deseamos explorar, por ejemplo hora del día,o día de la semana, o mes del año.
 
 ```{r creando patrones}
 library(lubridate)
@@ -378,6 +380,149 @@ UKgrid_df$weekday <- wday(UKgrid_df$time, label = TRUE, abbr = TRUE)
 UKgrid_df$month <- factor(month.abb[month(UKgrid_df$time)], levels =   month.abb)
 head(UKgrid_df)
 ```
+Vamos a empezar las exploraciones analizando el cilo horario.
+
+```{r horario UKgrid}
+ UKgrid_hourly <- UKgrid_df %>%
+    dplyr::group_by(hour) %>%
+    dplyr::summarise(mean = mean(UKgrid, na.rm = TRUE), sd = sd(UKgrid, na.rm
+= TRUE))
+str(UKgrid_hourly)
+```
+Vamos ahora a hacer la gráfica de la media y la desviación estándar con base en las horas. Note que esas gráficas en escalas diferentes, así que hay que usar un gráfico especial.
+
+```{r horario UKgrid_1}
+ plot_ly(UKgrid_hourly) %>%
+      add_lines(x = ~ hour, y = ~ mean, name = "Media") %>%
+      add_lines(x = ~ hour, y = ~ sd, name = "Desviación Estándar", yaxis =
+   "y2",
+                line = list(color = "red", dash = "dash", width = 3)) %>%
+      layout(
+        title = "La demanda nacional de electricidad - Promedio horario vs. Desviación Estándar",
+        yaxis = list(title = "Media"),
+        yaxis2 = list(overlaying = "y",
+                      side = "right",
+                      title = "Desviación Estándar"
+        ),
+        xaxis = list(title="Hora del Día"),
+        legend = list(x = 0.05, y = 0.9),
+        margin = list(l = 50, r = 50)
+)
+```
+Qué podemos destacar del gráfico y de las estadísticas descriptivas?
+
+* Hay poca demanda durante la noche (entre la medianoche y las 6 a.m.) y una alta demanda entre las horas de la mañana y la tarde.
+
+* Existe una fuerte correlación entre la demanda promedio y su desviación estándar.
+
+* La relativamente baja desviación estándar de la demanda promedio   durante la noche podría indicar que existe un fuerte efecto subestacional durante esas horas además de la estacionalidad horaria. Esto debería tener sentido, ya que son horas de sueño normales y, por lo tanto, en promedio, la demanda es razonablemente la misma durante los días de semana.
+
+* Por otro lado, la alta desviación estándar a lo largo de las horas de alta demanda podría indicar que la demanda se distribuye de manera diferente en diferentes vistas de periodicidad (como día de la semana o mes del año).
+
+Vamos a explorar el último punto, viendo la demanda a la madrugada(3 a.m) y empezando el día(9 a.m)
+
+```{r exploracion_1}
+
+   UKgrid_weekday <- UKgrid_df %>%
+      dplyr::filter(hour == 3 | hour == 9) %>%
+    dplyr::group_by(hour, weekday) %>%
+    dplyr::summarise(mean = mean(UKgrid, na.rm = TRUE),
+                     sd = sd(UKgrid, na.rm = TRUE))
+
+UKgrid_weekday$hour <- factor(UKgrid_weekday$hour)
+    plot_ly(data = UKgrid_weekday, x = ~ weekday, y = ~ mean, type =
+   "bar",color = ~ hour) %>%
+      layout(title = "The Hourly Average Demand by Weekday",
+             yaxis = list(title = "Mean", range = c(30000, 75000)),
+             xaxis = list(title = "Weekday"))
+```
+En el gráfico de barras anterior podemos ver que la demanda de electricidad a las 3 a.m. es relativamente estable durante todos los días de la semana, con una ligera diferencia entre el promedio durante los días laborables y los días del fin de semana (alrededor de un 2% diferente). Por otro lado, existe una diferencia entre la demanda del día laborable y el fin de semana a las 9 a.m. (es decir, la demanda del lunes es en promedio un 28% superior a la del domingo). Como era de esperar, esos resultados se alinearon con nuestras expectativas anteriores. 
+
+Ahora podemos aprovechar esos conocimientos para examinar si existe un patrón estacional mensual en la serie. Ahora seleccionaremos las mismas horas (3 a.m. y 9 a.m.); sin embargo, esta vez agruparemos estos datos por mes (en lugar de días laborables):
+
+```{r exploracion_2}
+ UKgrid_month <- UKgrid_df %>%
+      dplyr::filter(hour == 3 | hour == 9) %>%
+    dplyr::group_by(hour, month) %>%
+    dplyr::summarise(mean = mean(UKgrid, na.rm = TRUE),
+                     sd = sd(UKgrid, na.rm = TRUE))
+UKgrid_month$hour <- factor(UKgrid_month$hour)
+    plot_ly(data = UKgrid_month, x = ~ month, y = ~ mean, type = "bar",color =
+   ~ hour) %>%
+      layout(title = "The Hourly Average Demand by Weekday",
+             yaxis = list(title = "Mean", range = c(30000, 75000)),
+             xaxis = list(title = "Month"))
+```
+Podemos ver en el gráfico de barras del resumen de agregación mensual que, en promedio, la demanda durante la noche (3 a.m.) y la mañana (9 a.m.) varía a lo largo de los meses del año. Además, hay un cambio significativo en la demanda durante la noche en comparación con la agregación entre semana. La variación de la serie de mes a mes indica la existencia de estacionalidad mensual en la serie.
+
+### Usando gráficos de densidaddes para explorar la estacionalidad.
+
+Otro enfoque para analizar patrones estacionales en datos de series de tiempo es trazar la distribución de las unidades de frecuencia mediante el uso de histogramas o gráficos de densidad. Esto nos permitirá examinar si cada unidad de frecuencia tiene una distribución única que puede distinguirla del resto de unidades. Para esto usaremos el paquete <b>ggplot2</b>. Vamos empezar con la serie USgas.
+
+```{r exploración estacionalidad ggplot2_1 }
+ library(ggplot2)
+    ggplot(USgas_df, aes(x = USgas)) +
+      geom_density(aes(fill = month)) +
+      ggtitle("USgas - Kernel Density Estimates by Month") +
+      facet_grid(rows = vars(as.factor(month)))
+```
+
+Podemos ver algunos indicios de un patrón estacional en la serie, ya que las gráficas de densidad no se superponen entre sí (con la excepción de algunos meses consecutivos, como mayo y junio). Además, podemos ver que, durante algunos meses, la forma de las distribuciones es más plana con colas largas (principalmente durante los meses de invierno, noviembre, diciembre y enero). Sin embargo, no olvidemos el efecto de la tendencia o el crecimiento de un año a otro (como sabemos del capítulo anterior, la serie de gas de Estados Unidos tuvo una tendencia lineal desde el año 2010) ya que no la eliminamos de la serie. Repitamos este proceso; esta vez quitando la tendencia de la serie USgas antes de graficarla. Vamos a eliminarle la tendencia, posteriormente los explicaremos.
+
+```{r exploración estacionalidad ggplot2_2 }
+USgas_df$USgas_detrend <- USgas_df$USgas - decompose(USgas)$trend
+    ggplot(USgas_df, aes(x = USgas_detrend)) +
+      geom_density(aes(fill = month)) +
+      ggtitle("USgas - Estimación de la densidad vía Kernel por mes") +
+      facet_grid(rows = vars(as.factor(month)))
+```
+Podemos ver que hay un comportamiento similar pero ahora las colas de las densidades estimadas son mas cortas.Pueden hacer lo mismo pero en vez de quitar la tendencia, hacemos una diferenciación.
+
+En el caso de que la distribución de la mayoría de las unidades de frecuencia sea plana con una cola larga, podría ser una indicación de múltiples patrones estacionales en la serie. Regresemos a la serie UKgrid y tracemos las gráficas de densidad de 24 horas:
+```{r exploración de múltiples estacionalidades ggplot2_1}
+UKgrid_df$hour <- as.factor(UKgrid_df$hour)
+    ggplot(UKgrid_df, aes(x = UKgrid)) +
+      geom_density(aes(fill = hour)) +
+      ggtitle("UKgrid - Kernel Density Estimates by Hour of the day") +
+      facet_grid(rows = vars(as.factor(hour)))
+```
+Como observamos anteriormente con las tablas de resúmenes estadísticos, la distribución de la demanda neta de electricidad durante la noche es relativamente estable (de ahí la distribución no plana con colas cortas en contraposición a la distribución plana con cola larga durante el día). Si ahora hacemos un subconjunto con una de las horas durante el día y trazamos su distribución por el día de la semana, deberíamos esperar una superposición durante la noche y poder distinguir entre la distribución durante los días de la semana y el fin de semana, en contraposición a solo el día de la semana.
 
 
+Por ejemplo, la siguiente gráfica representa la distribución de la demanda a las 9 a.m. a lo largo de los días de la semana. Puede ver que la distribución durante los días de la semana se distingue de la del fin de semana:
+
+```{r exploración de múltiples estacionalidades ggplot2_2}
+UKgrid_df$weekday <- as.factor(UKgrid_df$weekday)
+    UKgrid_df %>% dplyr::filter(hour == 0) %>%
+    ggplot(aes(x = UKgrid)) +
+      geom_density(aes(fill = as.factor(weekday))) +
+      ggtitle("UKgrid - Kernel Density Estimates by Hour of the day") +
+      facet_grid(rows = vars(as.factor(weekday)))
+
+```
+
+## Más herramientas del análisis de la estacionalidad
+Vamos a usar el paquete forecast. Note que extraemos las subseries de los años. Lo cual demuestra un fuerte patrón estacional mensual.
+```{r mas acerca estacionalidad_1}
+library(forecast)
+   ggseasonplot(USgas,year.labels=TRUE,continuous=TRUE)
+   
+ggseasonplot(USgas,  polar = TRUE)
+```
+Note que con el paquete TSstudio se puede hacer algo análogo.
+
+```{r mas acerca estacionalidad_2}
+ts_seasonal(USgas,type ="normal")
+
+ts_seasonal(USgas, type = "cycle")
+
+ts_seasonal(USgas, type = "box")
+
+ts_seasonal(USgas, type = "all")
+```
+ts_seasonal con type="cycle" añade un orden cronológico, en este caso por mes. Esto puede permitir la identificación de un patrón estacional sin tener que quitar la tendencia.
+
+Cuando en el argumento type="box", elabora un gráfico de caja por unidad de frecuencia.
+
+Finalmente cuando en el argumento type="all", elabora todos los gráficos anteriores.
 ## Usando Regresión para Descubrir un cíclo
