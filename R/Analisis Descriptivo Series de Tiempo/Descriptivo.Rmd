@@ -1,5 +1,5 @@
 ---
-title: "Analisis Descriptivo Series de Tiempo"
+title: "Analisis Descriptivo de Series de Tiempo en R"
 #output: github_document
 output: html_document
 always_allow_html: true
@@ -525,4 +525,31 @@ ts_seasonal con type="cycle" añade un orden cronológico, en este caso por mes.
 Cuando en el argumento type="box", elabora un gráfico de caja por unidad de frecuencia.
 
 Finalmente cuando en el argumento type="all", elabora todos los gráficos anteriores.
+
+
+El mapa de calor ya lo vimos anteriormente.
+
+```{r mapa de calor}
+ts_heatmap(USgas, color = "Reds")
+```
+
+Gráficos basados en cuantiles también son de utilidad.De forma predeterminada, la función devuelve un gráfico de cuantiles de las unidades de frecuencia de la serie, donde la línea media representa la mediana y las líneas inferior y superior representan los percentiles 25 y 75.
+
+```{r mapa de Gráficos de Cuantiles}
+ts_quantile(UKgrid)
+```
+El argumento  <em> period </em> permite examinar si los patrones estacionales de la serie están cambiando cuando se usa un subconjunto de tiempo diferente. Esto le permite examinar si la serie tiene patrones estacionales adicionales. Por ejemplo, podemos trazar el ciclo de 24 horas de la serie UKgrid por día de la semana estableciendo el argumento de período en días de la semana:
+
+```{r mapa de Gráficos de Cuantiles_1}
+ts_quantile(UKgrid, period = "weekdays", n = 2)
+```
+Como vimos anteriormente con las gráficas de densidad, la demanda de electricidad durante el día es relativamente mayor durante los días de semana en comparación con los fines de semana. De la misma manera, puede trazar el ciclo de 24 horas por mes:
+
+```{r mapa de Gráficos de Cuantiles_2}
+ ts_quantile(UKgrid, period = "monthly", n = 2)
+```
+La principal ventaja de las gráficas de cuantiles de múltiples períodos (por ejemplo, días de la semana, meses, etc.) sobre la gráfica de densidad que usamos anteriormente es que la primera representa todas las unidades de frecuencia (y, en el caso de UKgrid serie, con una frecuencia de 24 horas), mientras que el segundo representa una sola unidad de frecuencia (por ejemplo, la densidad de las 9 am durante los días de semana).
+
+
+
 ## Usando Regresión para Descubrir un cíclo
