@@ -108,8 +108,8 @@ lines(x, col=4); abline(h=0, col=4, lty=2); abline(a=0, b=.2, lty=2)
 par(mar = c(2,2,2,2))
 fit = lm(chicken~time(chicken), na.action=NULL) # Regresión sobre el tiempo
 par(mfrow=c(2,1))
-plot(resid(fit), type="o", main="sin tendencia") 
-plot(diff(chicken), type="o", main="Primera Diferencia") 
+plot(resid(fit), type="l", main="sin tendencia") 
+plot(diff(chicken), type="l", main="Primera Diferencia") 
 
 
 ```
@@ -140,7 +140,7 @@ plot(AirPassengers)
 #####Transformación Box-Cox
 library(FitAR)
 library(forecast)
-forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = 0, upper = 2) ###Me etrega el valor de lambda 
+forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = 0, upper = 2) ###Me entrega el valor de lambda 
 ##method="loglik"
 FitAR::BoxCox(AirPassengers)###Me entrega una gráfica
 
@@ -150,13 +150,13 @@ par(mfrow=c(2,1))
 plot(AirPassengers,main="Serie de Pasajeros sin Transformar")
 plot(lAirPass,main="Series con Trnaformación BoxCox")
 ```
-Note que ahora usamos la misma función para verificar si en verdad la varianza fue estabilizada.ç
+Note que ahora usamos la misma función para verificar si en verdad la varianza fue estabilizada.
 
 ```{r R BoxCox chequeo Series transformada}
 FitAR::BoxCox(lAirPass)
 forecast::BoxCox.lambda(lAirPass, method = "guerrero", lower = -1, upper = 2)
 ```
-
+Ejercicio: Use la serie <i>varve</i> del paquete <b>astsa</b> para chequear si es necesario hacer transformación Box-Cox,
 
 
 
@@ -551,5 +551,216 @@ Como vimos anteriormente con las gráficas de densidad, la demanda de electricid
 La principal ventaja de las gráficas de cuantiles de múltiples períodos (por ejemplo, días de la semana, meses, etc.) sobre la gráfica de densidad que usamos anteriormente es que la primera representa todas las unidades de frecuencia (y, en el caso de UKgrid serie, con una frecuencia de 24 horas), mientras que el segundo representa una sola unidad de frecuencia (por ejemplo, la densidad de las 9 am durante los días de semana).
 
 
-
 ## Usando Regresión para Descubrir un cíclo
+Vamos a considerar la serie
+$$x_t =A\cos(2\pi\omega t+\varphi)+w_t,$$
+y una simulación de tamaño $T=500$ para generar dos series, en donde las varianzas de los ruidos son diferentes en cada caso. Más específicamente $\omega=\frac{1}{50}, A=2, \varphi=0.6\pi$ y $\sigma_w=1,5.$ 
+```{r regresión estimar ciclo_1}
+cs = 2*cos(2*pi*1:500/50 + .6*pi);  w = rnorm(500,0,1)
+par(mfrow=c(3,1), mar=c(3,2,2,1), cex.main=1.5)
+plot.ts(cs, main=expression(2*cos(2*pi*t/50+.6*pi)))
+plot.ts(cs+w, main=expression(2*cos(2*pi*t/50+.6*pi) + N(0,1)))
+  plot.ts(cs+5*w, main=expression(2*cos(2*pi*t/50+.6*pi) + N(0,25)))
+
+```
+Note que cuando la varianza del ruido es mas grande, es mas complicado ver el cíclo.
+
+Vamos a re-escribir el proceso anterior usando la relación trigonométrica $\cos(\alpha \pm \beta) = \cos(\alpha) \cos(\beta) \mp \sin(\alpha) \sin(\beta),$ con lo cual:
+
+$$A \cos(2\pi\omega t + \varphi) = \beta_1 \cos(2\pi\omega t) + \beta_2 \sin(2\pi\omega t)$$
+donde $\beta_1=A\cos(\varphi)$ y $\beta_2=-A\sin(\varphi)$, así que el proceso queda escrito de la siguiente manera:
+
+$$x_t = \beta_1 \cos(2\pi t/50) + \beta_2 \sin(2\pi t/50) + w_t.$$
+asimiendo que $\omega=1/50$ es conocido. La transformación nos permitió convertir la regresión no lineal(en los parámetros) en una lineal. Así podemos estimar $\beta_1$ y $\beta_2$ usando una regresión lineal. Note también que si tomamos $\beta_1^2+\beta_2^2$, entonces tenemos $A^2=\beta_1^2+\beta_2^2$, así que, un estimador de la amplitud al cuadrado es $\hat{A}^2=\hat{\beta}_1^2+\hat{\beta}_2^2.$
+Note que los valores verdaderos de $\beta_1=$ y $\beta_2=$
+
+```{r regresión estimar ciclo_2}
+beta1teor=2*cos(.6*pi)
+beta2teor=-2*sin(.6*pi)
+set.seed(90210) # fijamos una semilla para que nos dé el mismo resultado
+x = 2*cos(2*pi*1:500/50 + .6*pi) + rnorm(500,0,5)
+z1 = cos(2*pi*1:500/50)
+z2 = sin(2*pi*1:500/50)
+summary(fit <- lm(x~0+z1+z2)) # sin intercepto.
+beta1teor
+beta2teor
+```
+```{r regresión estimar ciclo_3}
+par(mar = c(2,2,2,2))
+par(mfrow=c(2,1))
+plot.ts(x)
+plot.ts(x, col=8, ylab=expression(hat(x)))
+  lines(fitted(fit), col=2)
+```
+
+
+
+El periodograma es una herramienta que permite detectar el valor de la frecuencia $\omega$ que en general es desconocida.
+
+## Exploración de Múltiples Cíclos y el Periodograma
+
+Vamos a explorar una herremienta que sirve para describir funciones periódicas generales. Fourier mostró que toda función periódica puede representarse como una suma de funciones sinusoidales de distinta amplitud y frecuencia. La idea entonces es generalizar el análisis anterior para un ciclo a suma de funciones armónicas con distintas frecuencias. 
+
+Dada la serie de longitud $T$, se denomina periodo básico o de Fourier, a las fracciones exactas del tamaño muestral, es decir
+$$s_j=\frac{T}{j},\  \  j=1,2,\cdots,T/2.$$
+
+El valor máximo de periodo básico se obtiene para $j=1$ y es $T$, es decir, observamos la onda una sola vez. El mínimo se obtiene para $j=T/2$ y es 2 ya que no se puede observar periodos que duren menos de 2 observaciones. Como antes, suele usarse las frecuencias en lugar de los periodos para el ajuste de los ciclos, así que las frecuencias básicas o de Fourier se define como
+$$f_j=\frac{j}{T}\  \  j=1,2,\cdots,T/2.$$
+
+Así, $1/T\leq f_j\leq 1/2$, y el valor máximo sería $f_j=0.5$ y se conoce como la frecuencia Nyquist. Con esto, una serie de tiempo $Z_t$ que es periódica se puede representar mediante
+
+$$Z_t=\mu+\sum_{j=1}^{T/2}A_j\sin(\omega_j t)+ \sum_{j=1}^{T/2}B_j\cos(\omega_j t)+a_t.$$
+
+Note que éste modelo tiene tantos parámetros como observaciones, con lo cual hay que buscar un procedimiento para seleccionar las frecuencias que deben ser incluidas para explicar la evolución de la serie. Para esto se utilizará la herramienta conocida como el periodograma. Se puede verificar que la contribución de una onda a la varianza es dada por $\frac{\hat{R}^2}{2}$, así que ondas asociadas con amplitudes grandes serán importantes en la explicación de la variabilidad de la serie, mientras que ondas asociadas con amplitudes bajas serán poco importantes. De forma análoga a como se mostró en la sección anterior, los estimadores de los coeficientes $A_j$ y $B_j$ están dados por
+$$\hat{A}_j=\frac{2}{T}\sum_{t=1}^{T}Z_t\sen(\omega_j t)$$  
+$$\hat{B}_j=\frac{2}{T}\sum_{t=1}^{T}Z_t\cos(\omega_j t)$$
+y $$\hat{R}_j=\hat{A}_j^2+\hat{B}_j^2,$$
+donde $\omega_j=2\pi f_j$ y $f=\frac{j}{T}$, con lo cual
+$$TS_z^2=\frac{T}{2}\sum_{j=1}^{T/2}\hat{R}_j^2.$$
+
+Se le da el nombre de periodograma a la representación de cada $\frac{T\hat{R}_j^2}{2}$ en función de la frecuencia $\omega_j$ o $f_j$. Así
+\begin{equation}
+\label{periodograma}
+I(f_j)=\frac{T\hat{R}_j^2}{2},\  \  \text{con}\  1/T\leq f_j\leq 1/2
+\end{equation}
+ y 
+ $$\bar{I}=\sum_{j=1}^{T/2}\hat{R}_j^2=S_z^2.$$
+
+Nos enfocaremos en las frecuencias básicas únicamente, lo cual no es restrictivo si $T$ es muy grande, puesto que el número de frecuencias básicas será muy grande y siempre existirá alguna frecuencia básica muy próxima a la que puede interesarnos. El periodograma puede verse como una herramienta para la detección de posibles ciclos(ocultos) deterministas en una serie temporal. Por ejemplo, en una serie mensual estacional de periodo $s=12$, esperamos encontrar un valor alto de periodograma para $f=1/12$, pero también para $f=j/12$, es decir, $1/6,1/4,1/3$ que son armónicos del periodo estacional. Por otro lado, la serie puede tener otros ciclos no necesariamente ligado al periodo estacional, siendo el periodograma una buena herramienta para detectar estos posibles componentes. \\
+
+Podemos considerar la amplitud calculada para la frecuencia $f_j$ como un promedio de las amplitudes existentes en las frecuencias situadas en el intervalo $f_j\pm \frac{1}{2}T$. Con esto, se puede obtener el periodograma suavizado construyendo rectángulos con centro $f_j$, base igual a $1/T$ y alturas $I(f_j)=T\hat{R}_j/2$. Otra forma de suavizar el periodograma es
+$$I(f)=\sum_{f_i-q}^{fi+q}p_iI(f_i)\  \  0\leq f \leq 0.5,$$
+
+donde $q$ representa la ventana usada y los $p_i$ son los pesos simétricos y no modifica el valor de la varianza $S^2_z$ que es área bajo la curva. 
+
+Vamos a retomar el ejemplo anterior donde simulamos una serie de tamaño $T=500$ con frecuencia $\omega=1/50$.
+
+```{r Periodograma_1}
+plot.ts(x)
+spectrum(x,log='no')
+abline(v=1/50, lty=2,col="red")
+###Otra forma de computarlo es vía la transformada de Fourier
+
+Px = Mod(fft(x))^2
+Freq=0:499/500
+plot(Freq, Px, type='l')
+u = which.max(Px[1:250])
+sprintf("El valor de la frecuencia donde se máximiza el periodograma es %s",Freq[u])
+```
+Note que en cualquiera de las dos formas de obtener el periodograma, hemos descubierto la frecuencia $\omega=1/50$ como frecuencia príncipal.
+
+En ocasiones es necesario suavizar el periodograma porque encontramos varios picos que en verdad no son valores grandes.
+
+```{r Periodograma_2}
+spectrum(x,log='no',span=5)
+#span vector of odd integers giving the widths of modified Daniell smoothers to be used to smooth the periodogram.
+
+spectrum(x,log='no',span=c(5,5))
+spectrum(x,log='no',span=c(2,2))
+```
+
+Veamos ahora con una serie de tiempo real. Usaremos la serie SOi y Recruitment para ilustrar su uso. Recordemos que ambas series son mensuales, así que las frecuencias que serán dibujadas en el eje x vedrán en múltiplos de $\frac{1}{12}$. Usaremos ahora la función <b> mvspec</b> del paquete <b>astsa</b>.
+
+```{r espectral_soi}
+library(astsa)
+data(soi)
+soi.per = astsa::mvspec(soi, log="no")
+ubicacionsoi=which.max(soi.per$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para SOI es: %s",soi.per$freq[ubicacionsoi])
+n_soi <- length(soi.per$spec)
+valor_seg_per=sort(soi.per$spec,partial=n_soi-1)[n_soi-1]
+ubica_segundo_soi=which(soi.per$spec==valor_seg_per)
+
+sprintf("El valor de la frecuencia donde se alcanza el segundo máximo para el periodograma para SOI es: %s",soi.per$freq[ubica_segundo_soi])
+abline(v=soi.per$freq[ubicacionsoi], lty=2,col="blue")
+abline(v=soi.per$freq[ubica_segundo_soi], lty=2,col="blue")
+
+```
+Note que la primera frecuencia mas alta se encuentra en $\omega=1\cdot \frac{1}{12}=\frac{1}{12}$, el cual corresponde al obvio ciclo anual (periodo de 12 meses). La segunda corresponde a $\omega=\frac{1}{5} \cdot \frac{1}{12}=\frac{1}{60}$, el cual corresponde a un posible ciclo de periodo $1/(1/60)= 60$ meses, es decir 5 años, lo cual puede ser debido al fenómeno de El Niño.
+
+```{r espectral_rec}
+data("rec")
+rec.per = astsa::mvspec(rec, log="no")
+ubicacionrec=which.max(rec.per$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para SOI es: %s",rec.per$freq[ubicacionrec])
+n_rec <- length(rec.per$spec)
+valor_seg_per_rec=sort(rec.per$spec,partial=n_rec-1)[n_rec-1]
+ubica_segundo_rec=which(rec.per$spec==valor_seg_per_rec)
+
+sprintf("El valor de la frecuencia donde se alcanza el segundo máximo para el periodograma para SOI es: %s",rec.per$freq[ubica_segundo_rec])
+abline(v=rec.per$freq[ubicacionrec], lty=2,col="blue")
+abline(v=rec.per$freq[ubica_segundo_rec], lty=2,col="blue")
+
+```
+Note que la primera frecuencia mas alta se encuentra en $\omega=1\cdot \frac{1}{12}=\frac{1}{12}$, el cual corresponde al obvio ciclo anual (periodo de 12 meses), igual que para el casi del indice soi. La segunda corresponde a $\omega=\frac{1}{4} \cdot \frac{1}{12}=\frac{1}{48}$, el cual corresponde a un posible ciclo de periodo $1/(1/48)= 48$ meses, es decir 4 años. lo cual puede ser debido al fenómeno de El Niño. Esta actividad de banda ancha sugiere que el posible ciclo de El Niño es irregular, pero tiende a rondar los cuatro años en promedio.
+
+<b> Tarea</b> : Hacer lo mismo pero ahora usar la serie de pasajeros diferenciada, al igual que la serie UKgrid, mas específicamente la serie UKgrid_xts y la serie taylor del paquete forecast.
+
+
+
+# Suavizamiento en el contexto de Series de Tiempo
+
+## Promedio Móvil
+El promedio móvil es un método es útil para descubrir ciertos rasgos en una serie de tiempo, como tendencias a largo plazo y componentes estacionales. En particular, si $x_t$ representa las observaciones, entonces una forma de predecir predecir o estimar la tendencia de la serie es:
+
+$$m_t=\sum_{j=-k}^{k}a_jx_{t-j},$$
+donde si$a_j=a_{-j}\ge0$ y $\sum_{j=-k}^{k}a_j=1$ se conocce como el el promedio móvil simétrico de los datos.
+
+```{r Suavizamiento_1}
+wgts = c(.5, rep(1,11), .5)/12   ###Los pesos de los filtros
+soif = stats::filter(soi, sides=2, filter=wgts)
+plot(soi)
+lines(soif, lwd=2, col=4)
+
+###Forma del Filtro
+nwgts = c(rep(0,20), wgts, rep(0,20))
+plot(nwgts, type="l", ylim = c(-.02,.1), xaxt='n', yaxt='n', ann=FALSE)
+```
+## Suavizamiento Kernel
+El suavizamiento kernel es un suavizador de promedio móvil que utiliza una función de ponderación, o kernel, para promediar las observaciones.Veamos ahora como queda el promedio móvil:
+
+$$m_t=\sum_{i=1}^{n}w_i(t)x_i$$
+donde
+$$w_i(t)=K(\frac{t-i}{b})/\sum_{j=1}^{n}K(\frac{t-j}{b})$$
+son los pesos y $K(\cdot)$ es una funció kernel. Este estimador es llamado el Estimador de Nadaraya-Watson. Usaremos la función ksmooth
+
+```{r Suavizamiento_2}
+plot(soi)
+lines(ksmooth(time(soi), soi, "normal", bandwidth=1), lwd=2, col=4)
+#par(fig = c(.65, 1, .65, 1), new = TRUE) # the insert
+gauss = function(x) { 1/sqrt(2*pi) * exp(-(x^2)/2) }
+x = seq(from = -3, to = 3, by = 0.001)
+plot(x, gauss(x), type ="l", ylim=c(-.02,.45), xaxt='n', yaxt='n', ann=FALSE)
+
+```
+## Lowess
+Otro enfoque para suavizar un gráfico de tiempo es la regresión del vecino más cercano. La técnica se basa en la regresión de k vecinos más cercanos, en la que uno usa solo los datos $\{x_{t−k/2}, ..., x_t, ..., x_{t+k/2}\}$ para predecir $x_t$ mediante regresión, y luego establece $m_t = \hat{x}_t$. Primero, una cierta proporción de vecinos más cercanos a $x_t$ se incluyen en un esquema de ponderación; los valores más cercanos a $x_t$ en el tiempo obtienen más peso. Luego, se utiliza una regresión ponderada robusta para predecir $x_t$ y obtener los valores suavizados $mt$. Cuanto mayor sea la fracción de vecinos más cercanos incluidos, más suave será el ajuste. El R se usa la función lowess.
+
+```{r Suavizamiento_3}
+plot(soi)
+lines(lowess(soi, f=.05), lwd=2, col=4)  # Ciclo El Niño 
+lines(lowess(soi), lty=2, lwd=2, col=2)  # tendencia (con span por defecto)
+```
+
+## Suavizamiento Splines
+Una forma obvia de suavizar los datos sería ajustar una regresión polinomial en términos del tiempo. Por ejemplo, un polinomio cúbico tendría $x_t = m_t + w_t$ donde $m_t =\beta_0 + \beta_1t + \beta_2t^2 + \beta_3t^3$. Entonces podríamos ajustar $m_t$ mediante mínimos cuadrados ordinarios.
+
+Una extensión de la regresión polinomial es dividir primero el tiempo $t = 1,. . . , n$, en
+k intervalos, $[t_0 = 1, t_1]$, $[t_1 + 1, t_2],\cdots,$ $[t_{k − 1} + 1, t_k = n]$; los valores $t_0$, $t_1$, ..., $t_k$ se llaman nodos. Luego, en cada intervalo, se ajusta una regresión polinomial, normalmente de orden  3, y esto se llama splines cúbicos.
+Un método relacionado es suavizar splines, que minimiza el compromiso entre el ajuste y el grado de suavidad dado por
+
+$$\sum_{t=1}^{n}[x_t-m_t]^2+\lambda\int(m_t'')^2 dt,$$
+donde $m_t$ es un spline cúbico con nodos en cada tiempo t y el grado de suavidad es controlado por $\lambda>0.$ El parámetro de suavizado en R es controlado por el argumento <b>spar </b> de la función <b>smooth.spline </b> del paquete stats. 
+
+
+```{r Suavizamiento_4}
+plot(soi)
+  lines(smooth.spline(time(soi), soi, spar=.5), lwd=2, col=4)
+  lines(smooth.spline(time(soi), soi, spar= 1), lty=2, lwd=2, col=2)
+```
+La diferencia entre uan y otra gráfica es es grado de suavizamiento.
+
+<> Tarea:</b> Hacer lo mismo para la serie Recruitment. 
+
+
+
