@@ -18,8 +18,8 @@ data(USUnRate)
 ts_info(USUnRate)
 plot(USUnRate,main = "US Monthly Unemployment Rate",ylab="Unemployment Rate (%)")
 ```
-La serie es medida mensula, es decir, presenta una frecuencia de 12.
-Qué carcaterísticas podemos observar?
+La serie es medida mensual, es decir, presenta una frecuencia de 12.
+Qué características podemos observar?
 * Tendencia?
 * Estacionalidad?
 * Cíclos?
@@ -35,9 +35,9 @@ Vamos a seleccionar un periodo de tiempo mas corto
 #           Xgrid = TRUE,
 #Ygrid = TRUE)
 ```
-Note que aquí podemos ver varias características: Estacionalidad(no es tan evidente), tres periodos de cíclos, el primero de 1990 a 2000,el segundo de 2000 a 2007, y el tercero de 2007 a 2019. No parece tener una hetocedasticidad marginal.
+Note que aquí podemos ver varias características: Estacionalidad(no es tan evidente), tres periodos de ciclos, el primero de 1990 a 2000,el segundo de 2000 a 2007, y el tercero de 2007 a 2019. No parece tener una hetocedasticidad marginal.
 
-Veamos ahora la tasa de desempleo de Colombia. Hay que hacerle un ajuste a la base de datos porque está en order descendente en el tiempo.
+Veamos ahora la tasa de desempleo de Colombia. Hay que hacerle un ajuste a la base de datos porque está en orden descendente en el tiempo.
 
 ## Including Plots
 ```{r Desempleo y empleo importacion y ajuste}
