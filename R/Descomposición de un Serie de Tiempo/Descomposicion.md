@@ -9,24 +9,24 @@ Base\_Accidentes.xlsx,
 
 Las primeras tres metodologías se basarán en el supuesto que una serie
 de tiempo observable puede ser descompuesta en una componente de
-tendencia y una componente estacional, es decir, \(\{X_{t}\}\) puede
-descomponerse de la siguiente forma aditiva \[
-X_{t}=m_{t}+S_{t}+Y_{t},
-\] donde \[m_{t}:\text{función que cambia suavemente,}\]\\
-\[S_{t}:\text{función de periodo conocido d,}\]\\
-\[Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}\]\\ Un
-modelo multiplicativo puede ser considerado como modelo alternativo al
-aditivo, \[
-X_{t}=m_{t}\times S_{t} \times Y_{t}.
-\] Sin embargo es necesario primero hacer una transformación de Box-Cox
+tendencia y una componente estacional, es decir, {*X*<sub>*t*</sub>}
+puede descomponerse de la siguiente forma aditiva
+*X*<sub>*t*</sub> = *m*<sub>*t*</sub> + *S*<sub>*t*</sub> + *Y*<sub>*t*</sub>,
+donde
+*m*<sub>*t*</sub> : función que cambia suavemente,
+\\
+*S*<sub>*t*</sub> : función de periodo conocido d,
+\\
+*Y*<sub>*t*</sub> : ruido aleatorio estacionario en el sentido débil.
+\\ Un modelo multiplicativo puede ser considerado como modelo
+alternativo al aditivo,
+*X*<sub>*t*</sub> = *m*<sub>*t*</sub> × *S*<sub>*t*</sub> × *Y*<sub>*t*</sub>.
+Sin embargo es necesario primero hacer una transformación de Box-Cox
 para Estabilizar la varianza marginal.
 
-\[
- f_{\lambda}(u_{t})= 
- \lambda^{-1}(u^{\lambda}_{t}-1),   si \ u_{t} \geq 0, para\  \lambda>0
- \] o \[
- f_{\lambda}(u_{t})= \ln(u_{t}), \ si\  u_{t}>0, \ para\  \lambda=0
- \]
+*f*<sub>*λ*</sub>(*u*<sub>*t*</sub>) = *λ*<sup> − 1</sup>(*u*<sub>*t*</sub><sup>*λ*</sup> − 1), *s**i* *u*<sub>*t*</sub> ≥ 0, *p**a**r**a* *λ* &gt; 0
+o
+*f*<sub>*λ*</sub>(*u*<sub>*t*</sub>) = ln (*u*<sub>*t*</sub>), *s**i* *u*<sub>*t*</sub> &gt; 0, *p**a**r**a* *λ* = 0
 
 ``` r
 data("AirPassengers")
@@ -74,24 +74,19 @@ FitAR::BoxCox(AirPassengers)
 ![](Descomposicion_files/figure-gfm/importación%20y%20Gráficas-2.png)<!-- -->
 
 ``` r
-air.arima<-arima(AirPassengers, c(0,1,1), seasonal=list(order=c(0,1,1), period=12))
-FitAR::BoxCox(air.arima)
-```
-
-![](Descomposicion_files/figure-gfm/importación%20y%20Gráficas-3.png)<!-- -->
-
-``` r
+#air.arima<-arima(AirPassengers, c(0,1,1), seasonal=list(order=c(0,1,1), period=12))
+#FitAR::BoxCox(air.arima)
 lAirPass=log(AirPassengers)
 par(mfrow=c(2,1))
 plot(AirPassengers)
 plot(lAirPass)
 ```
 
-![](Descomposicion_files/figure-gfm/importación%20y%20Gráficas-4.png)<!-- -->
+![](Descomposicion_files/figure-gfm/importación%20y%20Gráficas-3.png)<!-- -->
 \# Descomposición usando promedios Móviles \#\# Para tendencia
 
 ``` r
-fltr <- c(1/2, rep(1, times = 11), 1/2)/12
+fltr <- c(1/2, rep(1, times = 11), 1/2)/12   ##q=6
 fltr
 ```
 
@@ -101,9 +96,11 @@ fltr
 
 ``` r
 ## estimate of trend
-lAirPass.trend <- filter(lAirPass, filter = fltr, method = "convo", sides = 2)
+lAirPass.trend <- stats::filter(lAirPass, filter = fltr, method = "convo", sides = 2)
 ## plot the trend
 #x11()
+par(mfrow=c(2,1))
+plot(lAirPass)
 plot.ts(lAirPass.trend, ylab = "Trend", cex = 1)
 ```
 
@@ -479,15 +476,15 @@ fit %>% forecast(method="naive") %>%
 ``` r
 ###Note que la obtención de los pronósticos  es obtenida paso a paso.
 ###Otra forma de hacerlo es usando la función stlf
-
-fcast <- stlf(elecequip, method='naive')
+fcast1 <- stlf(elecequip, method='naive')
+fcast <- stlf(elecequip, method='ets')
 ```
 
 \#Suavizamiento Exponencial Si no se desea alguna componente, hay que
 establecer los parámetros en cero.
 
 ``` r
-HWAP=HoltWinters(lAirPass,seasonal="additive")
+HWAP=stats::HoltWinters(lAirPass,seasonal="additive")
 plot(HWAP)
 ```
 
@@ -645,7 +642,7 @@ HWAP
     ## Holt-Winters exponential smoothing with trend and additive seasonal component.
     ## 
     ## Call:
-    ## HoltWinters(x = lAirPass, seasonal = "additive")
+    ## stats::HoltWinters(x = lAirPass, seasonal = "additive")
     ## 
     ## Smoothing parameters:
     ##  alpha: 0.3266015
