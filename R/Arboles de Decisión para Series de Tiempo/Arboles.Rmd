@@ -16,7 +16,7 @@ Binario quiere decir, que cada rama del árbol puede ser dividido dentro de 2 su
 ```{r importación y Gráficas}
 
 
-da=read.table("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/GDPC1.txt",header=T) 
+da=read.table("GDPC1.txt",header=T) 
 gdp = diff(log(da$rgdp))
 tdx = da$year + (da$mon/12)
 tdx = tdx[-1]
@@ -27,8 +27,8 @@ length(gdp)
 
 ## Configuración y Arbol
 
-# yt=g(y_t-1,y_t-2,y_t-3)+a_t
-# Se debe empezar desde el tiempo t=4 porque hay 3 condiciones iniciales.
+ $yt=g(y_t-1,y_t-2,y_t-3)+a_t.$
+ Se debe empezar desde el tiempo t=4 porque hay 3 condiciones iniciales.
 ```{r Configuración y Arbol}
 
 gdp = round(gdp*100,2)
@@ -52,7 +52,7 @@ En el árbol, se ve que la variable rezago-1 yt_1 es la variable explicativa má
 
 ```{r Pronóstico}
 library(NTS)
-PM2.5 = scan(file="/Users/sergiocalderon/Documents/GitHub/TimeSeries/Bases de Datos/d-Shanghai-1317.txt")
+PM2.5 = scan(file="d-Shanghai-1317.txt")
 tdx = c(1:length(PM2.5))/365+2013
 par(mfcol=c(2,1))
 plot(tdx,PM2.5,xlab='year',ylab='PM2.5',type='l') 
