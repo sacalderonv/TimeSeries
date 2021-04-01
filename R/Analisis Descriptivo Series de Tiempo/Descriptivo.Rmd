@@ -227,7 +227,7 @@ knitr::knit_engines$set(python = reticulate::eng_python)
 
 ## Gráficas de Retardos
 Vamos a hacer gráficos de dispersión para chequear que tipos de relaciones hay entre los retardos de la variable interés. Vamos a trabajar con algunas series, por ejemplo:
-* Índice ambiental mensual (soi)(Southern Oscillation Index), el cual mide los cambios en la presión del aire, relacionados con las temperaturas de la superficie del mar en el Océano Pacífico central.
+* Indice ambiental mensual (soi)(Southern Oscillation Index), el cual mide los cambios en la presión del aire, relacionados con las temperaturas de la superficie del mar en el Océano Pacífico central.
 * la serie rec (reclutamiento asociada al soi), número de nuevos peces.
 * Consumo mensual de gas natural en EE. UU.(USgas) medido en Billones de pies cúbicos.
 Esto permite chequear si hay posibles relaciones no-lineales.
@@ -266,7 +266,7 @@ ts_lags(soi,lags=1:12)
 
 ## La función de autocorrelación simple o gráfico ACF
 
-Cuando el proceso es estacionario, o al menos nompresenta tendencia, podemos usar el gráfico acf para explorar las posibles relaciones lineales a diferentes rezagos. En seguida mostramos la función de autocorrelación para el índice soi y la serie de nuevos peces. 
+Cuando el proceso es estacionario, o al menos no presenta tendencia, podemos usar el gráfico acf para explorar las posibles relaciones lineales a diferentes rezagos. En seguida mostramos la función de autocorrelación para el índice soi y la serie de nuevos peces. 
 
 ```{r acf1}
 #pdf('/Users/sergiocalderon/Documents/Documentos - iMac de Sergio/Documentos iMac Sergio/Notas de Clase/Notas de clase/Notas de Clase Series de Tiempo Univariadas/Graficas/ACFsoiRec.pdf',paper="USr")
@@ -279,6 +279,8 @@ acf(rec, 48, main="Recruitment")
 
 ```{r ccf}
 ccf(soi, rec, 48, main="SOI vs Recruitment", ylab="CCF")
+#Corr(rec_{t},soi_{t-h})
+#Corr(soi_{t},rec_{t-h},)
 ```
 
 En ambas gráficas  podemos ver que se muestran periodicidades en las correlaciones que corresponden a valores separados por 12 unidades. También podemos ver que las observaciones con 12 meses o un año de diferencia están fuertemente correlacionadas positivamente, al igual que las observaciones en múltiplos como 24, 36, 48,$\cdots$ Las observaciones separadas por seis meses están correlacionadas negativamente, lo que muestra que las excursiones positivas tienden a asociarse con las excursiones negativas a los seis meses ver Shumway2017  capítulo 1.
