@@ -35,7 +35,7 @@ gdp = round(gdp*100,2)
 X = cbind(gdp[4:273],gdp[3:272],gdp[2:271],gdp[1:270])
 colnames(X) = c("gdp","gdp1","gdp2","gdp3")
 require(tree)
-t1 = tree(gdp~.,data=data.frame(X))
+t1 = tree::tree(gdp~.,data=data.frame(X))
 summary(t1)
 
 plot(t1)
@@ -57,10 +57,10 @@ tdx = c(1:length(PM2.5))/365+2013
 par(mfcol=c(2,1))
 plot(tdx,PM2.5,xlab='year',ylab='PM2.5',type='l') 
 acf(PM2.5,lag=800)###Chequeamos un ciclo anual
-m1 = NNsetting(PM2.5,nfore=365,lags=c(1:10,365:370))###configuración prueba y entrenamiento al igual que las covariables.Es decir, los rezagos son y_1,....,y_10, y y_365,..,y_370, debido al ciclo anual.
+m1 = NNsetting(PM2.5,nfore=365,lags=c(1:10,365:370))###configuración prueba y entrenamiento al igual que las covariables.Es decir, los rezagos son y_1,....,y_10, y y_365,..,y_370, debido al ciclo anual, en total 16.
 names(m1)
 X= m1$X; y = m1$y; predX = m1$predX; predY = m1$predY
-t1 = tree(y~.,data=data.frame(X))
+t1 = tree::tree(y~.,data=data.frame(X))
 par(mfcol=c(1,1))
 plot(t1)
 text(t1,pretty=0) 
@@ -68,6 +68,12 @@ pt1 = predict(t1,newdata=data.frame(predX)) ###Predicción sobre la muestra de p
 er3 = pt1-predY ###Errores de predicción
 mean(abs(er3))
 sqrt(mean(er3^2)) ###Promedio de los errores de predicción al cuadrado
+###Note la especificación de la muestra de prueba
+tail(predY,20)
+tail(PM2.5,20)
+
+head(y,10)
+PM2.5[371:380]
 ```
 # Residuales del Modelo
 
@@ -99,3 +105,25 @@ acf(resi_tune)
 plot(resi_tune,type='l')
 
 ```
+
+## Pronóstico h pasos adelante
+
+```{r Pronóstico h pasos adelante}
+h=5
+T_length=length(PM2.5)
+T_h=T_length-5
+M1_pronostico=NNsetting(PM2.5,nfore=5,lags=c(1:10,365:370))
+names(M1_pronostico)
+#y_1,....,y_10, y y_365,..,y_370
+pronostico=rep(0,h)
+M1_pronostico_predX_original= M1_pronostico$predX
+for (paso in 1:(h))
+  {
+  pronostico[paso]=predict(prune.t1,newdata=data.frame(t(M1_pronostico$predX[paso,])))
+  if(paso!=h)
+  {  M1_pronostico$predX[paso+1,1:paso]=pronostico[1:paso]}
+}
+
+predict(prune.t1,newdata=data.frame(M1_pronostico_predX_original))   ###Predicción con las variables verdaderas
+```
+

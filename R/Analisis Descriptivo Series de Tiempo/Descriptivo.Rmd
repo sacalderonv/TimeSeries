@@ -576,7 +576,7 @@ cs = 2*cos(2*pi*1:500/50 + .6*pi);  w = rnorm(500,0,1)
 par(mfrow=c(3,1), mar=c(3,2,2,1), cex.main=1.5)
 plot.ts(cs, main=expression(2*cos(2*pi*t/50+.6*pi)))
 plot.ts(cs+w, main=expression(2*cos(2*pi*t/50+.6*pi) + N(0,1)))
-  plot.ts(cs+5*w, main=expression(2*cos(2*pi*t/50+.6*pi) + N(0,25)))
+plot.ts(cs+5*w, main=expression(2*cos(2*pi*t/50+.6*pi) + N(0,25)))
 
 ```
 Note que cuando la varianza del ruido es mas grande, es mas complicado ver el cíclo.
@@ -698,12 +698,12 @@ Note que la primera frecuencia mas alta se encuentra en $\omega=1\cdot \frac{1}{
 data("rec")
 rec.per = astsa::mvspec(rec, log="no")
 ubicacionrec=which.max(rec.per$spec)
-sprintf("El valor de la frecuencia donde se máximiza el periodograma para SOI es: %s",rec.per$freq[ubicacionrec])
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para REC es: %s",rec.per$freq[ubicacionrec])
 n_rec <- length(rec.per$spec)
 valor_seg_per_rec=sort(rec.per$spec,partial=n_rec-1)[n_rec-1]
 ubica_segundo_rec=which(rec.per$spec==valor_seg_per_rec)
 
-sprintf("El valor de la frecuencia donde se alcanza el segundo máximo para el periodograma para SOI es: %s",rec.per$freq[ubica_segundo_rec])
+sprintf("El valor de la frecuencia donde se alcanza el segundo máximo para el periodograma para REC es: %s",rec.per$freq[ubica_segundo_rec])
 abline(v=rec.per$freq[ubicacionrec], lty=2,col="blue")
 abline(v=rec.per$freq[ubica_segundo_rec], lty=2,col="blue")
 
