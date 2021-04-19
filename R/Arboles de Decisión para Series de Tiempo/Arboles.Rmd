@@ -32,6 +32,7 @@ length(gdp)
 ```{r Configuración y Arbol}
 
 gdp = round(gdp*100,2)
+plot(tdx,gdp,xlab='año',ylab='tasa-PIB',type='l') 
 X = cbind(gdp[4:273],gdp[3:272],gdp[2:271],gdp[1:270])
 colnames(X) = c("gdp","gdp1","gdp2","gdp3")
 require(tree)
