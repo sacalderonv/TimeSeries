@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Identificación MA Puros
 
-En este script encontraremos la manera de indentificar procesos MA puros y AR Puros. EMpezamos con Ma Puros.
+En este script encontraremos la manera de indentificar procesos MA puros y AR Puros. Empezamos con Ma Puros.
 
 ```{r Identificación MA Puros}
 #####Identificación MA y AR puros
