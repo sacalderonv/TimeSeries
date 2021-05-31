@@ -1,11 +1,10 @@
 Identificación AR y MA Puros
 ================
 
-Identificación MA Puros
------------------------
+## Identificación MA Puros
 
 En este script encontraremos la manera de indentificar procesos MA puros
-y AR Puros. EMpezamos con Ma Puros.
+y AR Puros. Empezamos con Ma Puros.
 
 ``` r
 #####Identificación MA y AR puros
@@ -65,8 +64,7 @@ acf(arimaej,ci.type='ma')
 
 ![](IdentificacionMAyARPuros_files/figure-gfm/Identificación%20MA%20Puros-7.png)<!-- -->
 
-Identificación AR Puros
------------------------
+## Identificación AR Puros
 
 You can also embed plots, for example:
 
