@@ -66,4 +66,16 @@ acf(arimaar2)
 pacf(arimaar2)
 ```
 
+```{r Pasajeros}
+data("AirPassengers")
+plot(AirPassengers)
+log_airpass=log(AirPassengers)
+diff_log_airpass=diff(log_airpass)
+plot(diff_log_airpass)
+acf(diff_log_airpass,lag.max = 60)
+acf(diff_log_airpass,lag.max = 60,ci.type='ma')
+pacf(diff_log_airpass,lag.max = 60)
+```
+
+
 
