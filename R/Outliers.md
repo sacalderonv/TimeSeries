@@ -1,8 +1,7 @@
 Outliers
 ================
 
-Outliers en Modelos ARIMA
--------------------------
+## Outliers en Modelos ARIMA
 
 Vamos a considerar el análisis de outliers para modelos ARIMA o SARIMA.
 
@@ -96,8 +95,7 @@ plot(resi)
 Note que el residual correspodiente a la observación 50 es bastante
 grande.
 
-Detección de outliers: procedimiento automático
------------------------------------------------
+## Detección de outliers: procedimiento automático
 
 ``` r
 coef= coefs2poly(fit)
@@ -141,8 +139,7 @@ tso(serie2)
     ##   type ind time coefhat tstat
     ## 1   AO  50   50   6.084 7.077
 
-Simulación Outlier cambio de nivel
-----------------------------------
+## Simulación Outlier cambio de nivel
 
 ``` r
 set.seed(12)
@@ -760,8 +757,7 @@ Arima(serie2,order=c(1,0,0),xreg=xreg,include.mean = F)
     ## sigma^2 estimated as 0.8897:  log likelihood=-679.29
     ## AIC=1364.59   AICc=1364.63   BIC=1377.23
 
-Pronóstico con outliers
------------------------
+## Pronóstico con outliers
 
 Para el pronóstico, debo tener en cuenta los valores futuros de la
 variable de intervención.
