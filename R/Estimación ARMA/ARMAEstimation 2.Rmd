@@ -1,0 +1,180 @@
+---
+title: "ARMA Estimation"
+output:
+  github_document: default
+  html_notebook: default
+---
+
+Este Markdown Permite hacer la estimación de modelos ARMA.
+
+
+Primero un ejemplo Simulado.
+$X_t=\phi_{1}X_{t-1}+\phi_{2}X_{t-2}+Z_t+\theta Z_{t-1}$ con $\phi_{1}=-0.2$ y $\phi_2=-0.48$.
+
+```{r Estimacion con eje simulado}
+library(TSA)
+library(lmtest)
+library(forecast)
+library(tseries)
+phi1=0.2
+phi2=0.48
+theta=0.7
+Tlength=200
+set.seed(123)
+y=arima.sim(list(order =c(2,0,1),ar=c(phi1,phi2),ma=c(theta)),n = Tlength)
+x11()
+plot(y)
+
+###Búsqueda de p,q vía acf y pacf
+acf(y,ci.type='ma') ###q máximo 4
+pacf(y) ###p máximo 1
+
+#####Arima Automático
+modelo.automatico1=auto.arima(y,d=0,D=0,max.p=1,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="aicc",stepwise=FALSE,allowmean = TRUE)  ###Se propuso un modelo ARMA(1,4), aunque varioscoeficientes no son significativo
+modelo.automatico1
+coeftest(modelo.automatico1)
+
+######
+modelo.propuesto1=forecast::Arima(y,order=c(1,0,0)) ###AR(1)
+modelo.propuesto1
+coeftest(modelo.propuesto1)
+####Reestimación quitando la constante
+modelo.propuesto1=forecast::Arima(y,order=c(1,0,0),include.mean=FALSE) ###AR(1)
+####Se puede usar la función arima de stats o TSA
+coeftest(modelo.propuesto1)  ###Todos los parámetros son significativos
+AIC(modelo.propuesto1)
+BIC(modelo.propuesto1)
+modelo.propuesto1
+####Ajustar un modelo MA puro
+####Use el argumento fixed=c(NA,0,NA) en la función ARIMA
+
+####Ajuste del modelo Teórico
+forecast::Arima(y,order=c(2,0,1),include.mean=FALSE)
+forecast::Arima(y,order=c(2,0,1),include.mean=FALSE,fixed=c(0,NA,NA))
+```
+
+
+```{r importacion}
+
+#######Tipos de interés interbancario a un año medido mensualmente
+tipos88  <- read.table("~/Documents/GitHub/TimeSeries/Bases de Datos/Estacionarias/tipos88.dat", quote="\"", comment.char="")
+Intanual=tipos88$V5  #Tipo de interés Anual
+?ts
+plot(as.ts(Intanual))
+
+```
+
+```{r identificación}
+###Se trabajará con los cambios relativos
+camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
+sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
+sercamrelint
+plot(sercamrelint)
+acf(sercamrelint,ci.type='ma')##Rezago máximo q=4
+acf(sercamrelint,type='partial')##Rezago máximo p=3
+pacf(sercamrelint)
+###Se puede proponer un modelo ARMA(3,4)
+
+```
+
+```{r Estimacion}
+library(lmtest)
+ARPURO=arima(sercamrelint,order=c(3,0,0),include.mean = FALSE)
+MAPURO=arima(sercamrelint,order=c(0,0,4),include.mean = FALSE)
+ARMAMIXTO=arima(sercamrelint,order=c(1,0,1),include.mean = FALSE)
+coeftest(ARPURO)
+coeftest(MAPURO)
+coeftest(ARMAMIXTO)
+summary(ARPURO)
+```
+
+
+
+```{r estimacion valores fijos}
+ARPURO_fixed=stats::arima(sercamrelint,order=c(3,0,0),include.mean = FALSE,fixed=c(NA,0,NA),method = c("CSS-ML"))
+coeftest(ARPURO_fixed)  
+
+ARPURO_fixed1=forecast::Arima(sercamrelint,order=c(3,0,0),include.mean = FALSE,fixed=c(NA,0,NA),method = c("CSS-ML"))
+coeftest(ARPURO_fixed1)
+summary(ARPURO_fixed1)
+###Note que uno usa la función arima y el otro ARIMA
+```
+```{r Pronostico}
+PronosticosAR12=forecast(ARPURO_fixed1,h=12,level=0.95)  ###Es mejor usar el objeto de la función ARIMA
+plot(PronosticosAR12)
+```
+
+
+
+Hacer el mismo ajuste para la serie de tiempo  de precipitación mensual en Londres de Enero 1983 to Abril 1994
+```{r Precipotacion Londres}
+m.precipitationLondon <- read.table("~/Documents/GitHub/TimeSeries/Bases de Datos/Estacionarias/m-precipitationLondon.txt", quote="\"", comment.char="")
+
+LondresPrecip=ts(m.precipitationLondon,frequency = 12, start = c(1983,01))
+plot(LondresPrecip)
+```
+
+
+```{r Análisis de Residuales}
+# An?lisis de residuales
+residuales=ARPURO_fixed$residuals
+plot(residuales)
+acf(residuales)
+pacf(residuales)
+#Test de normalidad
+jarque.bera.test(residuales)
+#Test de autocorrelaci?n
+length(residuales)/4
+sqrt(length(residuales))
+Box.test(residuales, lag =13 , type = "Ljung-Box", fitdf = 2)
+
+
+###Estad?sticas CUSUM
+res=residuales
+cum=cumsum(res)/sd(res)
+N=length(res)
+cumq=cumsum(res^2)/sum(res^2)
+Af=0.948 ###Cuantil del 95% para la estad?stica cusum
+co=0.12531####Valor del cuantil aproximado para cusumsq para n/2
+LS=Af*sqrt(N)+2*Af*c(1:length(res))/sqrt(N)
+LI=-LS
+LQS=co+(1:length(res))/N
+LQI=-co+(1:length(res))/N
+plot(cum,type="l",ylim=c(min(LI),max(LS)),xlab="t",ylab="",main="CUSUM")
+lines(LS,type="S",col="red")
+lines(LI,type="S",col="red")
+#CUSUMSQ
+plot(cumq,type="l",xlab="t",ylab="",main="CUSUMSQ")                      
+lines(LQS,type="S",col="red")                                                                           
+lines(LQI,type="S",col="red")
+```
+
+
+```{r ARIMA Automático}
+?auto.arima
+auto.arima(sercamrelint,stationary = TRUE)
+auto.arima(sercamrelint,max.P=0,max.Q=0,stationary = TRUE)
+```
+```{r Rolling}
+h=1
+lserie=length(sercamrelint)
+ntrain=trunc(length(sercamrelint)*0.8)
+ntrain
+time(sercamrelint)
+time(sercamrelint)[ntrain]###Me entrega la ultima fecha de la posici?n ntrain
+train=window(sercamrelint,end=c(1999,4))
+test=window(sercamrelint,start=c(1999,5))
+length(train)
+ntest=length(test)
+ntest
+fcmat=matrix(0,nrow=ntest,ncol=h)
+for(i in 1:ntest)
+{
+  x=window(sercamrelint,end=c(1999,4)+(i-1)/12)
+  print(length(x))
+  refit=Arima(x,order=c(3,0,0),include.mean = FALSE,fixed=c(NA,0,NA),method = c("CSS-ML"))
+  fcmat[i,]=forecast(refit,h=h)$mean
+}
+fcmat
+```
+
