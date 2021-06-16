@@ -63,7 +63,7 @@ You can also embed plots, for example:
 ######Ejemplos Autoregresivos AR(p)
 ####Ejemplo AR(1)
 set.seed(123)
-phi1=0.9
+phi1=0.8
 Tlength=200
 arimaar1=arima.sim(list(order = c(1,0,0),ar = c(phi1)), n = Tlength)
 plot(arimaar1,main='AR(1)')
@@ -92,6 +92,8 @@ plot(diff_log_airpass)
 acf(diff_log_airpass,lag.max = 60)
 acf(diff_log_airpass,lag.max = 60,ci.type='ma')
 pacf(diff_log_airpass,lag.max = 60)
+spectrum(diff_log_airpass,log="no")
+spectrum(diff_log_airpass,kernel("modified.daniell", c(1,1)))
 ```
 
 
