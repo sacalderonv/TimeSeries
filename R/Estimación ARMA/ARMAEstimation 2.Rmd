@@ -28,7 +28,7 @@ plot(y)
 ###Búsqueda de p,q vía acf y pacf
 acf(y,ci.type='ma') ###q máximo 4
 pacf(y) ###p máximo 1
-
+##Se puede postular un ARMA(1,4), pero este sería menos parsimonioso.
 #####Arima Automático
 modelo.automatico1=auto.arima(y,d=0,D=0,max.p=1,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="aicc",stepwise=FALSE,allowmean = TRUE)  ###Se propuso un modelo ARMA(1,4), aunque varioscoeficientes no son significativo
 modelo.automatico1
@@ -46,7 +46,13 @@ AIC(modelo.propuesto1)
 BIC(modelo.propuesto1)
 modelo.propuesto1
 ####Ajustar un modelo MA puro
+
+
 ####Use el argumento fixed=c(NA,0,NA) en la función ARIMA
+
+modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=F,fixed=c(NA,0,NA,0,NA)) ###ARMA(1,4)
+coeftest(modelo.propuesto_arma)
+####Ajustar un modelo ARMA(p,q) mixto
 
 ####Ajuste del modelo Teórico
 forecast::Arima(y,order=c(2,0,1),include.mean=FALSE)
@@ -107,7 +113,7 @@ plot(PronosticosAR12)
 
 
 Hacer el mismo ajuste para la serie de tiempo  de precipitación mensual en Londres de Enero 1983 to Abril 1994
-```{r Precipotacion Londres}
+```{r Precipitacion Londres}
 m.precipitationLondon <- read.table("~/Documents/GitHub/TimeSeries/Bases de Datos/Estacionarias/m-precipitationLondon.txt", quote="\"", comment.char="")
 
 LondresPrecip=ts(m.precipitationLondon,frequency = 12, start = c(1983,01))
