@@ -56,7 +56,7 @@ theta=0.7
 Tlength=200
 set.seed(123)
 y=arima.sim(list(order =c(2,0,1),ar=c(phi1,phi2),ma=c(theta)),n = Tlength)
-x11()
+#x11()
 plot(y)
 ```
 
@@ -76,8 +76,24 @@ pacf(y) ###p máximo 1
 ![](ARMAEstimation-2_files/figure-gfm/Estimacion%20con%20eje%20simulado-3.png)<!-- -->
 
 ``` r
+##Se puede postular un ARMA(1,4), pero este sería menos parsimonioso.
 #####Arima Automático
 modelo.automatico1=auto.arima(y,d=0,D=0,max.p=1,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="aicc",stepwise=FALSE,allowmean = TRUE)  ###Se propuso un modelo ARMA(1,4), aunque varioscoeficientes no son significativo
+modelo.automatico1
+```
+
+    ## Series: y 
+    ## ARIMA(1,0,4) with zero mean 
+    ## 
+    ## Coefficients:
+    ##          ar1    ma1      ma2     ma3      ma4
+    ##       0.8300  0.034  -0.2309  0.0868  -0.1932
+    ## s.e.  0.1175  0.138   0.1249  0.0973   0.0925
+    ## 
+    ## sigma^2 estimated as 0.8592:  log likelihood=-266.66
+    ## AIC=545.31   AICc=545.75   BIC=565.1
+
+``` r
 coeftest(modelo.automatico1)
 ```
 
@@ -167,7 +183,26 @@ modelo.propuesto1
 
 ``` r
 ####Ajustar un modelo MA puro
+
+
 ####Use el argumento fixed=c(NA,0,NA) en la función ARIMA
+
+modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=F,fixed=c(NA,0,NA,0,NA)) ###ARMA(1,4)
+coeftest(modelo.propuesto_arma)
+```
+
+    ## 
+    ## z test of coefficients:
+    ## 
+    ##      Estimate Std. Error z value  Pr(>|z|)    
+    ## ar1  0.878877   0.046708 18.8163 < 2.2e-16 ***
+    ## ma2 -0.267645   0.086176 -3.1058  0.001898 ** 
+    ## ma4 -0.211492   0.080634 -2.6228  0.008720 ** 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+####Ajustar un modelo ARMA(p,q) mixto
 
 ####Ajuste del modelo Teórico
 forecast::Arima(y,order=c(2,0,1),include.mean=FALSE)
@@ -183,6 +218,21 @@ forecast::Arima(y,order=c(2,0,1),include.mean=FALSE)
     ## 
     ## sigma^2 estimated as 0.839:  log likelihood=-265.48
     ## AIC=538.97   AICc=539.17   BIC=552.16
+
+``` r
+forecast::Arima(y,order=c(2,0,1),include.mean=FALSE,fixed=c(0,NA,NA))
+```
+
+    ## Series: y 
+    ## ARIMA(2,0,1) with zero mean 
+    ## 
+    ## Coefficients:
+    ##       ar1     ar2     ma1
+    ##         0  0.5357  0.9328
+    ## s.e.    0  0.0738  0.0388
+    ## 
+    ## sigma^2 estimated as 0.8391:  log likelihood=-265.97
+    ## AIC=537.93   AICc=538.06   BIC=547.83
 
 ``` r
 #######Tipos de interés interbancario a un año medido mensualmente
@@ -421,7 +471,7 @@ LondresPrecip=ts(m.precipitationLondon,frequency = 12, start = c(1983,01))
 plot(LondresPrecip)
 ```
 
-![](ARMAEstimation-2_files/figure-gfm/Precipotacion%20Londres-1.png)<!-- -->
+![](ARMAEstimation-2_files/figure-gfm/Precipitacion%20Londres-1.png)<!-- -->
 
 ``` r
 # An?lisis de residuales

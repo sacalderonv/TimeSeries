@@ -22,7 +22,7 @@ theta=0.7
 Tlength=200
 set.seed(123)
 y=arima.sim(list(order =c(2,0,1),ar=c(phi1,phi2),ma=c(theta)),n = Tlength)
-x11()
+#x11()
 plot(y)
 
 ###Búsqueda de p,q vía acf y pacf
