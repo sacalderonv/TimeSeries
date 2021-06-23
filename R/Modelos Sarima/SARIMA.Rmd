@@ -102,6 +102,7 @@ adfTest(dlAirpassengers,lags = 2,type='nc')  ###No se debe diferenciar más###
 
 ```{r Componente Estacional y Ordinaria}
 ####################################
+library(uroot)
 ######Diferencia Estacional(continuación AirPassengers)#######
 monthplot(dlAirpassengers)
 nsdiffs(dlAirpassengers)
