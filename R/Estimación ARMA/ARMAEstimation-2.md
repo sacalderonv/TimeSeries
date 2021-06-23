@@ -64,16 +64,22 @@ plot(y)
 
 ``` r
 ###Búsqueda de p,q vía acf y pacf
-acf(y,ci.type='ma') ###q máximo 4
+acf(y)
 ```
 
 ![](ARMAEstimation-2_files/figure-gfm/Estimacion%20con%20eje%20simulado-2.png)<!-- -->
 
 ``` r
-pacf(y) ###p máximo 1
+acf(y,ci.type='ma') ###q máximo 4
 ```
 
 ![](ARMAEstimation-2_files/figure-gfm/Estimacion%20con%20eje%20simulado-3.png)<!-- -->
+
+``` r
+pacf(y) ###p máximo 1
+```
+
+![](ARMAEstimation-2_files/figure-gfm/Estimacion%20con%20eje%20simulado-4.png)<!-- -->
 
 ``` r
 ##Se puede postular un ARMA(1,4), pero este sería menos parsimonioso.
@@ -185,9 +191,9 @@ modelo.propuesto1
 ####Ajustar un modelo MA puro
 
 
-####Use el argumento fixed=c(NA,0,NA) en la función ARIMA
+####Use el argumento fixed=c(NA,0,NA) en la función ARIMA#
 
-modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=F,fixed=c(NA,0,NA,0,NA)) ###ARMA(1,4)
+modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=FALSE,fixed=c(NA,0,NA,0,NA)) ###ARMA(1,4)
 coeftest(modelo.propuesto_arma)
 ```
 
@@ -245,7 +251,7 @@ plot(as.ts(Intanual))
 ![](ARMAEstimation-2_files/figure-gfm/importacion-1.png)<!-- -->
 
 ``` r
-###Se trabajará con los cambios relativos
+###Se trabajará con los cambios relativos o serie de retornos
 camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
 sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
 sercamrelint
@@ -307,22 +313,28 @@ plot(sercamrelint)
 ![](ARMAEstimation-2_files/figure-gfm/identificación-1.png)<!-- -->
 
 ``` r
-acf(sercamrelint,ci.type='ma')##Rezago máximo q=4
+acf(sercamrelint)
 ```
 
 ![](ARMAEstimation-2_files/figure-gfm/identificación-2.png)<!-- -->
 
 ``` r
-acf(sercamrelint,type='partial')##Rezago máximo p=3
+acf(sercamrelint,ci.type='ma')##Rezago máximo q=4
 ```
 
 ![](ARMAEstimation-2_files/figure-gfm/identificación-3.png)<!-- -->
 
 ``` r
-pacf(sercamrelint)
+acf(sercamrelint,type='partial')##Rezago máximo p=3
 ```
 
 ![](ARMAEstimation-2_files/figure-gfm/identificación-4.png)<!-- -->
+
+``` r
+pacf(sercamrelint)
+```
+
+![](ARMAEstimation-2_files/figure-gfm/identificación-5.png)<!-- -->
 
 ``` r
 ###Se puede proponer un modelo ARMA(3,4)
@@ -330,19 +342,20 @@ pacf(sercamrelint)
 
 ``` r
 library(lmtest)
-ARPURO=arima(sercamrelint,order=c(3,0,0),include.mean = FALSE)
-MAPURO=arima(sercamrelint,order=c(0,0,4),include.mean = FALSE)
-ARMAMIXTO=arima(sercamrelint,order=c(1,0,1),include.mean = FALSE)
+ARPURO=arima(sercamrelint,order=c(3,0,0),include.mean = TRUE)
+MAPURO=arima(sercamrelint,order=c(0,0,4),include.mean = TRUE)
+ARMAMIXTO=arima(sercamrelint,order=c(3,0,4),include.mean = TRUE)
 coeftest(ARPURO)
 ```
 
     ## 
     ## z test of coefficients:
     ## 
-    ##     Estimate Std. Error z value Pr(>|z|)    
-    ## ar1 0.388924   0.075493  5.1518 2.58e-07 ***
-    ## ar2 0.038402   0.081625  0.4705    0.638    
-    ## ar3 0.188049   0.076529  2.4572    0.014 *  
+    ##             Estimate Std. Error z value  Pr(>|z|)    
+    ## ar1        0.3819400  0.0756544  5.0485 4.453e-07 ***
+    ## ar2        0.0341526  0.0815331  0.4189   0.67530    
+    ## ar3        0.1803434  0.0767639  2.3493   0.01881 *  
+    ## intercept -0.0068888  0.0069429 -0.9922   0.32109    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -353,11 +366,12 @@ coeftest(MAPURO)
     ## 
     ## z test of coefficients:
     ## 
-    ##     Estimate Std. Error z value  Pr(>|z|)    
-    ## ma1 0.334664   0.074746  4.4774 7.557e-06 ***
-    ## ma2 0.177238   0.077016  2.3013  0.021374 *  
-    ## ma3 0.243995   0.080264  3.0399  0.002367 ** 
-    ## ma4 0.244706   0.094549  2.5881  0.009649 ** 
+    ##             Estimate Std. Error z value  Pr(>|z|)    
+    ## ma1        0.3305780  0.0747982  4.4196 9.888e-06 ***
+    ## ma2        0.1711079  0.0772777  2.2142  0.026816 *  
+    ## ma3        0.2387500  0.0811113  2.9435  0.003245 ** 
+    ## ma4        0.2340952  0.0953199  2.4559  0.014054 *  
+    ## intercept -0.0068496  0.0055750 -1.2286  0.219212    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -368,11 +382,15 @@ coeftest(ARMAMIXTO)
     ## 
     ## z test of coefficients:
     ## 
-    ##     Estimate Std. Error z value  Pr(>|z|)    
-    ## ar1  0.76950    0.09421  8.1679 3.137e-16 ***
-    ## ma1 -0.41309    0.13299 -3.1062  0.001895 ** 
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ##             Estimate Std. Error z value Pr(>|z|)
+    ## ar1        1.1445303  0.8170145  1.4009   0.1613
+    ## ar2       -0.8705457  1.0994822 -0.7918   0.4285
+    ## ar3        0.3557508  0.5892339  0.6038   0.5460
+    ## ma1       -0.7754598  0.8169786 -0.9492   0.3425
+    ## ma2        0.6378161  0.8280376  0.7703   0.4411
+    ## ma3        0.0272645  0.3747212  0.0728   0.9420
+    ## ma4       -0.0161990  0.2509859 -0.0645   0.9485
+    ## intercept -0.0067449  0.0065686 -1.0268   0.3045
 
 ``` r
 summary(ARPURO)
@@ -380,14 +398,14 @@ summary(ARPURO)
 
     ## 
     ## Call:
-    ## arima(x = sercamrelint, order = c(3, 0, 0), include.mean = FALSE)
+    ## arima(x = sercamrelint, order = c(3, 0, 0), include.mean = TRUE)
     ## 
     ## Coefficients:
-    ##          ar1     ar2     ar3
-    ##       0.3889  0.0384  0.1880
-    ## s.e.  0.0755  0.0816  0.0765
+    ##          ar1     ar2     ar3  intercept
+    ##       0.3819  0.0342  0.1803    -0.0069
+    ## s.e.  0.0757  0.0815  0.0768     0.0069
     ## 
-    ## sigma^2 estimated as 0.00138:  log likelihood = 318.37,  aic = -630.74
+    ## sigma^2 estimated as 0.001373:  log likelihood = 318.84,  aic = -629.68
     ## 
     ## Training set error measures:
 
@@ -475,7 +493,7 @@ plot(LondresPrecip)
 
 ``` r
 # An?lisis de residuales
-residuales=ARPURO_fixed$residuals
+residuales=ARPURO_fixed1$residuals
 plot(residuales)
 ```
 
@@ -518,14 +536,14 @@ sqrt(length(residuales))
     ## [1] 13.0384
 
 ``` r
-Box.test(residuales, lag =13 , type = "Ljung-Box", fitdf = 2)
+Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)
 ```
 
     ## 
     ##  Box-Ljung test
     ## 
     ## data:  residuales
-    ## X-squared = 10.437, df = 11, p-value = 0.4915
+    ## X-squared = 23.304, df = 18, p-value = 0.1792
 
 ``` r
 ###Estad?sticas CUSUM
