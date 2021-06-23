@@ -160,8 +160,8 @@ lines(LQI,type="S",col="red")
 
 ```{r ARIMA Automático}
 ?auto.arima
-auto.arima(sercamrelint,stationary = TRUE)
-auto.arima(sercamrelint,max.P=0,max.Q=0,stationary = TRUE)
+auto.arima(sercamrelint,max.p = 3,max.q=4,max.order = 7,stationary = TRUE,seasonal = FALSE,stepwise = FALSE,ic='bic')
+#auto.arima(sercamrelint,stationary = TRUE)
 ```
 ```{r Rolling}
 h=1
@@ -184,5 +184,8 @@ for(i in 1:ntest)
   fcmat[i,]=forecast(refit,h=h)$mean
 }
 fcmat
+ECM=mean(fcmat^2)
+
+##Falta elevar al cudrado y hacer le promedio.
 ```
 
