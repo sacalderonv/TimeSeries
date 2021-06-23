@@ -26,6 +26,7 @@ y=arima.sim(list(order =c(2,0,1),ar=c(phi1,phi2),ma=c(theta)),n = Tlength)
 plot(y)
 
 ###Búsqueda de p,q vía acf y pacf
+acf(y)
 acf(y,ci.type='ma') ###q máximo 4
 pacf(y) ###p máximo 1
 ##Se puede postular un ARMA(1,4), pero este sería menos parsimonioso.
@@ -48,9 +49,9 @@ modelo.propuesto1
 ####Ajustar un modelo MA puro
 
 
-####Use el argumento fixed=c(NA,0,NA) en la función ARIMA
+####Use el argumento fixed=c(NA,0,NA) en la función ARIMA#
 
-modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=F,fixed=c(NA,0,NA,0,NA)) ###ARMA(1,4)
+modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=FALSE,fixed=c(NA,0,NA,0,NA)) ###ARMA(1,4)
 coeftest(modelo.propuesto_arma)
 ####Ajustar un modelo ARMA(p,q) mixto
 
@@ -71,11 +72,12 @@ plot(as.ts(Intanual))
 ```
 
 ```{r identificación}
-###Se trabajará con los cambios relativos
+###Se trabajará con los cambios relativos o serie de retornos
 camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
 sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
 sercamrelint
 plot(sercamrelint)
+acf(sercamrelint)
 acf(sercamrelint,ci.type='ma')##Rezago máximo q=4
 acf(sercamrelint,type='partial')##Rezago máximo p=3
 pacf(sercamrelint)
@@ -85,9 +87,9 @@ pacf(sercamrelint)
 
 ```{r Estimacion}
 library(lmtest)
-ARPURO=arima(sercamrelint,order=c(3,0,0),include.mean = FALSE)
-MAPURO=arima(sercamrelint,order=c(0,0,4),include.mean = FALSE)
-ARMAMIXTO=arima(sercamrelint,order=c(1,0,1),include.mean = FALSE)
+ARPURO=arima(sercamrelint,order=c(3,0,0),include.mean = TRUE)
+MAPURO=arima(sercamrelint,order=c(0,0,4),include.mean = TRUE)
+ARMAMIXTO=arima(sercamrelint,order=c(3,0,4),include.mean = TRUE)
 coeftest(ARPURO)
 coeftest(MAPURO)
 coeftest(ARMAMIXTO)
@@ -123,7 +125,7 @@ plot(LondresPrecip)
 
 ```{r Análisis de Residuales}
 # An?lisis de residuales
-residuales=ARPURO_fixed$residuals
+residuales=ARPURO_fixed1$residuals
 plot(residuales)
 acf(residuales)
 pacf(residuales)
@@ -132,7 +134,7 @@ jarque.bera.test(residuales)
 #Test de autocorrelaci?n
 length(residuales)/4
 sqrt(length(residuales))
-Box.test(residuales, lag =13 , type = "Ljung-Box", fitdf = 2)
+Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)
 
 
 ###Estad?sticas CUSUM
