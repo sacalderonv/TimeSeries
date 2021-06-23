@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Ejercicio de Simulación
 
-Vamos a hacer un ejercicio de simulación para ver como se identifica la compoente estacional.
+Vamos a hacer un ejercicio de simulación para ver como se identifica la componente estacional.
 
 ```{r Simulacion}
 library(urca)

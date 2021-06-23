@@ -1,11 +1,10 @@
 SARIMA
 ================
 
-Ejercicio de Simulación
------------------------
+## Ejercicio de Simulación
 
 Vamos a hacer un ejercicio de simulación para ver como se identifica la
-compoente estacional.
+componente estacional.
 
 ``` r
 library(urca)
@@ -213,8 +212,7 @@ nsdiffs(x2)
 
     ## [1] 1
 
-Ejermplo Pasajeros
-------------------
+## Ejermplo Pasajeros
 
 Vamos a ver como se hace el modelamiento completo de la serie de
 pasajeros.
@@ -247,7 +245,7 @@ Unitarias
     ##     0.99 
     ## 
     ## Description:
-    ##  Wed Nov 25 05:38:59 2020 by user:
+    ##  Wed Jun 23 07:07:53 2021 by user:
 
     ## 
     ## ############################################### 
@@ -306,7 +304,7 @@ Unitarias
     ##     0.7711 
     ## 
     ## Description:
-    ##  Wed Nov 25 05:38:59 2020 by user:
+    ##  Wed Jun 23 07:07:53 2021 by user:
 
 ![](SARIMA_files/figure-gfm/pressure-2.png)<!-- -->
 
@@ -326,10 +324,9 @@ Unitarias
     ##     0.01 
     ## 
     ## Description:
-    ##  Wed Nov 25 05:38:59 2020 by user:
+    ##  Wed Jun 23 07:07:53 2021 by user:
 
-Identificación de la componente ARMA estacional y la componente ARMA ordinaria
-------------------------------------------------------------------------------
+## Identificación de la componente ARMA estacional y la componente ARMA ordinaria
 
 ``` r
 ####################################
@@ -383,8 +380,7 @@ pacf(DdlAirpassengers,lag.max = 48)
 
 ![](SARIMA_files/figure-gfm/Componente%20Estacional%20y%20Ordinaria-4.png)<!-- -->
 
-Ajuste del Modelo y Análisis de Residuales
-------------------------------------------
+## Ajuste del Modelo y Análisis de Residuales
 
 ``` r
 ##Ajuste del modelo
@@ -474,8 +470,7 @@ lines(LQI,type="S",col="red")
 
 ![](SARIMA_files/figure-gfm/Ajustes%20y%20Residuales-4.png)<!-- -->
 
-Pronóstico
-----------
+## Pronóstico
 
 ``` r
 #x11()
