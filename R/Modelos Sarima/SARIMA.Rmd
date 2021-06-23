@@ -1,0 +1,208 @@
+---
+title: "SARIMA"
+output: 
+  github_document: default
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicio de Simulación
+
+Vamos a hacer un ejercicio de simulación para ver como se identifica la compoente estacional.
+
+```{r Simulacion}
+library(urca)
+library(forecast)
+library(tseries)
+library(lmtest)
+library(uroot)
+library(fUnitRoots)
+library(sarima)
+require("PolynomF")
+
+###Simulación de un proceso con raíz unitaria estacional
+#x11()
+x <- ts(sarima::sim_sarima(n=144, model = list(iorder=0, siorder=1, nseasons=12, sigma2 = 1),n.start=24),frequency = 12)
+plot(x)
+acf(x,lag.max = 36)
+monthplot(x)
+nsdiffs(x)####Decreta cuantas diferencias estacional a través de la aplicación de 
+###Algunas pruebas de raíces unitarias estacionales.
+
+
+###diferencia estacional
+Dx=diff(x,lag=12,differences = 1)###lag:periodo s.
+plot(Dx)
+acf(Dx,lag.max = 36)
+monthplot(Dx)
+nsdiffs(Dx)
+####Simulación de un SAR
+#x11()
+x1 <- ts(sim_sarima(n=144, model = list(ar=c(rep(0,11),0.8)),n.start=24),frequency=12)
+plot(x1)
+acf(x1,lag.max = 36)
+monthplot(x1)
+nsdiffs(x1)
+p <- polynom(c(1,c(rep(0,11),-0.8)))
+solve(p)
+abs(solve(p))
+###Note lo cerca que están la raíces de la no estacionariedad del proceso, por eso
+####aunque si bien el proceso es estacionario, notamos hay una cercanía a 
+####e tener una compoenete estacional.
+####El anterior modelo puede escribirse como:
+x2 <- ts(sim_sarima(n=144, model=list(sar=0.8, iorder=0, siorder=0, nseasons=12),n.start=24),frequency = 12)
+plot(x2)
+acf(x2, lag.max=48)
+monthplot(x2)
+nsdiffs(x2)
+```
+
+## Ejermplo Pasajeros
+
+Vamos a ver como se hace el modelamiento completo de la serie de pasajeros.
+
+Iniciaremos con la transformación Box-Cox y las pruebas de raíces Unitarias
+
+```{r pressure, echo=FALSE}
+######Ajuste Serie datos AirPassengers por medio del
+#modelo ARIMA estacional, así como su correspondiente
+#análisis de residuales y pronósticos
+
+data(AirPassengers)
+plot(AirPassengers)
+##########Después de haber aplicado la diferencia ordinaria y estacional
+######Procedemos a tratar de identificar la estructura de autocorrelación
+###a corto plazo(ARMA) y estacional SARMA.
+###Para eso, es necesario haber convertido la serie a estacionaria###
+lAirpassengers=log(AirPassengers)
+plot(lAirpassengers)
+#####Prueba de Dickey Fuller######
+tseries::adf.test(lAirpassengers,k=10)
+fUnitRoots::adfTest(lAirpassengers,lags = 12,type='nc')   ###Hay la presencia de Raíz Unitaria
+summary(urca::ur.df(lAirpassengers, lags = 12))
+adfTest(lAirpassengers,lags=12,type='ct')  ####Puede también indicar
+####La presencia de una tendencia determinística
+
+####Diferencia Ordinaria############
+
+dlAirpassengers=diff(lAirpassengers,lag=1)
+#x11()
+par(mfrow=c(2,1))
+plot(lAirpassengers)
+plot(dlAirpassengers)
+
+adfTest(dlAirpassengers,lags = 2,type='nc')  ###No se debe diferenciar más###
+
+```
+
+## Identificación de la componente ARMA estacional y la componente ARMA ordinaria
+
+```{r Componente Estacional y Ordinaria}
+####################################
+######Diferencia Estacional(continuación AirPassengers)#######
+monthplot(dlAirpassengers)
+nsdiffs(dlAirpassengers)
+nsdiffs(AirPassengers)
+
+DdlAirpassengers=diff(dlAirpassengers,lag=12)###lag=s
+#x11()
+par(mfrow=c(2,1))
+plot(dlAirpassengers)
+plot(DdlAirpassengers)
+monthplot(DdlAirpassengers)
+nsdiffs(DdlAirpassengers)
+
+
+##Autocorrelogramas
+#x11()
+acf(DdlAirpassengers)
+acf(DdlAirpassengers,lag.max = 48, ci.type='ma')
+pacf(DdlAirpassengers,lag.max = 48)
+```
+
+
+## Ajuste del Modelo y Análisis de Residuales
+```{r Ajustes y Residuales}
+##Ajuste del modelo
+###Arima Estacional o SARIMA(p=0,d=1,q=1)x(P=0,D=1,Q=1)s=12 con transformación logaritmica
+
+#Modelo MA(1) estacional
+modelo = Arima(AirPassengers, c(0, 1, 1),seasonal = list(order = c(0, 1, 1), period = 12),lambda = 0)
+coeftest(modelo)
+modeloalter= Arima(AirPassengers, c(1, 1, 0),seasonal = list(order = c(1, 1, 0), period = 12),lambda = 0)
+
+## Análisis de residuales
+#x11()
+residuales <- modelo$residuals
+plot(residuales)
+acf(residuales)
+pacf(residuales)
+######Análisis de Outliers
+#Test de normalidad
+jarque.bera.test(residuales)
+#Test de autocorrelaci?n
+Box.test(residuales, lag = (length(residuales)/4), type = "Ljung-Box", fitdf = 2)
+
+
+###Estad?ticas CUSUM
+res=residuales
+cum=cumsum(res)/sd(res)
+N=length(res)
+cumq=cumsum(res^2)/sum(res^2)
+Af=0.948 ###Cuantil del 95% para la estad?stica cusum
+co=0.14422####Valor del cuantil aproximado para cusumsq para n/2
+LS=Af*sqrt(N)+2*Af*c(1:length(res))/sqrt(N)
+LI=-LS
+LQS=co+(1:length(res))/N
+LQI=-co+(1:length(res))/N
+par(mfrow=c(2,1))
+plot(cum,type="l",ylim=c(min(LI),max(LS)),xlab="t",ylab="",main="CUSUM")
+lines(LS,type="S",col="red")
+lines(LI,type="S",col="red")
+#CUSUM Square
+plot(cumq,type="l",xlab="t",ylab="",main="CUSUMSQ")                      
+lines(LQS,type="S",col="red")                                                                           
+lines(LQI,type="S",col="red")
+
+```
+
+## Pronóstico
+
+```{r Pronostico}
+#x11()
+Pronosticos=forecast(modelo,h=12,level=0.95)
+plot(Pronosticos)
+predic<-predict(modelo,n.ahead=12)
+plot(predic$pred)
+
+
+#####Comparación de pronósticos####
+library(fpp)
+train <- window(AirPassengers,start=c(1949,01),end=c(1959,12))
+test <- window(AirPassengers,start=c(1960,01),end=c(1960,12))
+fitmodelo <- Arima(AirPassengers, c(0, 1, 1),seasonal = list(order = c(0, 1, 1), period = 12),lambda = 0)
+refit <- Arima(AirPassengers, model=fitmodelo)
+fc <- window(fitted(refit), start=c(1960,1))
+
+
+h <- 1
+train <- window(AirPassengers,start=c(1949,01),end=c(1959,12))
+test <- window(AirPassengers,start=c(1960,01),end=c(1960,12))
+n <- length(test) - h + 1
+fitmodelo <- Arima(AirPassengers, c(0, 1, 1),seasonal = list(order = c(0, 1, 1), period = 12),lambda = 0)
+fc <- ts(numeric(n), start=c(1960,01), freq=12)
+for(i in 1:n)
+{  
+  x <- window(AirPassengers, end=c(1959, 12+(i-1)))
+  refit <- Arima(x, model=fitmodelo)
+  fc[i] <- forecast(refit, h=h)$mean[h]
+}
+dife=(test-fc)^2
+ecm=(1/(length(test)))*sum(dife)
+ecm
+```
+
+
