@@ -575,34 +575,23 @@ lines(LQI,type="S",col="red")
 
 ``` r
 ?auto.arima
-auto.arima(sercamrelint,stationary = TRUE)
+auto.arima(sercamrelint,max.p = 3,max.q=4,max.order = 7,stationary = TRUE,seasonal = FALSE,stepwise = FALSE,ic='bic')
 ```
 
     ## Series: sercamrelint 
-    ## ARIMA(1,0,1)(1,0,0)[12] with zero mean 
+    ## ARIMA(1,0,1) with zero mean 
     ## 
     ## Coefficients:
-    ##          ar1      ma1     sar1
-    ##       0.7682  -0.4137  -0.0651
-    ## s.e.  0.0955   0.1346   0.0837
+    ##          ar1      ma1
+    ##       0.7695  -0.4131
+    ## s.e.  0.0942   0.1330
     ## 
-    ## sigma^2 estimated as 0.001426:  log likelihood=317.13
-    ## AIC=-626.26   AICc=-626.02   BIC=-613.72
+    ## sigma^2 estimated as 0.001423:  log likelihood=316.83
+    ## AIC=-627.66   AICc=-627.51   BIC=-618.25
 
 ``` r
-auto.arima(sercamrelint,max.P=0,max.Q=0,stationary = TRUE)
+#auto.arima(sercamrelint,stationary = TRUE)
 ```
-
-    ## Series: sercamrelint 
-    ## ARIMA(3,0,0) with zero mean 
-    ## 
-    ## Coefficients:
-    ##          ar1     ar2     ar3
-    ##       0.3889  0.0384  0.1880
-    ## s.e.  0.0755  0.0816  0.0765
-    ## 
-    ## sigma^2 estimated as 0.001405:  log likelihood=318.37
-    ## AIC=-628.74   AICc=-628.5   BIC=-616.2
 
 ``` r
 h=1
@@ -762,3 +751,9 @@ fcmat
     ## [32,]  1.328989e-02
     ## [33,]  3.951754e-02
     ## [34,]  3.951754e-02
+
+``` r
+ECM=mean(fcmat^2)
+
+##Falta elevar al cudrado y hacer le promedio.
+```
