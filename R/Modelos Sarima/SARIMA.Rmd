@@ -60,7 +60,7 @@ monthplot(x2)
 nsdiffs(x2)
 ```
 
-## Ejermplo Pasajeros
+## Ejemplo Pasajeros
 
 Vamos a ver como se hace el modelamiento completo de la serie de pasajeros.
 
