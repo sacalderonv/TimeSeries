@@ -19,7 +19,7 @@ pacf(ARCH2)
 acf(ARCH2^2)
 pacf(ARCH2^2)
 Box.test(ARCH2^2,lag=20,type='Ljung-Box')
-salidaarima=arima(ARCH2,order = c(3,0,0),include.mean = FALSE,fixed=c(0,NA,NA))
+salidaarima=arima(ARCH2,order = c(3,0,0),include.mean = FALSE,fixed=c(NA,NA,NA))
 library(lmtest)
 coeftest(salidaarima)
 salidaarima
