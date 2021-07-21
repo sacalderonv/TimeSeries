@@ -66,8 +66,9 @@ sp5=as.ts(scan(file="/Users/macbook/Documents/GitHub/TimeSeries/Bases de Datos/S
 
 plot(sp5)
 acf(sp5)
-acf(sp5,ci.type="ma")
-pacf(sp5) 
+acf(sp5,ci.type="ma") 
+pacf(sp5)
+hist(sp5)
 acf(sp5^2)
 pacf(sp5^2)
 ```
@@ -76,11 +77,12 @@ pacf(sp5^2)
 coeftest(auto.arima(sp5)) ####Se podría ajustar un ARMA(2,3) con constante
 modeloarima=arima(sp5,order = c(2,0,2),include.mean = TRUE)
 coeftest(modeloarima)
-arch.test(modeloarima)
 acf(modeloarima$residual)
 pacf(modeloarima$residual)
 acf(modeloarima$residual^2)
 pacf(modeloarima$residual^2)
+arch.test(modeloarima)
+
 
 
 ```
@@ -94,12 +96,13 @@ prediccion=predict(modelosp5_1,n.ahead=10)
 
 library(rugarch)
 spec1=ugarchspec(variance.model=list(model="sGARCH",garchOrder = c(3,0)),
-                 mean.model=list(armaOrder=c(9,0),include.mean = TRUE),distribution.model = "norm",fixed.pars = list(ar1=0,ar2=0,ar3=0,ar4=0,
-                                                                                                  alpha1=0))
+                 mean.model=list(armaOrder=c(2,2),include.mean = TRUE),distribution.model = "norm")
 
+#,fixed.pars = list(ar1=NA,ar2=NA,ar3=NA,ar4=NA,
+                                                                      #                            alpha1=NA)
 fit1=ugarchfit(data=sp5,spec=spec1)
 show(fit1)
-forc1 = ugarchforecast(fit1, n.ahead = 500)  ###Predicción de la varianza condicional
+forc1 = ugarchforecast(fit1, n.ahead = 20)  ###Predicción de la varianza condicional
 ```
 
 
