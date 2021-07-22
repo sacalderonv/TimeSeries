@@ -95,14 +95,16 @@ modelosp5_1=garchFit(~arma(2,2)+garch(1,1),data=sp5,trace=F,include.mean=T)
 prediccion=predict(modelosp5_1,n.ahead=10)
 
 library(rugarch)
-spec1=ugarchspec(variance.model=list(model="sGARCH",garchOrder = c(3,0)),
+spec1=ugarchspec(variance.model=list(model="sGARCH",garchOrder = c(9,0)),
                  mean.model=list(armaOrder=c(2,2),include.mean = TRUE),distribution.model = "norm")
 
 #,fixed.pars = list(ar1=NA,ar2=NA,ar3=NA,ar4=NA,
                                                                       #                            alpha1=NA)
 fit1=ugarchfit(data=sp5,spec=spec1)
 show(fit1)
+plot(fit1)
 forc1 = ugarchforecast(fit1, n.ahead = 20)  ###Predicción de la varianza condicional
+plot(forc1)
 ```
 
 
