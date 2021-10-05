@@ -32,7 +32,8 @@ legend("topright", legend=c("tsr1", "tsr3"),
        col=c("black", "red"), lty=1, cex=0.8)
 str(tsr1)
 ```
-Vamos a hacer la gráficas de dispersión de las variables directamente, y de las variables en cambios(transformadas).
+Vamos a hacer la gráficas de dispersión de las variables directamente, y de las variables en cambios(transformadas). La ccf o función de autocorrelación cruzada se define como las correlaciones entre $X_{t+h}$ y $Y_t$ para $h=0,\pm1,\pm2,\cdots$
+
 ```{r Diagramas de dispersión}
 tsc1=diff(tsr1)
 tsc3=diff(tsr3)
@@ -43,9 +44,11 @@ legend("topright", legend=c("tsc1", "tsc3"),
 par(mfrow=c(1,2))
 plot(r1,r3,type='p',pch=16,sub = "(a) Variables Originales")
 plot(tsc1,tsc3,type='p',pch=16,sub="(b) Variables en Cambios")
+library(forecast)
+forecast::Ccf(tsc1, tsc3, lag.max = 48) 
 ```
 Primer ajuste de regresión para las series originales asumiendo que los ruidos son IID, es decir vamos a ajustar el modelo
-$$r_{3t}=\alpha+\beta r_{1t}+e_t$$
+$$r_{3t}=\alpha +\beta r_{1t}+e_t$$
 
 ```{r Ajuste Variables Originales}
 m1=lm(r3~r1)
@@ -63,8 +66,8 @@ Veamos ahora el ajuste de los cambios de las tasas.
 m2=lm(tsc3 ~ -1+tsc1) 
 summary(m2)
 plot(m2$residuals,type='l')
-acf(m2$residuals,lag.max =36,ci.type="ma")
-pacf(m2$residuals,lag.max =36)
+acf(m2$residuals,lag.max =48,ci.type="ma")
+pacf(m2$residuals,lag.max =48)
 ```
 
 Note que la pendiente de la regresión resulta significativa, y ahora los residuales parecen estables y aunque persiste la autocorrelación, ésta no es tan fuerte. Como persiste la autocorrelación, usaremos un modelo de series de tiempo para que tenga en cuenta la estructura de autcorrelación presente en los residuales.
@@ -75,7 +78,9 @@ library(lmtest)
 coeftest(m3)
 
 plot(m3$residuals)
-acf(m3$residuals,lag.max = 36)
+acf(m3$residuals,lag.max = 48)
+pacf(m3$residuals,lag.max = 48)
+
 
 ```
 Note que ahora los residuales son prácticamente no autcorrelacionados. Vale la pena decir que aún hay una característica que sigue presente y es la heterocedasticidad condicional, la cual estudiaremos mas adelante.
