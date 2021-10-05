@@ -64,9 +64,21 @@ library(forecast)
 
 ``` r
 forecast::Ccf(tsc1, tsc3, lag.max = 48) 
+library(astsa)
 ```
 
-![](IntroSeriesUnivariadas_files/figure-gfm/Diagramas%20de%20dispersión-3.png)<!-- -->
+    ## 
+    ## Attaching package: 'astsa'
+
+    ## The following object is masked from 'package:forecast':
+    ## 
+    ##     gas
+
+``` r
+lag2.plot(tsc1, tsc3, max.lag = 4)
+```
+
+![](IntroSeriesUnivariadas_files/figure-gfm/Diagramas%20de%20dispersión-3.png)<!-- -->![](IntroSeriesUnivariadas_files/figure-gfm/Diagramas%20de%20dispersión-4.png)<!-- -->
 Primer ajuste de regresión para las series originales asumiendo que los
 ruidos son IID, es decir vamos a ajustar el modelo
 *r*<sub>3*t*</sub> = *α* + *β**r*<sub>1*t*</sub> + *e*<sub>*t*</sub>
@@ -232,3 +244,7 @@ pacf(m3$residuals,lag.max = 48)
 Note que ahora los residuales son prácticamente no autcorrelacionados.
 Vale la pena decir que aún hay una característica que sigue presente y
 es la heterocedasticidad condicional, la cual estudiaremos mas adelante.
+Esta laternativa de diferenciar las series fue muy popular, pero tiene
+multiples dificultades, por ejemplo la interpretabilidad, la baja
+eficiencia de los estimadores, entre otros, ver Libro de Peña(2010)
+Página 542.
