@@ -46,6 +46,8 @@ plot(r1,r3,type='p',pch=16,sub = "(a) Variables Originales")
 plot(tsc1,tsc3,type='p',pch=16,sub="(b) Variables en Cambios")
 library(forecast)
 forecast::Ccf(tsc1, tsc3, lag.max = 48) 
+library(astsa)
+lag2.plot(tsc1, tsc3, max.lag = 4)
 ```
 Primer ajuste de regresión para las series originales asumiendo que los ruidos son IID, es decir vamos a ajustar el modelo
 $$r_{3t}=\alpha +\beta r_{1t}+e_t$$
@@ -83,4 +85,4 @@ pacf(m3$residuals,lag.max = 48)
 
 
 ```
-Note que ahora los residuales son prácticamente no autcorrelacionados. Vale la pena decir que aún hay una característica que sigue presente y es la heterocedasticidad condicional, la cual estudiaremos mas adelante.
+Note que ahora los residuales son prácticamente no autcorrelacionados. Vale la pena decir que aún hay una característica que sigue presente y es la heterocedasticidad condicional, la cual estudiaremos mas adelante. Esta laternativa de diferenciar las series fue muy popular, pero tiene multiples dificultades, por ejemplo la interpretabilidad, la baja eficiencia de los estimadores, entre otros,  ver Libro de Peña(2010) Página 542.
