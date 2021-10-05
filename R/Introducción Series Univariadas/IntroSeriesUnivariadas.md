@@ -1,8 +1,7 @@
 IntroSerieUnivariadas
 ================
 
-Introducción a las Series Univariadas
--------------------------------------
+## Introducción a las Series Univariadas
 
 Vamos a cargar los datos de las series de las tasas de interés.
 
@@ -27,8 +26,7 @@ str(r1)
 
     ##  num [1:2467] 3.24 3.32 3.29 3.26 3.29 3.29 3.31 3.29 3.2 3.15 ...
 
-Gráficas de las Series
-----------------------
+## Gráficas de las Series
 
 Note que como los datos son semanales, debemos darles ese formato:
 
@@ -37,7 +35,9 @@ Note que como los datos son semanales, debemos darles ese formato:
     ##  Time-Series [1:2467] from 1962 to 2009: 3.24 3.32 3.29 3.26 3.29 3.29 3.31 3.29 3.2 3.15 ...
 
 Vamos a hacer la gráficas de dispersión de las variables directamente, y
-de las variables en cambios(transformadas).
+de las variables en cambios(transformadas). La ccf o función de
+autocorrelación cruzada se define como las correlaciones entre
+*X*<sub>*t* + *h*</sub> y *Y*<sub>*t*</sub> para *h* = 0,  ± 1,  ± 2, ⋯
 
 ``` r
 tsc1=diff(tsr1)
@@ -53,9 +53,20 @@ legend("topright", legend=c("tsc1", "tsc3"),
 par(mfrow=c(1,2))
 plot(r1,r3,type='p',pch=16,sub = "(a) Variables Originales")
 plot(tsc1,tsc3,type='p',pch=16,sub="(b) Variables en Cambios")
+library(forecast)
 ```
 
+    ## Registered S3 method overwritten by 'quantmod':
+    ##   method            from
+    ##   as.zoo.data.frame zoo
+
 ![](IntroSeriesUnivariadas_files/figure-gfm/Diagramas%20de%20dispersión-2.png)<!-- -->
+
+``` r
+forecast::Ccf(tsc1, tsc3, lag.max = 48) 
+```
+
+![](IntroSeriesUnivariadas_files/figure-gfm/Diagramas%20de%20dispersión-3.png)<!-- -->
 Primer ajuste de regresión para las series originales asumiendo que los
 ruidos son IID, es decir vamos a ajustar el modelo
 *r*<sub>3*t*</sub> = *α* + *β**r*<sub>1*t*</sub> + *e*<sub>*t*</sub>
@@ -142,13 +153,13 @@ plot(m2$residuals,type='l')
 ![](IntroSeriesUnivariadas_files/figure-gfm/ajuste%20cambios%20en%20tasas-1.png)<!-- -->
 
 ``` r
-acf(m2$residuals,lag.max =36,ci.type="ma")
+acf(m2$residuals,lag.max =48,ci.type="ma")
 ```
 
 ![](IntroSeriesUnivariadas_files/figure-gfm/ajuste%20cambios%20en%20tasas-2.png)<!-- -->
 
 ``` r
-pacf(m2$residuals,lag.max =36)
+pacf(m2$residuals,lag.max =48)
 ```
 
 ![](IntroSeriesUnivariadas_files/figure-gfm/ajuste%20cambios%20en%20tasas-3.png)<!-- -->
@@ -208,10 +219,16 @@ plot(m3$residuals)
 ![](IntroSeriesUnivariadas_files/figure-gfm/series%20tasas-1.png)<!-- -->
 
 ``` r
-acf(m3$residuals,lag.max = 36)
+acf(m3$residuals,lag.max = 48)
 ```
 
 ![](IntroSeriesUnivariadas_files/figure-gfm/series%20tasas-2.png)<!-- -->
+
+``` r
+pacf(m3$residuals,lag.max = 48)
+```
+
+![](IntroSeriesUnivariadas_files/figure-gfm/series%20tasas-3.png)<!-- -->
 Note que ahora los residuales son prácticamente no autcorrelacionados.
 Vale la pena decir que aún hay una característica que sigue presente y
 es la heterocedasticidad condicional, la cual estudiaremos mas adelante.
