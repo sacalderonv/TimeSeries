@@ -85,4 +85,4 @@ pacf(m3$residuals,lag.max = 48)
 
 
 ```
-Note que ahora los residuales son prácticamente no autcorrelacionados. Vale la pena decir que aún hay una característica que sigue presente y es la heterocedasticidad condicional, la cual estudiaremos mas adelante. Esta laternativa de diferenciar las series fue muy popular, pero tiene multiples dificultades, por ejemplo la interpretabilidad, la baja eficiencia de los estimadores, entre otros,  ver Libro de Peña(2010) Página 542.
+Note que ahora los residuales son prácticamente no autcorrelacionados. Vale la pena decir que aún hay una característica que sigue presente y es la heterocedasticidad condicional, la cual estudiaremos mas adelante. Esta alternativa de diferenciar las series fue muy popular, pero tiene multiples dificultades, por ejemplo la interpretabilidad, la baja eficiencia de los estimadores, entre otros,  ver Libro de Peña(2010) Página 542.
