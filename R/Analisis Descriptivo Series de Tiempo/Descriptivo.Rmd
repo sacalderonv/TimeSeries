@@ -27,13 +27,13 @@ Qué características podemos observar?
 Vamos a seleccionar un periodo de tiempo mas corto
 
 ```{r DesempleoUS selec periodo}
-#unemployment <- window(USUnRate, start = c(1990,1))
-#ts_plot(unemployment,
-#           title = "US Monthly Unemployment Rate",
-#           Ytitle = "Unemployment Rate (%)",
-#           Xtitle = "Year",
-#          Xgrid = TRUE,
-#Ygrid = TRUE)
+unemployment <- window(USUnRate, start = c(1990,1))
+ts_plot(unemployment,
+          title = "US Monthly Unemployment Rate",
+           Ytitle = "Unemployment Rate (%)",
+           Xtitle = "Year",
+          Xgrid = TRUE,
+Ygrid = TRUE)
 ```
 Note que aquí podemos ver varias características: Estacionalidad(no es tan evidente), tres periodos de ciclos, el primero de 1990 a 2000,el segundo de 2000 a 2007, y el tercero de 2007 a 2019. No parece tener una heterocedasticidad marginal.
 
@@ -60,12 +60,12 @@ plot(Desempleo_Col_xts)
 ```
 
 ```{r grafico TSstudio Desemplo Col}
-#ts_plot(Desempleo_Col_xts,
-#           title = "Tasa de Desemplo Mensual Colombia",
-#           Ytitle = "Tasa de Desempleo(%)",
-#           Xtitle = "Año",
-#           Xgrid = TRUE,
-#Ygrid = TRUE)
+ts_plot(Desempleo_Col_xts,
+           title = "Tasa de Desemplo Mensual Colombia",
+           Ytitle = "Tasa de Desempleo(%)",
+           Xtitle = "Año",
+           Xgrid = TRUE,
+Ygrid = TRUE)
 ```
 Qué características presenta esta serie?
 
@@ -93,6 +93,14 @@ abline(fit,col = "red") # Se añade la recta ajusta
 ElimiTendchick=chicken-predict(fit)
 plot(ElimiTendchick,main="Serie Chicken Sin tendencia")
 ```
+## Descomposición
+Vamos a usar la descomposición por medio de filtros de promedios móviles
+```{r descomposicion}
+chicken_decompo=decompose(chicken)
+plot(chicken_decompo)
+chicken_decompo$trend
+```
+
 
 ```{r Caminata Aletoria con Drift}
 set.seed(154) 
@@ -130,7 +138,6 @@ En este caso, se siguiere hacer una transformación de potencia para estabilizar
 		\lambda^{-1}(u^{\lambda}_{t}-1), &  \text{si  $u_{t} \geq 0$, para $\lambda>0$,}\\
 		\ln(u_{t}), &\text{ si $u_{t}>0$, para $\lambda=0$}.
 	\end{cases}
-	\
 \end{equation}
 
 ```{r BoxCox}
@@ -285,8 +292,47 @@ ccf(soi, rec, 48, main="SOI vs Recruitment", ylab="CCF")
 
 En ambas gráficas  podemos ver que se muestran periodicidades en las correlaciones que corresponden a valores separados por 12 unidades. También podemos ver que las observaciones con 12 meses o un año de diferencia están fuertemente correlacionadas positivamente, al igual que las observaciones en múltiplos como 24, 36, 48,$\cdots$ Las observaciones separadas por seis meses están correlacionadas negativamente, lo que muestra que las excursiones positivas tienden a asociarse con las excursiones negativas a los seis meses ver Shumway2017  capítulo 1.
 
+###AMI
+Del los libros H. Kantz and T. Schreiber: Nonlinear Time series Analysis (Cambridge university press) H. Abarbanel: Analysis of observed chaotic data (Springer, 1996) y 
+NONLINEAR TIME SERIES ANALYSIS HOLGER KANTZ AND THOMAS SCHREIBER. Cambrige University Press 2003.
+
+Ahora utilizaremos los paquetes nonlinearTseries y tseriesChaos para computar el average mutual information(AMI) o La información mutua promedio (AMI, la cual mide cuánto nos dice una variable aleatoria sobre otra. En el contexto del análisis de series de tiempo, AMI ayuda a cuantificar la cantidad de conocimiento obtenido sobre el valor de $x(t+\tau)$ al observar $x(t)$.
+
+Vamos a simular una serie de la forma
+$$x_t=\frac{x_t-1}{x_{t-1}^2+1}+\epsilon_t$$ y a trabajar con la serie de linces Candienses del paquete astsa lynx.
+
+```{r AMI}
+library(nonlinearTseries)
+library(tseriesChaos)
+et=rnorm(1100,0,1)
+xt=rep(0,1100)
+for(t in 2:1100)
+  {
+  xt[t]=(xt[t-1]-1)/(xt[t-1]^2+1)+et[t]
+  }
+xtsimul=as.ts(xt[101:1100])
+length(xtsimul)
+plot(xtsimul)
+acf(xtsimul)
+par(mar = c(3,2,3,2))
+astsa::lag1.plot(xtsimul, 6) 
+nonlinearTseries::mutualInformation(xtsimul,lag.max = 10,n.partitions = 50,units = "Nats",do.plot = TRUE) #c("Nats", "Bits", "Bans")
+
+tseriesChaos::mutual(xtsimul, partitions = 50, lag.max = 10, plot=TRUE)
+
+```
+```{r mas sobre nolinealidad lynx}
+plot(astsa::Lynx)
+acf(astsa::Lynx)
+par(mar = c(3,2,3,2))
+astsa::lag1.plot(astsa::Lynx, 12) 
+tseriesChaos::mutual(astsa::Lynx, partitions = 50, lag.max = 10, plot=TRUE)
+
+```
+
+
 ## Detección de cíclos y estacionalidades
-Podemos usar la función *TSstudio::ts_heatmap* para crear un mapa de calor. Este es un gráfico tridimensional, en donde en el eje x están los meses, y en el eje y están los años. Note en este caso que los meses de Diciembre,Enero, Febrero y Marzo presentan los valores mas oscuros, es decir los valores mas grandes a lo largo de los años, en contraste con los meses de Mayo a Septiembre  que presentan colores mas claros. Este es un típico comportamiento de la presencia de un cíclo estacional en la serie.    El flujo de color es horizontal.
+Podemos usar la función *TSstudio::ts_heatmap* para crear un mapa de calor. Este es un gráfico tridimensional, en donde en el eje y están los meses, y en el eje x están los años. Note en este caso que los meses de Diciembre,Enero, Febrero y Marzo presentan los valores mas oscuros, es decir los valores mas grandes a lo largo de los años, en contraste con los meses de Mayo a Septiembre  que presentan colores mas claros. Este es un típico comportamiento de la presencia de un cíclo estacional en la serie.    El flujo de color es horizontal.
 
 ```{r consumo gas}
  ts_plot(USgas,
@@ -311,6 +357,7 @@ Voy enfocarme en un periodo de la serie de desempleo.
            Xtitle = "Year",
            Xgrid = TRUE,
 Ygrid = TRUE)
+ts_info(unemployment)
 ```
 * El primer ciclo ocurrió entre 1990 y 2000, que estuvo cerca de un ciclo de 11 años.
 * El segundo ciclo comenzó en 2000 y finalizó en 2007, que fue un ciclo de 7 años.
@@ -345,6 +392,9 @@ USgas_summary
   monthplot(USgas)
 ```
 Note que basados en las estadísticas descriptivas podemos ver que las medias son distintas para algunos meses, incluso sin quitar la tendencia. A una misma conclusión llegamos basados en los gráficos. Estas son típicas características de que hay presente un ciclo estacional en la serie.
+
+
+
 
 ## Explorando múltiples estacionalidades
 
@@ -435,7 +485,7 @@ Qué podemos destacar del gráfico y de las estadísticas descriptivas?
 
 * Por otro lado, la alta desviación estándar a lo largo de las horas de alta demanda podría indicar que la demanda se distribuye de manera diferente en diferentes vistas de periodicidad (como día de la semana o mes del año).
 
-Vamos a explorar el último punto, viendo la demanda a la madrugada(3 a.m) y empezando el día(9 a.m)
+Vamos a explorar el último punto, viendo la demanda a la madrugada(3 a.m) y empezando el día(9 a.m) con respecto al día de la semana.
 
 ```{r exploracion_1}
 
@@ -525,6 +575,9 @@ library(forecast)
    
 ggseasonplot(USgas,  polar = TRUE)
 ```
+
+
+
 Note que con el paquete TSstudio se puede hacer algo análogo.
 
 ```{r mas acerca estacionalidad_2}
@@ -675,7 +728,7 @@ spectrum(x,log='no',span=c(5,5))
 spectrum(x,log='no',span=c(2,2))
 ```
 
-Veamos ahora con una serie de tiempo real. Usaremos la serie SOi y Recruitment para ilustrar su uso. Recordemos que ambas series son mensuales, así que las frecuencias que serán dibujadas en el eje x vedrán en múltiplos de $\frac{1}{12}$. Usaremos ahora la función <b> mvspec</b> del paquete <b>astsa</b>.
+Veamos ahora con una serie de tiempo real. Usaremos la serie SOi y Recruitment para ilustrar su uso. Recordemos que ambas series son mensuales, así que las frecuencias que serán dibujadas en el eje x vendrán en múltiplos de $\frac{1}{12}$. Usaremos ahora la función <b> mvspec</b> del paquete <b>astsa</b>.
 
 ```{r espectral_soi}
 library(astsa)
@@ -712,6 +765,32 @@ Note que la primera frecuencia mas alta se encuentra en $\omega=1\cdot \frac{1}{
 
 <b> Tarea</b> : Hacer lo mismo pero ahora usar la serie de pasajeros diferenciada, al igual que la serie UKgrid, mas específicamente la serie UKgrid_xts y la serie taylor del paquete forecast.
 
+```{r simular SARIMA con componente estacional no-estacionario}
+library(sarima) 
+x <- ts(sarima::sim_sarima(n=144, model = list(siorder=1,
+                                      nseasons=12, sigma2 = 1)),frequency = 12 )#(1-B)^{12} X_t = e_t
+plot(x)
+acf(x)
+monthplot(x)
+ts_seasonal(x, type = "all")
+spectrum(x,log='no',span=5)
+astsa::mvspec(x, log="no")
+```
+
+```{r simular SARIMA sin componente estacional}
+library(sarima) 
+x <- ts(sim_sarima(n=288,model=list(sar=0.3, nseasons=12, sigma2 = 1)), frequency = 12 )#SAR(1)
+plot(x)
+acf(x)
+monthplot(x)
+ts_seasonal(x, type = "all")
+spectrum(x,log='no',span=5)
+astsa::mvspec(x, log="no")
+raices=polyroot(c(1,rep(0,11),-0.3))
+raices
+conj_raices=Conj(raices)
+raices[12]*conj_raices[12]
+```
 
 
 # Suavizamiento en el contexto de Series de Tiempo
