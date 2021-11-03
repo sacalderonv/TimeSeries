@@ -110,14 +110,21 @@ plot.ts(xd, ylim=c(-5,55), main="Caminata Aletoria", ylab='')
 lines(x, col=4); abline(h=0, col=4, lty=2); abline(a=0, b=.2, lty=2)
 
 ```
-La diferencia de orden 1 es , 
+La diferencia ordinaria de orden 1 es , 
 $$\nabla^1 Y_t=(1-B)^1 Y_t=Y_t-Y_{t-1}$$
+```{r aplicacion de la diferenciacion}
+dx=diff(x)
+plot.ts(dx, ylim=c(-5,5), main="Serie Diferenciada", ylab='')
+```
+
+
 ```{r sin tendencia chicken}
 par(mar = c(2,2,2,2))
 fit = lm(chicken~time(chicken), na.action=NULL) # Regresión sobre el tiempo
 par(mfrow=c(2,1))
 plot(resid(fit), type="l", main="sin tendencia") 
 plot(diff(chicken), type="l", main="Primera Diferencia") 
+
 
 
 ```
