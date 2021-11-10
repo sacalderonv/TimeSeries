@@ -806,7 +806,7 @@ raices[12]*conj_raices[12]
 El promedio móvil es un método es útil para descubrir ciertos rasgos en una serie de tiempo, como tendencias a largo plazo y componentes estacionales. En particular, si $x_t$ representa las observaciones, entonces una forma de predecir predecir o estimar la tendencia de la serie es:
 
 $$m_t=\sum_{j=-k}^{k}a_jx_{t-j},$$
-donde si$a_j=a_{-j}\ge0$ y $\sum_{j=-k}^{k}a_j=1$ se conocce como el el promedio móvil simétrico de los datos.
+donde si$a_j=a_{-j}\ge0$ y $\sum_{j=-k}^{k}a_j=1$ se conoce como el promedio móvil simétrico de los datos.
 
 ```{r Suavizamiento_1}
 # Filtro Boxcar
