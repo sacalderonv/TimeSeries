@@ -194,7 +194,8 @@ predictionHWAP_1
 plot(predictionHWAP_1)
 predictionHWAP_2=predict(HWAP,n.ahead = 12, prediction.interval = T, level = 0.95)
 predictionHWAP_2=forecast::InvBoxCox(predictionHWAP_2,lambda=0)
-
+predictionHWAP_2
 
 ```
 
+la función ets,ses, holt y hw de forecast también permiten hacer suavizamiento exponencial.
