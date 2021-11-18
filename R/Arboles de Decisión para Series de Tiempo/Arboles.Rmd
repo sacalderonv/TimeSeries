@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Los árboles binarios son el componente básico de la mayoría de los métodos estadísticos basados en árboles.\\
 Binario quiere decir, que cada rama del árbol puede ser dividido dentro de 2 sub-ramas Estos árboles son comúnmente referidos a árboles de decisión.
 
+Es importante tener en cuenta que con base a la serie original, debe poder verificarse si se presenta heterocedasticidad marginal. 
 
 ```{r importación y Gráficas}
 
@@ -57,7 +58,8 @@ PM2.5 = scan(file="d-Shanghai-1317.txt")
 tdx = c(1:length(PM2.5))/365+2013
 par(mfcol=c(2,1))
 plot(tdx,PM2.5,xlab='year',ylab='PM2.5',type='l') 
-acf(PM2.5,lag=800)###Chequeamos un ciclo anual
+acf(PM2.5,lag=800)###Chequeamos un ciclo anual  o se usa PACF(autocorrelación parcial)
+pacf(PM2.5,lag=400)
 m1 = NNsetting(PM2.5,nfore=365,lags=c(1:10,365:370))###configuración prueba y entrenamiento al igual que las covariables.Es decir, los rezagos son y_1,....,y_10, y y_365,..,y_370, debido al ciclo anual, en total 16.
 names(m1)
 X= m1$X; y = m1$y; predX = m1$predX; predY = m1$predY
