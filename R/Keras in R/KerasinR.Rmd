@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## MLP usando tensorflow basado en keras
 La documentación puede ser encontrada en https://keras.rstudio.com/index.html y https://tensorflow.rstudio.com.
-Para encontrar la dirección dond se encuentra python instalada use:    which python3,  en terminal, lo cual me dió.
+Para encontrar la dirección donde se encuentra python instalada use:    which python3,  en terminal, lo cual me dió.
 
 ```{r Llamado de paquetes}
 library(tidyverse) # metapackage with lots of helpful functions
@@ -19,7 +19,7 @@ library(reticulate) #Call Python from R
 library(tensorflow) #Neural Network Backend for Keras
 use_python("/opt/anaconda3/bin/python3")
 library(keras) #Neural Network Modeling
-library(plyr) #Data manipulation
+#library(plyr) #Data manipulation
 library(dplyr) # Data Manipulation
 library(caret) #Machine Learning Tools for Training and Validation
 ```
