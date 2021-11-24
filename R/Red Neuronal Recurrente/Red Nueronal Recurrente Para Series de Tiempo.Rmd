@@ -8,14 +8,14 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 Este ejemplo es sacado del libro "An Introduction to Statistical
-Learning with Applications in R"
+Learning with Applications in R(2021)" sección 10. 
 ## Rede Neuronales Recurrentes para Series de Tiempo
 
 Utilizaremos series de tiempo financieras para ilustrar el uso de las RNN. Son datos diarios de la bolsa de Nueva York del 2 de diciembre de 1962 al 31 de diciembre de 198:
 
-* Volumen de operaciones en escala logarítmica. Es la fracción de todas operaciones en circulación que se negocian un día $t$, en relación con un promedio móvil del 100 días de facturación pasada en escala logarítmica.
-* Retorno del índice Dow Jones. Es la diferencia entre el logarítmo de índice industrial Dow Jones en días consecutivos.
-* Logarítmo de la volatilidad. Es basado en los valores absolutos de los moviminetos del precio diario
+* Volumen de operaciones en escala logarítmica. Es la fracción de todas operaciones en circulación que se negocian un día $t$, en relación con un promedio móvil del 100 días de facturación pasada en escala logarítmica, la cual denotaremos $\nu_t$
+* Retorno del índice Dow Jones. Es la diferencia entre el logarítmo de índice industrial Dow Jones en días consecutivos, el cual denotaremos $r_t$.
+* Logarítmo de la volatilidad. Es basado en los valores absolutos de los movimientos del precio diario, el cual denotaremos $z_t$.
 
 
 ```{r Datos y grafica}
@@ -30,6 +30,27 @@ par(mfrow=c(1, 1))
 plot(ts_data, plot.type="m")
 str(ts_data)
 ```
+### Observación
+La sucesión de entrada es $X=\{X_1,X_2,\cdots X_L\}$ con una longitud predefinida $L$, y la correspondiente varible objetivo $Y$. Pra este ejemplo tenemos que:
+
+$$X_1=\begin{bmatrix} 
+\nu_{t-L}\\
+r_{t-L}\\
+ z_{t-L}\\
+\end{bmatrix}$$,
+
+$$X_1=\begin{bmatrix} 
+\nu_{t-L+1}\\
+r_{t-L+1}\\
+ z_{t-L+1}\\
+\end{bmatrix}$$,
+
+$$X_L=\begin{bmatrix} 
+\nu_{t-1}\\
+r_{t-1}\\
+ z_{t-1}\\
+\end{bmatrix}$$,
+y $Y=\nu_t$.
 Tomamos muestra de entrenamineto
 ```{r tomar entrenamiento}
 istrain <- NYSE[, "train"]
