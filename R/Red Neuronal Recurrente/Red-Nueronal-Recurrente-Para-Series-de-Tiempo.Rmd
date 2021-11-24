@@ -30,15 +30,27 @@ par(mfrow=c(1, 1))
 plot(ts_data, plot.type="m")
 str(ts_data)
 ```
-### Observación:
+### Observación
 La sucesión de entrada es $X=\{X_1,X_2,\cdots X_L\}$ con una longitud predefinida $L$, y la correspondiente varible objetivo $Y$. Pra este ejemplo tenemos que:
 
-$X_1=\begin{bmatrix} 
+$$X_1=\begin{bmatrix} 
 \nu_{t-L}\\
 r_{t-L}\\
  z_{t-L}\\
-\end{bmatrix}$
+\end{bmatrix}$$,
 
+$$X_1=\begin{bmatrix} 
+\nu_{t-L+1}\\
+r_{t-L+1}\\
+ z_{t-L+1}\\
+\end{bmatrix}$$,
+
+$$X_L=\begin{bmatrix} 
+\nu_{t-1}\\
+r_{t-1}\\
+ z_{t-1}\\
+\end{bmatrix}$$,
+y $Y=\nu_t$.
 Tomamos muestra de entrenamineto
 ```{r tomar entrenamiento}
 istrain <- NYSE[, "train"]
