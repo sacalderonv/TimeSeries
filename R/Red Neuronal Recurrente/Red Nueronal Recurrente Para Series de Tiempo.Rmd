@@ -127,7 +127,7 @@ library(caret) #Machine Learning Tools for Training and Validation
 Vamos ahora a ver la configuración de la red neuronal con una sola capa densa, con 12 unidades o nodos ocultos, y dropout.
 
 ```{r configuracion de la red keras }
-model <- keras_model_sequential () %>% layer_simple_rnn (units = 12,
+model <- keras_model_sequential() %>% layer_simple_rnn (units = 12,
 input_shape = list (5, 3),dropout = 0.1, recurrent_dropout = 0.1) %>%
  layer_dense (units = 1)
 model %>% compile(optimizer = optimizer_rmsprop(),
@@ -140,7 +140,30 @@ summary(model)
 history <- model %>% fit(xrnn[istrain ,, ], arframe[istrain , "log_volume"],
 batch_size = 64, epochs = 200,
 validation_data = list (xrnn[!istrain ,, ], arframe[!istrain , "log_volume"]))
-kpred <- predict (model, xrnn[!istrain ,, ])
+kpred <- predict(model, xrnn[!istrain ,, ])
 1- mean ((kpred - arframe[!istrain , "log_volume"])^2) / V0
+```
+
+Vamos a ajustar un AR no lineal
+
+```{r conf AR no lineal}
+x <- model.matrix (log_volume ~ . - 1, data = arframed)
+colnames (x)
+```
+
+```{r ajuste AR no lineal}
+arnnd <- keras_model_sequential() %>%
+ layer_dense (units = 32, activation = "relu" ,
+input_shape = ncol (x)) %>%
+ layer_dropout (rate = 0.5) %>%
+ layer_dense (units = 1)
+arnnd %>% compile (loss = "mse",
+optimizer = optimizer_rmsprop ())
+summary(arnnd)
+history <- arnnd %>% fit(x[istrain , ], arframe[istrain , "log_volume"], epochs = 100,batch_size = 32, validation_data =list(x[!istrain , ], arframe[!istrain , "log_volume"]))
+
+#plot (history)
+#npred <- predict (arnnd , x[!istrain , ])
+#1- mean ((arframe[!istrain , "log_volume"] - npred)^2) / V0
 ```
 
