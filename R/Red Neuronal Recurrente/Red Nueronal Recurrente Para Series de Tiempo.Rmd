@@ -183,8 +183,16 @@ optimizer = optimizer_rmsprop ())
 summary(arnnd)
 history <- arnnd %>% fit(x[istrain , ], arframe[istrain , "log_volume"], epochs = 100,batch_size = 32, validation_data =list(x[!istrain , ], arframe[!istrain , "log_volume"]))
 
-#plot (history)
-#npred <- predict (arnnd , x[!istrain , ])
-#1- mean ((arframe[!istrain , "log_volume"] - npred)^2) / V0
+plot (history)
+npred <- predict (arnnd , x[!istrain , ])
+1- mean ((arframe[!istrain , "log_volume"] - npred)^2) / V0
+```
+
+```{r dispersion}
+plot(arframe[!istrain , "log_volume"],npred,xlab='reales',ylab='predicción')
+df_pre_real=data.frame(log_volume = arframe[!istrain , "log_volume"],pred_log_volume = npred)
+fechas_prueba=NYSE[NYSE$train == FALSE, ]$date
+ts_pre_real=timeSeries(df_pre_real[,c("log_volume","pred_log_volume")],fechas_prueba)
+plot(ts_pre_real, plot.type="s")
 ```
 
