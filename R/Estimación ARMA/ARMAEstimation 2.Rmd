@@ -70,7 +70,6 @@ tipos88  <- read.table("~/Documents/GitHub/TimeSeries/Bases de Datos/Estacionari
 Intanual=tipos88$V5  #Tipo de interés Anual
 ?ts
 plot(as.ts(Intanual))
-
 ```
 
 ```{r identificación}
