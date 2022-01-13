@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Identificación MA Puros
 
-En este script encontraremos la manera de indentificar procesos MA puros y AR Puros. Empezamos con Ma Puros.
+En este script encontraremos la manera de identificar procesos MA puros y AR Puros. Empezamos con Ma Puros.
 
 ```{r Identificación MA Puros}
 #####Identificación MA y AR puros
@@ -19,7 +19,7 @@ y=rnorm(200,0,1)
 plot(y,type='l')
 x11()
 acf(y,lag.max=sqrt(length(y)))
-pacf(y)
+#pacf(y)
 ####Ejemplo MA(1)
 set.seed(12345)
 theta1=0.7
@@ -27,7 +27,7 @@ theta2=0.5
 Tlength=200
 arimaej=arima.sim(list(order = c(0,0,1),ma=c(theta1)), n = Tlength)
 plot(arimaej,main='MA(1)')
-acf(arimaej,lag.max=40)####Bandas para probar no autocorrelación
+acf(arimaej,lag.max=50)####Bandas para probar no autocorrelación
 acf(arimaej,ci.type='ma',lag.max = trunc((Tlength)/4)) ####Bandas para probar MA, note que es consecuente con un MA(1)
 pacf(arimaej)
 ###Ejemplo MA(2)
@@ -40,7 +40,7 @@ pacf(arimaej)
 ###Los órdenes Máximos que se deberían postular para un ARMA(p=4,q=2) mixto.
 
 ###Simular un AR(1) phi=0.9
-arimaej=arima.sim(list(order = c(1,0,0),ar=c(0.9)), n = Tlength)
+arimaej=arima.sim(list(order = c(1,0,0),ar=c(0.8)), n = Tlength)
 plot(arimaej)
 acf(arimaej)
 acf(arimaej,ci.type='ma')
@@ -109,5 +109,5 @@ pacf(diff_log_airpass_est,lag.max = 60)
 
 ```
 
-
+# Que pasa con los modelo ARMA mixtos?
 
