@@ -47,11 +47,13 @@ AIC(modelo.propuesto1)
 BIC(modelo.propuesto1)
 modelo.propuesto1
 ####Ajustar un modelo MA puro
-
+###ARMA(1,4)
 
 ####Use el argumento fixed=c(NA,0,NA) en la función ARIMA#
 
-modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=FALSE,fixed=c(NA,0,NA,0,NA)) ###ARMA(1,4)
+modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=FALSE)
+# ,fixed=c(NA,NA,NA,NA,NA)
+
 coeftest(modelo.propuesto_arma)
 ####Ajustar un modelo ARMA(p,q) mixto
 
