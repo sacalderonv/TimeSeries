@@ -88,9 +88,9 @@ pacf(sercamrelint)
 
 ```{r Estimacion}
 library(lmtest)
-ARPURO=arima(sercamrelint,order=c(3,0,0),include.mean = TRUE)
-MAPURO=arima(sercamrelint,order=c(0,0,4),include.mean = TRUE)
-ARMAMIXTO=arima(sercamrelint,order=c(3,0,4),include.mean = TRUE)
+ARPURO=Arima(sercamrelint,order=c(3,0,0),include.mean = TRUE)
+MAPURO=Arima(sercamrelint,order=c(0,0,4),include.mean = TRUE)
+ARMAMIXTO=Arima(sercamrelint,order=c(3,0,4),include.mean = TRUE)
 coeftest(ARPURO)
 coeftest(MAPURO)
 coeftest(ARMAMIXTO)
@@ -108,10 +108,25 @@ coeftest(ARPURO_fixed1)
 summary(ARPURO_fixed1)
 ###Note que uno usa la función arima y el otro ARIMA
 ```
+###Antes de hacer el pronóstico se debería verficar los supuestos.
 ```{r Pronostico}
 PronosticosAR12=forecast(ARPURO_fixed1,h=12,level=0.95)  ###Es mejor usar el objeto de la función ARIMA
 plot(PronosticosAR12)
 ```
+
+```{r ARMA mixto}
+ARMAmixto_fixed1=forecast::Arima(sercamrelint,order=c(3,0,2),include.mean = FALSE,method = c("CSS-ML")) #,fixed=c(NA,NA,NA,NA,NA,0,0)
+coeftest(ARMAmixto_fixed1)
+summary(ARMAmixto_fixed1)
+```
+
+##Arima Automático
+```{r arima automatico}
+Arima_automatico_sercam=forecast::auto.arima(sercamrelint,d=0,D=0,max.p=4,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=8,stationary=TRUE,ic="bic",stepwise=FALSE,allowmean = TRUE) 
+
+Arima_automatico_sercam 
+```
+
 
 
 
@@ -124,7 +139,7 @@ plot(LondresPrecip)
 ```
 
 
-```{r Análisis de Residuales}
+```{r Análisis de Residuales Para el modelo AR puro Serie interes}
 # An?lisis de residuales
 residuales=ARPURO_fixed1$residuals
 plot(residuales)
@@ -135,7 +150,7 @@ jarque.bera.test(residuales)
 #Test de autocorrelaci?n
 length(residuales)/4
 sqrt(length(residuales))
-Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)
+Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)#No puedo Rechazar la hipótesis de no autocorrelación!
 
 
 ###Estad?sticas CUSUM
