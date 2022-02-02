@@ -1,0 +1,113 @@
+---
+title: "Identificación AR y MA Puros"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Identificación MA Puros
+
+En este script encontraremos la manera de identificar procesos MA puros y AR Puros. Empezamos con Ma Puros.
+
+```{r Identificación MA Puros}
+#####Identificación MA y AR puros
+####Identificación de un MA puro
+set.seed(1)
+y=rnorm(200,0,1)
+plot(y,type='l')
+x11()
+acf(y,lag.max=sqrt(length(y)))
+#pacf(y)
+####Ejemplo MA(1)
+set.seed(12345)
+theta1=0.7
+theta2=0.5
+Tlength=200
+arimaej=arima.sim(list(order = c(0,0,1),ma=c(theta1)), n = Tlength)
+plot(arimaej,main='MA(1)')
+acf(arimaej,lag.max=50)####Bandas para probar no autocorrelación
+acf(arimaej,ci.type='ma',lag.max = trunc((Tlength)/4)) ####Bandas para probar MA, note que es consecuente con un MA(1)
+pacf(arimaej)
+###Ejemplo MA(2)
+set.seed(123456)
+arimaej=arima.sim(list(order = c(0,0,2),ma=c(theta1,theta2)), n = Tlength)
+plot(arimaej,main='MA(2)')
+acf(arimaej)
+acf(arimaej,ci.type='ma')####Bandas para probar autocorrelación del tipo proceso MA
+pacf(arimaej)
+###Los órdenes Máximos que se deberían postular para un ARMA(p=4,q=2) mixto.
+
+###Simular un AR(1) phi=0.9
+arimaej=arima.sim(list(order = c(1,0,0),ar=c(0.8)), n = Tlength)
+plot(arimaej)
+acf(arimaej)
+acf(arimaej,ci.type='ma')
+pacf(arimaej)
+```
+Se simula un proceso ARMA(1,2)
+```{r ACF ARMA mixto}
+ 
+arimaej=arima.sim(list(order=c(1,0,2),ar=c(0.8),ma=c(theta1,theta2)), n = Tlength)
+plot(arimaej)
+acf(arimaej)
+acf(arimaej,ci.type='ma')
+pacf(arimaej)
+```
+
+
+
+## Identificación AR Puros
+
+You can also embed plots, for example:
+
+```{r ARPuros}
+######Ejemplos Autoregresivos AR(p)
+####Ejemplo AR(1)
+set.seed(123)
+phi1=0.8
+Tlength=200
+arimaar1=arima.sim(list(order = c(1,0,0),ar = c(phi1)), n = Tlength)
+plot(arimaar1,main='AR(1)')
+acf(arimaar1,ci.type='ma')
+pacf(arimaar1)
+
+####Ejemplo AR(1)
+set.seed(1234)
+phi1=0.8
+phi2=-0.2
+Tlength=200
+arimaar2=arima.sim(list(order = c(2,0,0),ar = c(phi1,phi2)), n = Tlength)
+plot(arimaar2,main='AR(1)')
+acf(arimaar2)
+acf(arimaar2)
+pacf(arimaar2)
+```
+
+```{r Pasajeros}
+data("AirPassengers")
+plot(AirPassengers)
+log_airpass=log(AirPassengers)
+plot(log_airpass)
+diff_log_airpass=diff(log_airpass)
+plot(diff_log_airpass)
+spectrum(diff_log_airpass,log="no")
+spectrum(diff_log_airpass,kernel("modified.daniell", c(1,1)))
+monthplot(diff_log_airpass)
+###Eliminamos la estacionalidad
+diff_log_airpass_est=diff(diff_log_airpass,lag = 12)
+monthplot(diff_log_airpass_est)
+spectrum(diff_log_airpass_est,log="no")
+spectrum(diff_log_airpass_est,kernel("modified.daniell", c(1,1)))
+plot(diff_log_airpass_est)
+###Identificar 
+acf(diff_log_airpass_est,lag.max = 60)
+
+acf(diff_log_airpass_est,lag.max = 60,ci.type='ma')
+pacf(diff_log_airpass_est,lag.max = 60)
+
+```
+
+# Que pasa con los modelo ARMA mixtos?
+

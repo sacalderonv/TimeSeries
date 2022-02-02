@@ -1,0 +1,100 @@
+---
+title: "KerasinR"
+#output: github_document
+output: html_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## MLP usando tensorflow basado en keras
+La documentación puede ser encontrada en https://keras.rstudio.com/index.html y https://tensorflow.rstudio.com.
+Para encontrar la dirección donde se encuentra python instalada use:    which python3,  en terminal, lo cual me dió.
+
+```{r Llamado de paquetes}
+library(tidyverse) # metapackage with lots of helpful functions
+library(reticulate) #Call Python from R
+library(tensorflow) #Neural Network Backend for Keras
+use_python("/opt/anaconda3/bin/python3")
+library(keras) #Neural Network Modeling
+#library(plyr) #Data manipulation
+library(dplyr) # Data Manipulation
+library(caret) #Machine Learning Tools for Training and Validation
+```
+
+## Importación BDD
+
+
+
+```{r importar base y pre-procesamiento}
+PM2.5 = scan(file="d-Shanghai-1317.txt")
+tdx = c(1:length(PM2.5))/365+2013
+
+library(NTS)
+
+###160 test y 160 de validación
+Tam_muestra_efectivo=length(PM2.5)-16###16 son los rezagos nos da el tamaño de muestra efectivo
+m1_training_test = NTS::NNsetting(PM2.5,nfore=160,lags=c(1:10,16))###configuración prueba y entrenamiento al igual que las covariables.Es decir, los rezagos son y_1,....,y_10, y y_365,..,y_370, debido al ciclo anual, en total 16.
+names(m1_training_test)
+X_training_val= m1_training_test$X; y_training_val = m1_training_test$y; predX_test = data.frame(m1_training_test$predX); predY_test = m1_training_test$predY
+X_training=data.frame(X_training_val[1:(dim(X_training_val)[1]-160),])
+X_val=data.frame(X_training_val[(dim(X_training_val)[1]-160+1):dim(X_training_val)[1],])
+y_training=y_training_val[1:(length(y_training_val)-160)]
+y_val=y_training_val[(length(y_training_val)-160+1):length(y_training_val)]
+
+pp = caret::preProcess(X_training, method = "range")
+X_training_norm=predict(pp, X_training)
+predX_test_norm=predict(pp, predX_test)
+X_val_norm=predict(pp, X_val)
+```
+
+```{r definicion primer modelo}
+model<-keras_model_sequential() %>%layer_dense(units=32,input_shape=list(dim(X_training_norm)[[-1]]) ,activation = "relu") %>% 
+  layer_dense(1)
+summary(model)
+
+```
+
+```{r entrenamiento o estimación de parámetros}
+model %>% compile(
+    optimizer = "sgd",
+    loss="mse"
+)
+val_data=list(as.matrix(X_val_norm),as.matrix(y_val))
+model %>% 
+  fit(
+    x = as.matrix(X_training_norm), y = as.matrix(y_training),
+    epochs = 50,
+    validation_data=val_data,
+    verbose = 2
+  )
+
+
+
+
+
+```
+
+```{r evalaucion del modelo ajustado y pronóstico}
+model%>%evaluate(as.matrix(predX_test_norm),predY_test)
+
+ypred=model%>%predict(as.matrix(predX_test_norm))
+ypred
+```
+
+
+```{r gráficos}
+RealvsPron=data.frame(Pronostico=ypred,Real=predY_test)
+head(RealvsPron)
+plot(as.numeric(rownames(RealvsPron)),RealvsPron$Real,type='o',col='blue')
+lines(as.numeric(rownames(RealvsPron)),RealvsPron$Pronostico,type='o',col='red')
+
+
+
+```
+
+
+
+

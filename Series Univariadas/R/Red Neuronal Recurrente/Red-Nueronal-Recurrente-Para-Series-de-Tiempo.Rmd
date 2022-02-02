@@ -1,0 +1,190 @@
+---
+title: "RNN"
+#output: html_document
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Este ejemplo es sacado del libro "An Introduction to Statistical
+Learning with Applications in R(2021)" sección 10. 
+## Rede Neuronales Recurrentes para Series de Tiempo
+
+Utilizaremos series de tiempo financieras para ilustrar el uso de las RNN. Son datos diarios de la bolsa de Nueva York del 2 de diciembre de 1962 al 31 de diciembre de 198:
+
+* Volumen de operaciones en escala logarítmica. Es la fracción de todas operaciones en circulación que se negocian un día $t$, en relación con un promedio móvil del 100 días de facturación pasada en escala logarítmica, la cual denotaremos $\nu_t$
+* Retorno del índice Dow Jones. Es la diferencia entre el logarítmo de índice industrial Dow Jones en días consecutivos, el cual denotaremos $r_t$.
+* Logarítmo de la volatilidad. Es basado en los valores absolutos de los movimientos del precio diario, el cual denotaremos $z_t$.
+
+
+```{r Datos y grafica}
+library(timeSeries)
+library (ISLR2)
+library(zoo)
+library(xts)
+data(NYSE)
+xdata <- data.matrix (NYSE[, c("DJ_return", "log_volume","log_volatility")])
+ts_data=timeSeries(NYSE[,c("DJ_return","log_volume","log_volatility")],NYSE$date)
+par(mfrow=c(1, 1))
+plot(ts_data, plot.type="m")
+str(ts_data)
+```
+### Observación
+La sucesión de entrada es $X=\{X_1,X_2,\cdots X_L\}$ con una longitud predefinida $L$, y la correspondiente varible objetivo $Y$. Pra este ejemplo tenemos que:
+
+$$X_1=\begin{bmatrix} 
+\nu_{t-L}\\
+r_{t-L}\\
+ z_{t-L}\\
+\end{bmatrix}$$,
+
+$$X_1=\begin{bmatrix} 
+\nu_{t-L+1}\\
+r_{t-L+1}\\
+ z_{t-L+1}\\
+\end{bmatrix}$$,
+
+$$X_L=\begin{bmatrix} 
+\nu_{t-1}\\
+r_{t-1}\\
+ z_{t-1}\\
+\end{bmatrix}$$,
+y $Y=\nu_t$.
+Tomamos muestra de entrenamineto
+```{r tomar entrenamiento}
+istrain <- NYSE[, "train"]
+xdata <- scale(xdata)
+```
+
+
+
+
+
+## Creación de variables rezagadas o retardadas
+
+Crearemos una función para generar las variables rezagadas
+```{r rezagadas}
+lagm <- function (x, k = 1) {
+ n <- nrow (x)
+ pad <- matrix (NA , k, ncol (x))
+ rbind (pad , x[1:(n - k), ])
+}
+
+
+```
+
+# Data Frame de retardos
+```{r dataframe lags }
+arframe <- data.frame (log_volume = xdata[, "log_volume"],
+L1 = lagm (xdata , 1), L2 = lagm (xdata , 2),
+L3 = lagm (xdata , 3), L4 = lagm (xdata , 4),
+L5 = lagm (xdata , 5)
+)
+arframe
+```
+
+### Quitamos los NA's
+
+```{r NAs}
+arframe <- arframe[-(1:5), ]
+istrain <- istrain[-(1:5)]
+
+```
+
+```{r visualizacion BdD}
+arframe
+istrain
+```
+### Ajuste de un ARX lineal
+```{r Ar lineal}
+arfit <- lm(log_volume~ ., data = arframe[istrain , ])
+arpred <- predict (arfit , arframe[!istrain , ])
+V0 <- var (arframe[!istrain , "log_volume"])
+1- mean ((arpred - arframe[!istrain , "log_volume"])^2) / V0
+```
+
+El valor de 0.413223 mide si las predicciones se parecen a los verdaderos valores de pruebas a través del $R^2$.
+
+Ahora se incluirá la variable día
+```{r anadir day o week}
+ arframed <-
+data.frame (day = NYSE[-(1:5), "day_of_week"], arframe)
+arfitd <- lm(log_volume~ ., data = arframed[istrain , ])
+arpredd <- predict (arfitd , arframed[!istrain , ])
+1- mean ((arpredd - arframe[!istrain , "log_volume"])^2) / V0
+```
+
+El ajuste mejoró un poco.
+
+## Rede Neuronal Recurrente
+
+Vamos primero a configurar la rede Neuronal recurrente. Para ajustar el RNN, necesitamos remodelar estos datos, ya que espera una secuencia
+de $L = 5$ vectores de características $X = \{X_{\mathcal{l}}\}_1^L
+ para cada observación, como en (10.20) en
+página 428. Estas son versiones retrasadas de la serie de tiempo que se remonta a L putos del tiempo.
+
+```{r config RNN}
+n <- nrow (arframe)
+xrnn <- data.matrix (arframe[, -1])
+xrnn <- array (xrnn , c(n, 3, 5))
+xrnn <- xrnn[,, 5:1]
+xrnn <- aperm (xrnn , c(1, 3, 2))
+dim (xrnn)
+```
+
+
+
+```{r configuracion keras}
+library(tidyverse) # metapackage with lots of helpful functions
+library(reticulate) #Call Python from R
+library(tensorflow) #Neural Network Backend for Keras
+use_python("/opt/anaconda3/bin/python3")
+library(keras) #Neural Network Modeling
+#library(plyr) #Data manipulation
+library(dplyr) # Data Manipulation
+library(caret) #Machine Learning Tools for Training and Validation
+```
+Vamos ahora a ver la configuración de la red neuronal con una sola capa densa, con 12 unidades o nodos ocultos, y dropout.
+
+```{r configuracion de la red keras }
+model <- keras_model_sequential() %>% layer_simple_rnn (units = 12,
+input_shape = list (5, 3),dropout = 0.1, recurrent_dropout = 0.1) %>%
+ layer_dense (units = 1)
+model %>% compile(optimizer = optimizer_rmsprop(),
+loss = "mse")
+summary(model)
+```
+
+
+```{r ajuste RNN}
+history <- model %>% fit(xrnn[istrain ,, ], arframe[istrain , "log_volume"],
+batch_size = 64, epochs = 200,
+validation_data = list (xrnn[!istrain ,, ], arframe[!istrain , "log_volume"]))
+kpred <- predict(model, xrnn[!istrain ,, ])
+1- mean ((kpred - arframe[!istrain , "log_volume"])^2) / V0
+```
+
+Vamos a ajustar un AR no lineal
+
+```{r conf AR no lineal}
+x <- model.matrix (log_volume ~ . - 1, data = arframed)
+colnames (x)
+```
+
+```{r ajuste AR no lineal}
+arnnd <- keras_model_sequential() %>%
+ layer_dense (units = 32, activation = "relu" ,
+input_shape = ncol (x)) %>%
+ layer_dropout (rate = 0.5) %>%
+ layer_dense (units = 1)
+arnnd %>% compile (loss = "mse",
+optimizer = optimizer_rmsprop ())
+summary(arnnd)
+history <- arnnd %>% fit(x[istrain , ], arframe[istrain , "log_volume"], epochs = 100,batch_size = 32, validation_data =list(x[!istrain , ], arframe[!istrain , "log_volume"]))
+
+#plot (history)
+#npred <- predict (arnnd , x[!istrain , ])
+#1- mean ((arframe[!istrain , "log_volume"] - npred)^2) / V0
+```
+

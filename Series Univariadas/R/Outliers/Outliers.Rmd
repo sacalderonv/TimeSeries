@@ -1,0 +1,160 @@
+---
+title: "Outliers"
+output: 
+      github_document: default
+      html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Outliers en Modelos ARIMA
+Vamos a considerar el análisis de outliers para modelos ARIMA o SARIMA.
+
+La base fundamental del análisis de outliers se basa en en análisis de intervención. Vamos a empezar con unos ejercicios de simulación. La librería base es tsoutliers.
+
+```{r simulación aditivo }
+library(tsoutliers)
+library(forecast)
+###### Simulación Outlier aditivo
+
+set.seed(12)
+n=200
+serie=arima.sim(n=n,list(ar=(0.5)))
+serie2=serie
+serie2[50]=serie2[50]+6
+
+par(mfrow=c(1,2))
+plot(serie,ylim=c(-3,6),main="Serie original")
+plot(serie2,ylim=c(-3,6),main="Outlier aditivo")
+```
+
+Después de simular un outlier aditivo en el tiempo $t=50$ con impacto de 6, basada en una serie que proviene de de un modelo AR con $\phi=0.5$.
+
+En seguida vamos ajustar los modelos a las series con y sin outlier vía el procedimiento automático.
+```{r ajuste de dos modelo}
+auto.arima(serie2)###Ajuste para el modelo con outlier
+auto.arima(serie)###Ajuste para el modelo sin outlier
+fit= arima(serie2,order=c(1,0,0),include.mean = F)
+fit
+resi= residuals(fit)
+plot(resi)
+```
+Note que el residual correspodiente a la observación 50 es bastante grande.
+
+## Detección de outliers: procedimiento automático
+
+```{r detección automática de outliers }
+coef= coefs2poly(fit)
+coef
+outliers= tsoutliers::locate.outliers(resi,coef)
+outliers###tstat se compara con C=3
+?tso####Detección automática de outliers, donde el modelo que se propone es via auto.arima
+tso(serie2)
+```
+## Simulación Outlier cambio de nivel
+```{r Cambio de nivel}
+set.seed(12)
+n=500
+serie=arima.sim(n=n,list(ar=0.3))
+serie2=serie
+serie2[100:n]=serie2[100:n]+4
+par(mfrow=c(1,2))
+plot(serie,ylim=c(-3,7),main="Serie original")
+plot(serie2,ylim=c(-3,7),ylab="Serie")
+plot(serie2,ylim=c(-3,7),main="Outlier cambio de nivel")
+```
+
+```{r Ajuste cambio de nivel}
+fit= Arima(serie2,order=c(1,0,0),include.mean = F)
+fit
+acf(serie2)
+resi= residuals(fit)
+coef= coefs2poly(fit)
+outliers= locate.outliers(resi,coef,cval=5)###cval=3.5 por defecto
+outliers
+xreg = outliers.effects(outliers, n)
+xreg
+#tso(serie2)
+#salida_tso=tso(y=serie2,types=c("LS"))
+#plot(salida_tso$yadj)####Esta serie es sin el efecto de los outliers
+#plot(tso(y=serie2,types=c("LS")))
+#tso(y=serie2,xreg=xreg,tsmethod="arima",args.tsmethod=list(include.mean=FALSE,order=c(1,0,0)))#####Yo especifico el modelo
+
+fit_2=Arima(serie2,order=c(1,0,0),xreg=xreg,include.mean = F)
+resi_2= residuals(fit_2)
+coef_2= coefs2poly(fit_2)
+outliers_2= locate.outliers(resi_2,coef_2,cval=3.5)###cval=3.5 por defecto
+outliers_2
+####Hay que repetir el análisis de residuales del modelo.
+```
+## Pronóstico con outliers
+Para el pronóstico, debo tener en cuenta los valores futuros de la variable de intervención.
+
+```{r ajuste y creación de la variablde intervención para pronóstico}
+##### Pronóstico 
+#fit= Arima(serie2,order=c(1,0,0),include.mean = F)
+fit2= Arima(serie2,order=c(1,0,0),include.mean = F,xreg=xreg)
+#pronostico=  forecast(object=fit,h=15)  #4.093698                      
+regresoras=c(rep(1,15))
+pronostico_out=forecast(object=fit2,xreg=regresoras,h=15) 
+#par(mfrow=c(1,2))
+#plot(pronostico,ylim=c(-3,7))
+plot(pronostico_out,ylim=c(-3,7)) ###Note la reducción en la varianza de las predicciones 
+
+plot(pronostico$residuals,ylim=c(-3,5))
+plot(pronostico_out$residuals,ylim=c(-3,5))  
+
+```
+
+
+###Ejemplo Serie de Pasajeros
+
+```{r Pasajeros}
+library(lmtest)
+data("AirPassengers")
+serie <- AirPassengers
+ajuste=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 )
+resi= residuals(ajuste)
+coef= coefs2poly(ajuste)
+outliers= locate.outliers(resi,coef)
+outliers
+n=length(serie)
+xreg = outliers.effects(outliers,n )
+
+###El siguiente procedimiento busca que al ajustar, en el modelo con el efecto de los outliers, se busquen si hay mas outliers.
+analisis=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=xreg)
+analisis
+resi_analisis= residuals(analisis)
+coef_analisis= coefs2poly(analisis)
+outliers_analisis= locate.outliers(resi_analisis,coef_analisis)
+outliers_analisis
+xreg_analisis = outliers.effects(outliers_analisis,n )
+####Se pone "AO" en types porque en la localización de outliers únicamente encontró aditivos. Se incluye los efectos de los outliers, así que ahora encontró un outlier cambio de nivel en el tiempo 54.  
+total_outliers=cbind(xreg,xreg_analisis)
+analisis_final=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=total_outliers)
+analisis_final
+resi_final= residuals(analisis_final)
+coef_final= coefs2poly(analisis_final)
+outliers_final= locate.outliers(resi_final,coef_final)
+outliers_final
+###No se encontraron mas outliers
+###Verificar los supuestos del modelo.
+
+```
+
+```{r Pronóstico}
+###Creación de las variable de intervención
+pasos_adel=12
+num_outliers=dim(total_outliers)[2]
+regresoras_aditivos=matrix(c(rep(0,pasos_adel*(num_outliers-1))),pasos_adel,num_outliers-1)
+regresoras_LS=matrix(c(rep(1,pasos_adel)),pasos_adel,1)
+regresoras=cbind(regresoras_aditivos,regresoras_LS)
+colnames(regresoras)=colnames(total_outliers)
+
+pronostico_out=forecast(object=analisis_final,xreg=regresoras,h=pasos_adel) 
+pronostico_out
+plot(pronostico_out)
+```
+

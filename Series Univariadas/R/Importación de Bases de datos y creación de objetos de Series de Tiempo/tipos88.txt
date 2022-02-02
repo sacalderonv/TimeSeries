@@ -1,0 +1,11 @@
+Nombre de laS series:  5 series en columnas. La primera es la de fechas, las siguientes son 
+                       el tipo de interes interbancario español a un día, 3 meses, 6 meses 
+                       y un año.
+
+
+Unidades :                            
+Perido   :             datos mensuales desde enero de 1988 hasta marzo de 2002
+Fuente   :             ministerio de Economia
+Actualiza :            idem
+
+

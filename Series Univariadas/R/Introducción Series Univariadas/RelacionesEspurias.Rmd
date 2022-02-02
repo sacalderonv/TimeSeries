@@ -1,0 +1,39 @@
+---
+title: "Relaciones Espurias"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Relaciones Espurias
+
+Si se manejan dos series no estacionarias y se requiere buscar relaciones, esto podría llevarnos a tomar malas relaciones. Por ejemplo, si se tienen dos series no estacionarias $y_t$ y $x_t$ que son no estacionarias y además independientes, y más específicamente, $y_t$ y $x_t$ son integradas de orden 1, $I(1)$, es decir,
+$$y_t=y_{t-1}+\epsilon_t$$
+y
+
+$$x_t=x_{t-1}+\delta_t$$
+donde $\epsilon_t$ y $\delta_t$ son errores IID. Al proponer el modelo
+
+$$y_t=\beta_0+\beta_1 x_t+e_t$$
+Vamos a rechazar muchas veces la hipótesis nula, es decir, vamos a tener relaciones espurias. Veamos el siguiente ejemplo de simulación.
+```{r relaciones espurias}
+set.seed(10)
+yt=ts(arima.sim(list(order = c(0,1,0)), n = 200))
+xt=ts(arima.sim(list(order = c(0,1,0)), n = 200))
+ts.plot(xt,yt, gpars = list(col = c("black", "red")),ylab="porcentaje")
+legend("topright", legend=c("xt", "yt"),
+       col=c("black", "red"), lty=1, cex=0.8)
+```
+
+## Buscando la regresión
+
+Vamos ahora a buscar la relación via regresión.
+
+```{r Regresion Espuria}
+ajuste=lm(yt~xt)
+summary(ajuste)
+```
+
+Podemos ver que en efecto se rechaza la hipótesis nula, por lo tanto se podría asumir que hay relación. Sin embargo también note que el $R^2$ y $R^2-adjusted$ son bajos, sugieron el porblema de la relación espuria. Esto sugiere una alternativa diferente, y la cual puede ser usar la idea de cointegración, la cula por alcances del curos no serña explicada acá.

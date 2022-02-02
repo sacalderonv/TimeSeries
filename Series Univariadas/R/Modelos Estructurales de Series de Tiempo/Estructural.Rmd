@@ -1,0 +1,76 @@
+---
+title: "Estructural"
+output:
+  github_document: default
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Modelos Estructurales
+
+En la presente sección, vamos a introducir una metodología para el análisis de series de tiempo vía modelos estructurales a través de los modelos de Espacio-Estado. Por ésta razón, es necesario tener el pre-requisito de los modelos de espacio-estado y el filtro de Kalman, el libro base será el libro de Durbin y Koopman. Consideraremos el siguiente modelo estructural para la serie de tiempo $\{Y_{t}\}$
+
+$$Y_{t}=\mu_{t}+\gamma_{t}+c_{t}+\sum \beta_{j} x_j_t+\varepsilon_{t}$$
+
+donde $\mu_{t}$ es una componente de variación lenta llamada tendencia,  $\gamma_{t}$ es una componente periódica de periodo fijo llamada \textit{estacional}, $c_{t}$ es la componente cíclica de periodo mayor a la componente estacional, $x_j_t$ es la $j-$ésima variable regresora o explicativa, y $\varepsilon_{t}$ es la componente  irregular o de error.
+
+
+## Ejemplo Pasajeros
+
+```{r Ejemplo Pasajeros}
+library(KFKSDS)
+library(rucm)
+library(readr)
+library(stsm)
+data("AirPassengers")
+estimationm1=stats::StructTS(log(AirPassengers), type = "BSM")
+plot(log(AirPassengers))
+```
+
+```{r Modelo Basico Estructural Pasajeros}
+plot(cbind(fitted(estimationm1), resids=resid(estimationm1)), main = "Airpassengers")
+m1 <- StructTS(log(AirPassengers), type = "BSM")$coef[c(4,1:3)]
+print(m1)
+```
+
+```{r Usando RUCM}
+#### Con librería rucm
+
+serie=log(AirPassengers)
+model=ucm(serie~0, serie, irregular = TRUE, irregular.var = NA, level = TRUE,
+    level.var = NA, slope = TRUE, slope.var = NA, season = TRUE,
+    season.length = 12, season.var = NA, cycle = FALSE, cycle.period = NA,
+    cycle.var = NA)
+## Gráfica de las componentes de tendencia
+
+plot(model$s.level, col = "blue")
+plot(model$s.slope, col = "blue")
+plot(model$s.season,col="blue")
+
+
+```
+
+```{r Pronostico}
+##Pronóstico
+pron=predict(model, n.ahead = 12)
+pron
+```
+
+## Espectral
+
+La idea del análisis espectral es descubrir si hay ciclos ocultos, y cuales los correspondientes armónicos asociadosa a estos ciclos.
+
+```{r Espectral}
+data(AirPassengers)
+AirPassengers
+plot(AirPassengers)
+
+logdiffAir=diff(log(AirPassengers))
+
+Espectropasajeros=spectrum(logdiffAir, log="no", spans=c(2,2))
+```
+
+Note que como el periodo de la serie es 12,entonces la frecuencia 1 indica, en verdad que la frecuencia es 1/12, es decir hay un ciclo de periodo $1/(1/12)=12$.  Por qué nos enfocamos en la frecuencia 1, por que allí es donde aparece el primer pico alto. Los demás picos altos son evidentes, porque el periodograma nos sólo muestra la frecuencia asociada al ciclo estacional sino en múltiplos de la frecuencia también.

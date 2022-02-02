@@ -1,0 +1,201 @@
+---
+title: "Descomposición"
+output: github_document
+#output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Métodos de Descomposición de Series de tiempo
+
+Vamos a hacer un análisis Inicial a la serie de pasajeros. Un análisis similar deberá hacerse para las series ISE y ACC de la Base de datos Base_Accidentes.xlsx,
+
+ Las primeras tres metodologías se basarán en el supuesto que una serie de tiempo observable puede ser descompuesta en una componente de  tendencia y una componente estacional, es decir, $\{X_{t}\}$ puede descomponerse de la siguiente forma aditiva
+$$
+X_{t}=m_{t}+S_{t}+Y_{t},
+$$
+donde $$m_{t}:\text{función que cambia suavemente,}$$\\
+$$S_{t}:\text{función de periodo conocido d,}$$\\
+$$Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}$$\\
+Un modelo multiplicativo  puede ser considerado como modelo alternativo al aditivo,
+$$
+X_{t}=m_{t}\times S_{t} \times Y_{t}.
+$$
+Sin embargo es necesario primero hacer una transformación de Box-Cox para Estabilizar la varianza marginal.
+
+ $$
+ f_{\lambda}(u_{t})= 
+ \lambda^{-1}(u^{\lambda}_{t}-1),   si \ u_{t} \geq 0, para\  \lambda>0
+ $$
+ o
+ $$
+ f_{\lambda}(u_{t})= \ln(u_{t}), \ si\  u_{t}>0, \ para\  \lambda=0
+ $$
+```{r importación y Gráficas}
+
+
+data("AirPassengers")
+plot(AirPassengers)
+#####Transformación Box-Cox
+library(FitAR)
+library(forecast)
+forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = 0, upper = 2)  
+##method="loglik"
+FitAR::BoxCox(AirPassengers)
+
+#air.arima<-arima(AirPassengers, c(0,1,1), seasonal=list(order=c(0,1,1), period=12))
+#FitAR::BoxCox(air.arima)
+lAirPass=log(AirPassengers)
+par(mfrow=c(2,1))
+plot(AirPassengers)
+plot(lAirPass)
+```
+# Descomposición usando promedios Móviles
+## Para tendencia
+```{r PMtendencia}
+fltr <- c(1/2, rep(1, times = 11), 1/2)/12   ##q=6
+fltr
+## estimate of trend
+lAirPass.trend <- stats::filter(lAirPass, filter = fltr, method = "convo", sides = 2)
+## plot the trend
+#x11()
+par(mfrow=c(2,1))
+plot(lAirPass)
+plot.ts(lAirPass.trend, ylab = "Trend", cex = 1)
+
+```
+# Efecto estacional a través del tiempo
+
+```{r PM Estacional}
+lAirPass.1T <- lAirPass - lAirPass.trend
+
+## plot the monthly seasonal effects
+plot.ts(lAirPass.1T, ylab = "Seasonal effect", xlab = "Month", cex = 1)
+
+## length of ts
+ll <- length(lAirPass.1T)
+## frequency (ie, 12)
+ff <- frequency(lAirPass.1T)
+## number of periods (years); %/% is integer division
+periods <- ll%/%ff
+## index of cumulative month
+index <- seq(1, ll, by = ff) - 1
+## get mean by month
+mm <- numeric(ff)
+for (i in 1:ff) {
+  mm[i] <- mean(lAirPass.1T[index + i], na.rm = TRUE)
+}
+## subtract mean to make overall mean=0
+mm <- mm - mean(mm)
+
+## plot the monthly seasonal effects
+plot.ts(mm, ylab = "Seasonal effect", xlab = "Month", cex = 1)
+
+## create ts object for season
+lAirPass.seas <- ts(rep(mm, periods + 1)[seq(ll)], start = start(lAirPass.1T), 
+               frequency = ff)
+
+
+## random errors over time
+lAirPass.err <- lAirPass - lAirPass.trend - lAirPass.seas
+
+
+## plot the obs ts, trend & seasonal effect
+plot(cbind(lAirPass, lAirPass.trend, lAirPass.seas, lAirPass.err), main = "", yax.flip = TRUE)
+
+```
+# Dos funciones que hacen la descomposición de forma interna y automática
+Una función específica para filtros de promedios móviles también puede ser usada y es 
+ma del paquete forecast, donde order=d, note que hay una ligera diferencia por el 1/2 de los datos en los extremos
+```{r dos funciones}
+lAirPass.trendma=forecast::ma(lAirPass,order=13)
+lAirPass.trendma-lAirPass.trend
+
+####Uso de la función decompose
+deslAirPass=decompose(lAirPass)
+plot(deslAirPass)
+deslAirPass
+```
+
+# Otras ténicas de descomposición
+
+Existe mas formas de hacer de descomposición de series de tiempo, por ejemplo está
+Descomposción X11 usando el paquete seasonal, cuyo argumento teórico se puede ver el libro Seasonal Adjustment Methods and Real Time Trend-Cycle Estimation (Statistics for Social and Behavioral Sciences)
+Estela Bee Dagum, Silvia Bianconcini
+
+```{r X11}
+library(seasonal)
+library(ggplot2)
+library(fpp)
+
+AirPassengers %>% seas(x11="") -> fit  #%>% Operador Pipe
+autoplot(fit) + ggtitle("X11 decomposition of Aipassengers")
+
+
+data(elecequip)
+autoplot(elecequip)
+elecequip %>% seas(x11="") -> fit
+autoplot(elecequip, series="Data") +
+  autolayer(trendcycle(fit), series="Trend") +
+  autolayer(seasadj(fit), series="Seasonally Adjusted") +
+  xlab("Year") + ylab("New orders index") +
+  ggtitle("Electrical equipment manufacturing (Euro area)") +
+  scale_colour_manual(values=c("gray","blue","red"),
+                      breaks=c("Data","Seasonally Adjusted","Trend"))
+```
+# Descomposición STL
+
+```{r STL}
+library(dplyr)
+library(fpp)
+###La base de datos "elecequip" está en en el paquete fpp
+###Note que el operador %>% pipe permite concatenar múltiples dplyr operaciones
+###Manufacture of electrical equipment: computer, electronic and optical products
+elecequip %>%
+  stats::stl(t.window=13, s.window="periodic", robust=TRUE) %>%
+  autoplot()
+
+```
+
+# Pronóstico basados en descomposición
+```{r Pronósticos Basados en Descomposición}
+fit <- stl(elecequip, t.window=13, s.window="periodic",
+           robust=TRUE)
+fit %>% seasadj() %>% naive() %>%
+  autoplot() + ylab("Nuevo índices ordenados.") +
+  ggtitle("Pronóstico Naive de la componente ajusta estacionalmente")
+###El método naive consiste en que la predicción es el último valor real de la serie(o el de una caminata aleatoria).
+#Ahora se re-estacionalizan los datos añadiendo 
+###Los pronósticos de la componente estacional.
+fit %>% forecast(method="naive") %>%
+  autoplot() + ylab("New orders index")
+
+###Note que la obtención de los pronósticos  es obtenida paso a paso.
+###Otra forma de hacerlo es usando la función stlf
+fcast1 <- stlf(elecequip, method='naive')
+fcast <- stlf(elecequip, method='ets')
+
+```
+
+#Suavizamiento Exponencial
+Si no se desea alguna componente, hay que establecer los parámetros en cero.
+
+```{r Suavizamiento exponencial}
+HWAP=stats::HoltWinters(lAirPass,seasonal="additive")
+plot(HWAP)
+ajustados=fitted(HWAP)
+plot(ajustados)
+ajustados
+HWAP
+predictionHWAP_1=forecast(HWAP,h=12,level =0.95,lambda = 0)
+predictionHWAP_1
+plot(predictionHWAP_1)
+predictionHWAP_2=predict(HWAP,n.ahead = 12, prediction.interval = T, level = 0.95)
+predictionHWAP_2=forecast::InvBoxCox(predictionHWAP_2,lambda=0)
+predictionHWAP_2
+
+```
+
+la función ets,ses, holt y hw de forecast también permiten hacer suavizamiento exponencial.

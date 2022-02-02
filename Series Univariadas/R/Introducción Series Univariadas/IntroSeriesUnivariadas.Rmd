@@ -1,0 +1,88 @@
+---
+title: "IntroSerieUnivariadas"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introducción a las Series Univariadas
+Vamos a cargar los datos de las series de las tasas de interés. 
+
+
+```{r cargadatos }
+r1=read.table("w-gs1yr.txt",header=T)[,4] 
+
+r3=read.table("w-gs3yr.txt",header=T)[,4]
+head(r1)
+head(r3)
+str(r1)
+```
+
+## Gráficas de las Series
+
+Note que como los datos son semanales, debemos darles ese formato:
+
+```{r GráficasTasas, echo=FALSE}
+tsr1=ts(r1,start=1962+5/365.25,frequency=365.25/7)
+tsr3=ts(r3,start=1962+5/365.25,frequency=365.25/7)
+ts.plot(tsr1,tsr3, gpars = list(col = c("black", "red")),ylab="porcentaje")
+legend("topright", legend=c("tsr1", "tsr3"),
+       col=c("black", "red"), lty=1, cex=0.8)
+str(tsr1)
+```
+Vamos a hacer la gráficas de dispersión de las variables directamente, y de las variables en cambios(transformadas). La ccf o función de autocorrelación cruzada se define como las correlaciones entre $X_{t+h}$ y $Y_t$ para $h=0,\pm1,\pm2,\cdots$
+
+```{r Diagramas de dispersión}
+tsc1=diff(tsr1)
+tsc3=diff(tsr3)
+ts.plot(tsc1,tsc3, gpars = list(col = c("black", "red")),ylab="porcentaje")
+legend("topright", legend=c("tsc1", "tsc3"),
+       col=c("black", "red"), lty=1, cex=0.8)
+
+par(mfrow=c(1,2))
+plot(r1,r3,type='p',pch=16,sub = "(a) Variables Originales")
+plot(tsc1,tsc3,type='p',pch=16,sub="(b) Variables en Cambios")
+library(forecast)
+forecast::Ccf(tsc1, tsc3, lag.max = 48) 
+library(astsa)
+lag2.plot(tsc1, tsc3, max.lag = 4)
+```
+Primer ajuste de regresión para las series originales asumiendo que los ruidos son IID, es decir vamos a ajustar el modelo
+$$r_{3t}=\alpha +\beta r_{1t}+e_t$$
+
+```{r Ajuste Variables Originales}
+m1=lm(r3~r1)
+summary(m1)
+###Residuales del modelo
+plot(m1$residuals,type='l')
+acf(m1$residuals,lag=36)
+```
+
+Note que en el ajuste del modelo, las pruebas sobre los parámetros resultan  significativas, es decir son diferentes de cero. Vale la pena notar también que los residuales del modelo paracen no ser IID, en el sentido que no todos presentan la misma distribución, por ejemplo, la media de las observaciones antes del tiempo t=1000 parece ser muy distinta a la medias después del tiempo t=1000. Adicionalmente, al ver la estructural de autocorrelación temporal, podemos ver que los residuales resultan altamente autocorrelacionados violando el supuesto de independencia. En términos de econometría, lo que quiere decir esto es que las dos variables no están cointegradas, es decir, no hay una relación de equilibrio a largo plazo(estacionaria) entre las dos variables. 
+
+Veamos ahora el ajuste de los cambios de las tasas.
+
+```{r ajuste cambios en tasas}
+m2=lm(tsc3 ~ -1+tsc1) 
+summary(m2)
+plot(m2$residuals,type='l')
+acf(m2$residuals,lag.max =48,ci.type="ma")
+pacf(m2$residuals,lag.max =48)
+```
+
+Note que la pendiente de la regresión resulta significativa, y ahora los residuales parecen estables y aunque persiste la autocorrelación, ésta no es tan fuerte. Como persiste la autocorrelación, usaremos un modelo de series de tiempo para que tenga en cuenta la estructura de autcorrelación presente en los residuales.
+```{r series tasas}
+m3=arima(tsc3,order=c(0,0,1),xreg=tsc1,include.mean=F)
+m3
+library(lmtest)
+coeftest(m3)
+
+plot(m3$residuals)
+acf(m3$residuals,lag.max = 48)
+pacf(m3$residuals,lag.max = 48)
+
+
+```
+Note que ahora los residuales son prácticamente no autcorrelacionados. Vale la pena decir que aún hay una característica que sigue presente y es la heterocedasticidad condicional, la cual estudiaremos mas adelante. Esta alternativa de diferenciar las series fue muy popular, pero tiene multiples dificultades, por ejemplo la interpretabilidad, la baja eficiencia de los estimadores, entre otros,  ver Libro de Peña(2010) Página 542.
