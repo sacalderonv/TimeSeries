@@ -9,10 +9,24 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## R Ejemplos de Series Multivariadas
 
-Vamos a ver algunos ejemplos de series de tiempo multivaridas. Usaremos 
+Vamos a ver algunos ejemplos de series de tiempo multivaridas. El primer conjunto de datos tiene que ver con las temperaturas relativas promedio de noviembre en Europa, Norte América y sur América entre 1910 y 2014 de forma anual.
 
-```{r cars}
-summary(cars)
+```{r Temperaturas}
+library(tidyverse)
+library(tidyquant)
+library(TSstudio)
+library(SLBDD)
+library(timetk)
+
+data("temperatures")
+temperatures
+str(temperatures)
+MultTsTemp=xts(temperatures[2:4], order.by=as.Date(ISOdate(temperatures$year,1,1)))
+plot(MultTsTemp)
+par(mfrow = c(3 , 1))
+plot(MultTsTemp[,1], main = "Europa")
+plot(MultTsTemp[,2], main = "Norte América")
+plot(MultTsTemp[,1], main = "Sur América")
 ```
 
 ## Including Plots
