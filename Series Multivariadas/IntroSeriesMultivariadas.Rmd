@@ -19,7 +19,7 @@ library(SLBDD)
 library(timetk)
 
 data("temperatures")
-temperatures
+head(temperatures)
 str(temperatures)
 MultTsTemp=xts(temperatures[2:4], order.by=as.Date(ISOdate(temperatures$year,1,1)))
 plot(MultTsTemp,legend.loc='bottomright')
@@ -70,7 +70,7 @@ plot(ts_data_stocks[,1:6], plot.type="m")
 Veamos ahora  las ventas diarias de en logaritmo natural sw una marca de ropa en 25 provincias en china del 1 de enero de 2008 hasta el 9 de diciembre de 2012.
 ```{r ventas ropa china}
 data("clothing")
-clothing
+head(clothing)
 daily_index <- seq.Date(from = as.Date("2008-01-01"), # Starting date
                            to = as.Date("2012-12-16"), # Ending date
                            by = "day") # Defining the time intervals
