@@ -1,0 +1,139 @@
+---
+title: "Correlacion cruzada"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejemplo Simulado Correlación Cruzada 
+
+Vamos a simular dos series independientes de tamaño $n=200$ que siguen:
+
+$$X_{i,t}=0.8X_{i,t-1}+Z_{i,t}$$
+donde los procesos de ruido blanco $\{Z_{i,t}\}\sim RB(0,1)$ para $i=1,2$.
+```{r simul dos series indep}
+set.seed(1000)
+X1t=arima.sim(n = 200, list(ar = 0.8),
+          sd = sqrt(1))
+set.seed(2000)
+X2t=arima.sim(n = 200, list(ar = 0.8),
+          sd = sqrt(1))
+
+```
+
+## Creación de objetos
+
+Vamos a crear un objeto con un índice del tiempo ficticio y que tenga estructura tstibble.
+
+```{r objetos}
+library(tidyverse)
+library(tsibble)
+library(feasts)
+daily_index <- as.Date(seq.Date(from = as.Date("2008-01-01"), # Starting date
+                           length.out=200,
+                           by = "day") )# Defining the time intervals to =       as.Date("2012-12-16"), # Ending date
+df=data.frame(X1t,X2t,daily_index)
+tibble_df=tibble(df)
+ts_simul_tibble=as_tsibble(df,index=daily_index)
+
+```
+# Gráfico de la Serie de tiempo
+```{r}
+ts_simul_tibble %>%
+  pivot_longer(c(X1t, X2t),
+               names_to = "var", values_to = "value") %>%
+  ggplot(aes(x = daily_index, y = value)) +
+  geom_line() +
+  facet_grid(vars(var), scales = "free_y") +
+  labs(title = "Series de tiempo Independientes Simuladas de un AR(1)",
+       y = "Series Simuladas")
+```
+## Otro Gráfico de las series de tiempo
+```{r otra grafica}
+ts_simul_tibble %>%
+  pivot_longer(c(X1t, X2t), names_to="Series") %>%
+  autoplot(value) +
+  labs(y = "Series Simuladas")
+```
+
+## Gráfico de Autocorrelación y Autocorrelación Cruzada
+```{r ACF}
+ts_simul_tibble %>% ACF(X1t,lag_max = 20) %>% 
+  autoplot()
+
+ts_simul_tibble %>% ACF(X2t,lag_max = 20) %>% 
+  autoplot()
+
+ts_simul_tibble %>% CCF(X1t,X2t,lag_max = 20) %>% 
+  autoplot()
+
+ts_simul_tibble %>% PACF(X1t,lag_max = 20) %>% 
+  autoplot()
+
+ts_simul_tibble %>% PACF(X2t,lag_max = 20) %>% 
+  autoplot()
+```
+
+## Otras forma de computar la fución de autocorrelación
+
+```{r Otras autocorrelacion}
+library(MTS)
+Matrix_series_simul=cbind(X1t,X2t)
+MTS::MTSplot(Matrix_series_simul,caltime=daily_index)
+ccf(X1t,X2t,lag.max = 20)
+acf(Matrix_series_simul,lag=20)
+MTS::ccm(Matrix_series_simul,lags=20)
+```
+Es claro que la CCF muestral nos dice que hay dependencia de las series en varios rezagos, sin embargo esto no tiene sentido porque las series se simularon de forma independiente.
+
+Ahora, vamos pre-blanquear las series. Es decir, ajustaremos algún modelo ARMA a cada una de las series y obtendremos los residuales del modelo. Note que de las ACF simple y PACF se puede destacar que un modelo factible para los datos es un modelo AR(1), tal cual fue simulado.
+
+```{r preblanqueamiento}
+###Serie X1t
+ajuste1=forecast::Arima(X1t,order=c(1,0,0),include.mean = FALSE)
+res1=residuals(ajuste1)
+###Serie X2t
+ajuste2=forecast::Arima(X2t,order=c(1,0,0),include.mean = FALSE)
+res2=residuals(ajuste2)
+
+###Otra forma de obtener los residuales basandos en el tstibble
+###Para serie X1t
+ajuste_tibbleX1t <- ts_simul_tibble %>%
+  model(arima100X1t = ARIMA(X1t ~ pdq(1,0,0)),
+        searchX1t = ARIMA(X1t, stepwise=FALSE))
+        
+
+ajuste_tibbleX1t
+
+residuales1=ajuste_tibbleX1t %>%
+  select(arima100X1t) %>%
+ residuals()
+
+residuales1_tstibble=residuales1$.resid
+
+###Para serie X2t
+ajuste_tibbleX2t <- ts_simul_tibble %>%
+  model(arima100X2t = ARIMA(X2t ~ pdq(1,0,0)),
+        searchX2t = ARIMA(X2t, stepwise=FALSE))
+        
+
+ajuste_tibbleX2t
+
+residuales2=ajuste_tibbleX2t %>%
+  select(arima100X2t) %>%
+ residuals()
+
+residuales2_tstibble=residuales2$.resid
+```
+
+Después del Pre-blanqueamineto procedemos ahora si hay computar la CCF basada en los residuales del modelo.
+
+```{r CCF basada en los residuales}
+ccf(residuales1_tstibble,residuales2_tstibble)
+ccf(res1,res2)
+ccf(X1t,X2t,lag.max = 20)
+```
+
+Note que ahora no vemos evidencia de que haya en verdad dependencia entre las dos series.
