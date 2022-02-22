@@ -17,6 +17,7 @@ library(tidyquant)
 library(TSstudio)
 library(SLBDD)
 library(timetk)
+library(fable)
 
 data("temperatures")
 head(temperatures)
