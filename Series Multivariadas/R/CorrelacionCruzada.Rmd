@@ -28,9 +28,11 @@ X2t=arima.sim(n = 200, list(ar = 0.8),
 Vamos a crear un objeto con un índice del tiempo ficticio y que tenga estructura tstibble.
 
 ```{r objetos}
+library(forecast)
 library(tidyverse)
 library(tsibble)
 library(feasts)
+library(fable)
 daily_index <- as.Date(seq.Date(from = as.Date("2008-01-01"), # Starting date
                            length.out=200,
                            by = "day") )# Defining the time intervals to =       as.Date("2012-12-16"), # Ending date
@@ -137,3 +139,43 @@ ccf(X1t,X2t,lag.max = 20)
 ```
 
 Note que ahora no vemos evidencia de que haya en verdad dependencia entre las dos series.
+
+Ahora procederemos a simular un dos series que estén correlacionadas y veremos que sucede con el procedimiento.
+
+```{r simul Serie dependiente}
+set.seed(100)
+Beta0=4
+Beta1=0.7
+X3t=Beta0+Beta1*X1t+rnorm(200)
+df_1=data.frame(X1t,X3t,daily_index)
+tibble_df_1=tibble(df_1)
+ts_simul_tibble_1=as_tsibble(df_1,index=daily_index)
+
+ts_simul_tibble_1 %>%
+  pivot_longer(c(X1t, X3t), names_to="Series") %>%
+  autoplot(value) +
+  labs(y = "Series Simuladas Dependientes")
+```
+Vamos a ajustar los modelos a ambas series, el modelo para la serie X1t ya lo conocemos, ahora veamos el ajuste a la serie X3t.
+```{r Ajuste a las series X1t y X3t}
+acf(X3t)
+acf(X3t, ci.type='ma')
+pacf(X3t)
+ajuste3=forecast::Arima(X3t,order=c(2,0,0),include.mean = FALSE)
+res3=residuals(ajuste3)
+ccf(res1,res3)
+```
+Claramente podemos ver que en efecto las dos series son dependientes.
+
+
+## Escenario IID
+Vamos ahora a ver como funciona si todas las series son IID
+```{r varias series todas iid}
+library(mvtnorm)
+sig=diag(3)
+x=rmvnorm(300,rep(0,3),sig)
+MTSplot(x)
+ccm(x)
+acf(x)
+```
+
