@@ -1,0 +1,62 @@
+---
+title: "Regresion de Series de Tiempo"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Regresión Lineal Saimple Con errores no-autocorrelacionados.
+
+Vamos a tratar de relacionar los cambios porcentuales trimestrales del gasto real del consumo personal$(y)$ y el ingreso disponible real persona. Primero visualizamos las series, las cuales son al menos estables en media.
+
+```{r datos reg1}
+library(feasts)
+library(fpp3)
+data(us_change) ##Del paquete fpp3
+str(us_change)
+us_change %>%
+  pivot_longer(c(Consumption, Income), names_to="Series") %>%
+  autoplot(value) +
+  labs(y = "% change")
+```
+
+Llevemos a cabo ahora unas gráficas exploratorias.
+
+```{r exploratoria reg1}
+us_change %>%
+  ggplot(aes(x = Income, y = Consumption)) +
+  labs(y = "Consumption (quarterly % change)",
+       x = "Income (quarterly % change)") +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+
+```
+
+El anterior diagrama de dispersión no permite ver una relación lineal muy clara de forma instantánea.
+Exploremos las autocorrelaciones.
+
+```{r reg 1 autocorrelaciones}
+us_change %>% ACF(Income,lag_max = 20) %>% 
+  autoplot()
+
+us_change %>% ACF(Consumption,lag_max = 20) %>% 
+  autoplot()
+
+us_change %>% CCF(Consumption,Income,lag_max = 20) %>% 
+  autoplot()
+```
+
+Serán independientes las series??(Tarea)
+
+Parece tener sentido que hagamos una regresión lineal simple para mirar la existencia de una relación contemporánea(es decir instantánea).
+
+Ahora veamos el ajuste del modelo.
+
+```{r ajuste reg1}
+us_change %>%
+  model(TSLM(Consumption ~ Income)) %>%
+  report()
+```
+
