@@ -164,6 +164,7 @@ pacf(X3t)
 ajuste3=forecast::Arima(X3t,order=c(2,0,0),include.mean = FALSE)
 res3=residuals(ajuste3)
 ccf(res1,res3)
+ccm(cbind(res1,res3))
 ```
 Claramente podemos ver que en efecto las dos series son dependientes.
 
