@@ -1,6 +1,8 @@
 ---
 title: "IntroSeriesMultivariadas"
-output: html_document
+output: github_document
+#output: html_document
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}

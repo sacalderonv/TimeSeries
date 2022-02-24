@@ -48,15 +48,25 @@ us_change %>% CCF(Consumption,Income,lag_max = 20) %>%
   autoplot()
 ```
 
-Serán independientes las series??(Tarea)
+Serán independientes las series??Usar el pre-blanqueamineto de las series(Tarea)
 
 Parece tener sentido que hagamos una regresión lineal simple para mirar la existencia de una relación contemporánea(es decir instantánea).
 
 Ahora veamos el ajuste del modelo.
 
 ```{r ajuste reg1}
-us_change %>%
+Ajustesreg1=us_change %>%
   model(TSLM(Consumption ~ Income)) %>%
   report()
 ```
+
+Note que el poder explicativo del ingreso no es muy alto.
+
+## Verficación de los supuestos
+
+```{r supuestos reg1}
+Ajustesreg1%>% gg_tsresiduals()
+```
+
+La gráfica de los residuales no parece mostrar patrones sitemáticos(tendencia o ciclos), sin embargo si parecen estar autocorrelacionados. También parecen tener unos valores atípicos. Con esto, nos podemos dar cuenta que el ajuste del modelo no es bueno, lo cual implica que es necesario cambiar el modelo. Vamos ahora a considerar ahora un modelo donde se incluyan mas variables, también se puede considerar que tenga en cuenta la estructura de autocorrelación presente en los residuales.
 
