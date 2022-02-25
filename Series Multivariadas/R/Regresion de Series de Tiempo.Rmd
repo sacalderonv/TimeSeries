@@ -1,6 +1,8 @@
 ---
 title: "Regresion de Series de Tiempo"
-output: html_document
+output: github_document
+#output: html_document
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -69,4 +71,52 @@ Ajustesreg1%>% gg_tsresiduals()
 ```
 
 La gráfica de los residuales no parece mostrar patrones sitemáticos(tendencia o ciclos), sin embargo si parecen estar autocorrelacionados. También parecen tener unos valores atípicos. Con esto, nos podemos dar cuenta que el ajuste del modelo no es bueno, lo cual implica que es necesario cambiar el modelo. Vamos ahora a considerar ahora un modelo donde se incluyan mas variables, también se puede considerar que tenga en cuenta la estructura de autocorrelación presente en los residuales.
+
+## Regresión múltiple
+Vamos ahora a considerar que los cambios porcentuales del consumo no solo es función de los cambios porcentuales ingreso sino también de otras variable como producción, desempleo y ahorros. Vamos primero a graficar las series de tiempode  las otras tres variables.
+
+```{r timeplots Reg mult}
+us_change %>%
+  select(-Consumption, -Income) %>%
+  pivot_longer(-Quarter) %>%
+  ggplot(aes(Quarter, value, color = name)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y") +
+  guides(colour = "none") +
+  labs(y="% change")
+```
+```{r timeplots Reg mult todas}
+us_change %>%
+ pivot_longer(c(Consumption,Income,Production,Savings,Unemployment)) %>%
+  ggplot(aes(Quarter, value, color = name)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y") +
+  guides(colour = "none") +
+  labs(y="% change")
+```
+
+Veamos ahora las descriptivas.
+
+```{r descriptiva reg mul}
+ts_todas=as.data.frame(us_change)
+ts_todas_final=ts_todas[2:6]
+acf(ts_todas_final,lag.max = 20)
+```
+Al chequear las correlaciones cruzadas del consumo con las otras variables vemos que parecer haber una relación temporal contemporánea.Recuerden que para que en efecto podamos estudiar bien las dependecias, hay que hacer un pre-blanqueo de almenos uno de las series, la cual en este caso la que parecer ser mas óptima es la serie de consumo que es la dependiente. Tarea(Hacer el pre-blanqueamiento de la serie consumo y chequear las autocorrelaciones cruzadas.)
+
+```{r ccm reg mul}
+MTS::ccm(ts_todas_final,lags=20)
+
+```
+
+```{r Diagrama de dispersión}
+us_change %>%
+  pivot_longer(Income:Unemployment,
+               names_to = "regressor", values_to = "x") %>%
+  ggplot(aes(x = x, y = Consumption)) +
+  geom_point() +
+  facet_wrap(. ~ regressor, scales = "free_x") +
+  labs(y = "Consumption", x = "")
+```
+
 
