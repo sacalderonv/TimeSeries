@@ -70,7 +70,7 @@ plot(ts_data_stocks,plot.type="s")
 par(mfrow=c(1, 1))
 plot(ts_data_stocks[,1:6], plot.type="m")
 ```
-Veamos ahora  las ventas diarias de en logaritmo natural sw una marca de ropa en 25 provincias en china del 1 de enero de 2008 hasta el 9 de diciembre de 2012.
+Veamos ahora  las ventas diarias de el logaritmo natural de una marca de ropa en 25 provincias en china del 1 de enero de 2008 hasta el 9 de diciembre de 2012.
 ```{r ventas ropa china}
 data("clothing")
 head(clothing)
