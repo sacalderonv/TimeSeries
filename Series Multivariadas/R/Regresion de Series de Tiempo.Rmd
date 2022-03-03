@@ -23,6 +23,18 @@ us_change %>%
   autoplot(value) +
   labs(y = "% change")
 ```
+También se puede usar el paquete timetk
+```{r timetk}
+library(timetk)
+library(tidyquant)
+library(stringr)
+?timetk::plot_time_series()
+Ts_multiple=us_change%>%pivot_longer(c(Consumption,Income,Production,Savings,Unemployment))
+Ts_multiple$Quarter=as.Date(Ts_multiple$Quarter)
+Ts_multiple%>%group_by(name)%>%timetk::plot_time_series(Quarter ,value,.facet_ncol  = 2,.interactive  = FALSE)
+
+```
+
 
 Llevemos a cabo ahora unas gráficas exploratorias.
 
@@ -51,6 +63,13 @@ us_change %>% CCF(Consumption,Income,lag_max = 20) %>%
 ```
 
 Serán independientes las series??Usar el pre-blanqueamineto de las series(Tarea)
+
+También usemos timetk para explorar las autocorrelaciones simples y parciales
+
+```{r timetk correlaciones}
+Ts_multiple%>%group_by(name)%>%plot_acf_diagnostics(Quarter ,value,.lags=30,.interactive=FALSE)
+us_change%>%plot_acf_diagnostics(.date_var=Quater,.value=Consumption,.ccf_vars = c(Income,Production,Savings,Unemployment),.lags=15,.interactive=FALSE,.facet_ncol  = 2,.show_ccf_vars_only=TRUE)
+```
 
 Parece tener sentido que hagamos una regresión lineal simple para mirar la existencia de una relación contemporánea(es decir instantánea).
 
@@ -105,6 +124,7 @@ acf(ts_todas_final,lag.max = 20)
 Al chequear las correlaciones cruzadas del consumo con las otras variables vemos que parecer haber una relación temporal contemporánea.Recuerden que para que en efecto podamos estudiar bien las dependecias, hay que hacer un pre-blanqueo de almenos uno de las series, la cual en este caso la que parecer ser mas óptima es la serie de consumo que es la dependiente. Tarea(Hacer el pre-blanqueamiento de la serie consumo y chequear las autocorrelaciones cruzadas.)
 
 ```{r ccm reg mul}
+x11()
 MTS::ccm(ts_todas_final,lags=20)
 
 ```
@@ -119,4 +139,133 @@ us_change %>%
   labs(y = "Consumption", x = "")
 ```
 
+
+Con lo anteriormente mencionado podemos ver que hay una relación instantánea entre las variables explicativas y el consumo. Ahora corramos la regresión
+
+```{r regresion mult Consumption}
+fit_consMR <- us_change %>%
+  model(tslm = TSLM(Consumption ~ Income + Production +
+                                    Unemployment + Savings))
+report(fit_consMR)
+```
+
+## Comparación de valores reales con los valores predichos
+
+```{r comparacion predicho vs reales}
+augment(fit_consMR) %>%
+  ggplot(aes(x = Quarter)) +
+  geom_line(aes(y = Consumption, colour = "Datos")) +
+  geom_line(aes(y = .fitted, colour = "Ajustados")) +
+  labs(y = NULL,
+    title = "Porcentaje de Cambio en el consumo de US "
+  ) +
+  scale_colour_manual(values=c(Datos="black",Ajustados="#D55E00")) +
+  guides(colour = guide_legend(title = NULL))
+
+augment(fit_consMR) %>%
+  ggplot(aes(x = Consumption, y = .fitted)) +
+  geom_point() +
+  labs(
+    y = "Ajustados (Valores Predichos)",
+    x = "Datos (Valores Reales)",
+    title = "Porcentaje de Cambio en el consumo de US"
+  ) +
+  geom_abline(intercept = 0, slope = 1)
+
+```
+
+
+
+Para la evaluación del modelo, hay que chequear los supuestos básico de la regresión múltiple. 
+
+```{r análisis de residuales}
+library(tseries)
+fit_consMR %>% gg_tsresiduals()
+
+augment(fit_consMR) %>%
+  features(.innov, ljung_box, lag = 10, dof = 5)
+
+tseries::jarque.bera.test(augment(fit_consMR)$.innov)
+
+
+```
+
+## Relaciones Espurias
+
+Cuando las series no son estacionarias(presentan tendencias), como sucede en muchas series de tiempo, el impacto pueden ser muy grande cuando se desea llevar a cabo la regresión. Puede suceder que aunque dos series de tiempo sean independientes pero no estacionarias, al llevar a cabo una regresión entre ellas, la regresión(lineal) nos muestre que si hay dependencia entre ellas. Eso lo conocemos como relaciones espurias. En el script de R vemos un ejemplo de simulación y un conjunto de datos reales. Mas adelante vemos como trabajar en este tipo de escenarios.
+
+```{r simul espurias}
+set.seed(123)
+Xtind=arima.sim(n=500,list(order = c(0,1,0)))
+set.seed(456)
+Ytind=arima.sim(n=500,list(order = c(0,1,0)))
+daily_index_simul <- as.Date(seq.Date(from = as.Date("2008-01-01"), # Starting date
+                           length.out=500,
+                           by = "day") )# Defining the time intervals to =       as.Date("2012-12-16"), # Ending date
+df_simul=data.frame(Xtind=Xtind[2:501],Ytind=Ytind[2:501],daily_index_simul)
+tibble_df_simul=tibble(df_simul)
+ts_tibble_simul=as_tsibble(df_simul,index=daily_index_simul)
+ts_tibble_simul_mult=ts_tibble_simul%>%pivot_longer(c(Xtind,Ytind),names_to = "serie",values_to = "valores")
+ts_tibble_simul_mult%>%group_by(serie)%>%timetk::plot_time_series(daily_index_simul ,valores,.interactive  = FALSE)
+```
+Se lleva acabo las gráficas ACF, PACF, CCF y la regresión:
+
+```{r regresion espurias no-estacionarias e independientes}
+ts_tibble_simul %>% ACF(Ytind,lag_max = 20) %>% 
+  autoplot()
+
+ts_tibble_simul %>% ACF(Xtind,lag_max = 20) %>% 
+  autoplot()
+
+ts_tibble_simul %>% CCF(Ytind,Xtind,lag_max = 20) %>% 
+  autoplot()
+
+Ajustesreg1_espurias=ts_tibble_simul %>%
+  model(TSLM(Ytind ~ Xtind)) %>%
+  report()
+```
+Primero vale la pena señalar la fuerte autocorrelación cruzada entre las dos serie.Note ahora que los parámetros son altamente significativos, a pesar de que las series son independientes. Note que se propone la regresión:
+$$y_t=\beta_0+\beta_1 x_t+\epsilon_t$$
+donde $\{\epsilon_t\}$ es un proceso no autocorrelacionado en principio. Lo cual es equivalente a decir que
+$$y_t-\beta_0-\beta_1 x_t=\epsilon_t,$$
+es decir que existe una combinación lineal(\textit{de procesos no estacionarios que en este caso están integrados}) de $y_t$ y $x_t$ tal que es estacionaria, que es la definición de que los procesos están cointegrados o que hay una relación de cointegración entre esos procesos. Es decir, tiene sentido proponer una regresión lineal entre dos procesos no estacionarios, siempre que haya una relación de cointegración.
+
+## Ejemplo Real Relaciones Espurias
+Vamos a observar las series número de pasajeros anual en Australia y la producción anual de arroz en Guinea. En principio estas dos series no debería tener ninguna relación desde el punto de vista teórico y práctico. Ambas Series como veremos son no estacionarias y presentan tendencias.
+
+```{r Espurias datos reales}
+data("aus_airpassengers")
+data("guinea_rice")
+aus_airpassengers%>%timetk::plot_time_series(.value=Passengers,.date_var=Year,.smooth = FALSE)
+guinea_rice%>%timetk::plot_time_series(.value=Production,.date_var=Year,.smooth = F)
+
+```
+
+```{r Espurias dispersión}
+aus_airpassengers%>%left_join(guinea_rice,by="Year")%>%filter(Year<=2011) %>%ggplot(aes(x = Passengers, y = Production)) +
+  geom_point() +
+  labs(
+    y = "Número de Pasajeros Aus(Millones)",
+    x = "Producción de Arroz Guinea (Millones de Tons)",
+    title = "Diagrama de Dispersión"
+  ) 
+
+
+ajuste_espurias=aus_airpassengers%>%left_join(guinea_rice,by="Year")%>%filter(Year<=2011) %>%model(fable::TSLM(Passengers~Production))
+report(ajuste_espurias)
+
+ajuste_espurias%>%feasts::gg_tsresiduals(type="innovation")
+```
+Note que el $R^2$ del ajuste es muy alto, pero también muestra una alta autocorrelación los residuales, lo cual un síntoma de relaciones espurias.
+
+## Predictores útiles
+
+```{r Intervencion}
+library(readxl)
+Desempleo<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Series Univariadas/Bases de Datos/Desempleo.xlsx", col_types = c("text", "numeric"), col_names=c('Fecha','TasaDesempleo'),skip=1)
+str(Desempleo)
+Desempleo$Fecha= as.Date(as.yearmon(Desempleo$Fecha))
+ts_Desempleo=as_tsibble(Desempleo)
+ts_Desempleo%>%timetk::plot_time_series(.value=TasaDesempleo,.date_var=Fecha,.smooth = T)
+```
 
