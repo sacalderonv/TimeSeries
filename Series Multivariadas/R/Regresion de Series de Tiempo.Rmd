@@ -83,10 +83,24 @@ Ajustesreg1=us_change %>%
 
 Note que el poder explicativo del ingreso no es muy alto.
 
+```{r gls}
+salida_sincorrelacion=nlme::gls(Consumption ~ Income,us_change)
+corr = nlme::corARMA(value=c(0.2,0.4),p = 1, q = 1)
+corr=nlme::Initialize(corr,us_change)
+nlme::corMatrix(corr)
+dim(nlme::corMatrix(corr))
+salida_concorrelacion=nlme::gls(Consumption ~ Income,us_change,correlation = corr)
+summary(salida_concorrelacion)
+library(lmtest)
+coeftest(salida_concorrelacion)
+```
+
+
 ## Verficación de los supuestos
 
 ```{r supuestos reg1}
 Ajustesreg1%>% gg_tsresiduals()
+
 ```
 
 La gráfica de los residuales no parece mostrar patrones sitemáticos(tendencia o ciclos), sin embargo si parecen estar autocorrelacionados. También parecen tener unos valores atípicos. Con esto, nos podemos dar cuenta que el ajuste del modelo no es bueno, lo cual implica que es necesario cambiar el modelo. Vamos ahora a considerar ahora un modelo donde se incluyan mas variables, también se puede considerar que tenga en cuenta la estructura de autocorrelación presente en los residuales.
