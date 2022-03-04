@@ -86,3 +86,27 @@ pacf(m3$residuals,lag.max = 48)
 
 ```
 Note que ahora los residuales son prácticamente no autcorrelacionados. Vale la pena decir que aún hay una característica que sigue presente y es la heterocedasticidad condicional, la cual estudiaremos mas adelante. Esta alternativa de diferenciar las series fue muy popular, pero tiene multiples dificultades, por ejemplo la interpretabilidad, la baja eficiencia de los estimadores, entre otros,  ver Libro de Peña(2010) Página 542.
+
+```{r gls}
+library(timetk)
+indice_semanal=as.Date(seq.Date(from = as.Date("1962-01-12"), # Starting date
+                           length.out=2466,
+                           by = "week") )
+df_semanal_cambios=data.frame(Cambio1y=diff(r1),Cambio3y=diff(r3),Fechas=indice_semanal)
+tstibble_semanal_cambios=as_tsibble(df_semanal_cambios) ##Detecta automáticamente la variable de fecha
+tstibble_unificado_cambios=tstibble_semanal_cambios%>%pivot_longer(c(Cambio1y,Cambio3y),names_to="Serie",values_to = "Cambios")
+tstibble_unificado_cambios%>%group_by(Serie)%>%timetk::plot_time_series(Fechas ,Cambios,.interactive  = FALSE)
+summary(m2)
+plot(m2$residuals,type='l')
+acf(m2$residuals,lag.max =48,ci.type="ma")
+pacf(m2$residuals,lag.max =48)
+###Parece que que un MA(7) debería ser ajustado o un AR(7)
+Ajuste_arima_res=Arima(m2$residuals,order=c(0,0,1),include.mean = F)#,fixed=c(NA,0,0,NA,NA,NA,NA)
+coeftest(Ajuste_arima_res)
+corr = nlme::corARMA(value=c(0.18),p = 0, q = 1)
+salida_concorrelacion=nlme::gls(Cambio3y ~-1+ Cambio1y,tstibble_semanal_cambios,correlation = corr)
+salida_concorrelacion
+coeftest(salida_concorrelacion)
+```
+
+Note que este resultado es análogo al obtenido al hacer la regresión con errores ARMA de la función Arima.
