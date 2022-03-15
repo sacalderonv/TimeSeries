@@ -278,8 +278,156 @@ Note que el $R^2$ del ajuste es muy alto, pero también muestra una alta autocor
 library(readxl)
 Desempleo<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Series Univariadas/Bases de Datos/Desempleo.xlsx", col_types = c("text", "numeric"), col_names=c('Fecha','TasaDesempleo'),skip=1)
 str(Desempleo)
-Desempleo$Fecha= as.Date(as.yearmon(Desempleo$Fecha))
+Desempleo$Fecha= yearmonth(as.yearmon(Desempleo$Fecha))
 ts_Desempleo=as_tsibble(Desempleo)
-ts_Desempleo%>%timetk::plot_time_series(.value=TasaDesempleo,.date_var=Fecha,.smooth = T)
+ts_Desempleo%>%timetk::plot_time_series(.value=TasaDesempleo,.date_var=Fecha,.smooth = F)
+
 ```
+
+Note que debido al Covid, la tasa de desempleo creció durante el mes de Abril 2020, y se mantuvo por varios meses mas, sin embargo podemos notar que después de cierto periodo de tiempo, estamos regresando a los niveles que tenía la serie ante la pandemia. Esta intervención puede modelarse a través de variables dummy.Por ejemplo, si ajustamos un ARIMA automático a la serie y luego vemos si hay outliers, lo cuales se pueden modelar a través de intervenciones.
+
+```{r Intervencion1}
+library(tsoutliers)
+ajuste_desempleo=ts_Desempleo%>%model(ARIMA(TasaDesempleo))
+report(ajuste_desempleo)
+ajuste_desempleo%>%coef()
+autoarima_desempleo=forecast::auto.arima(ts_Desempleo)
+resi= residuals(autoarima_desempleo)
+coef= coefs2poly(autoarima_desempleo)
+coef
+outliers= tsoutliers::locate.outliers(resi,coef)
+outliers
+xreg = outliers.effects(outliers, length(resi))
+xreg
+```
+
+##Dummy Estacionales
+
+Vamos a crear Dummy Estacionales para modelar la Estacionalidad con base en la serie de producción de cerveza trimestral en Australia. Note que claramente hay un ciclo anual en esta serie trimestral.
+
+```{r Dummy Estacionales}
+recent_production <- aus_production %>%
+  filter(year(Quarter) >= 1992)
+recent_production %>%
+  autoplot(Beer) +
+  labs(y = "Megalitros",
+       title = "producción de cerveza trimestral en Australia")
+
+```
+
+Vamos a ajustarle a esta serie un modelo con tendencia lineal y con dummy estacionales.La función season() reconoce inmediatamente que para una serie trimestral, el ciclo tiene un periodo de 4, mientras que trend() reconoce que un una tendencia lineal. El modelo a ajustarse es el siguiente:
+
+$$y_t=\beta_0+\beta_1 t+\beta_2 d_{2,t}+\beta_3 d_{3,t}+\beta_4 d_{4,t}+\epsilon_t$$
+La variable del primer trimestre fue omitida, tal que los coeficientes asociados con los otros trimestres son medidos de la diferencia  entre esos trimestres y el primer trimestre.
+```{r Dummy estacionales 1}
+fit_beer <- recent_production %>%
+  model(TSLM(Beer ~ trend() + season()))
+report(fit_beer)
+
+```
+ Los resultados se interpretan de la siguiente manera:
+ Hay una tendencia media a la baja de -0,34 megalitros por trimestre. En promedio, el segundo trimestre tiene una producción de 34,7 megalitros menos que el primer trimestre, el tercer trimestre tiene una producción de 17,8 megalitros menos que el primer trimestre y el cuarto trimestre tiene una producción de 72,8 megalitros más que el primer trimestre.
+ 
+ Vamos ahora a ver el ajuste del modelo intramuestra:
+ 
+```{r dummy estacionales 2}
+augment(fit_beer) %>%
+  ggplot(aes(x = Quarter)) +
+  geom_line(aes(y = Beer, colour = "Data")) +
+  geom_line(aes(y = .fitted, colour = "Fitted")) +
+  scale_colour_manual(
+    values = c(Data = "black", Fitted = "#D55E00")
+  ) +
+  labs(y = "Megalitros",
+       title = "producción de cerveza trimestral en Australia") +
+  guides(colour = guide_legend(title = "Series"))
+```
+ 
+## Componentes de Fourier
+Vamos a hacer un ajuste haciendo una regresión con componentes de Fourier donde solo tomamos dos componentes en la suma. En este caso solo hay tres componentes de Fourier ya que el segundo componente del seno siempre va a dar cero.
+```{r Fourier}
+fourier_beer <- recent_production %>%
+  model(TSLM(Beer ~ trend() + fourier(K = 2)))
+report(fourier_beer)
+```
+
+## Pronóstico con Regresión
+
+Vamos a ver como producir los pronósticos basados en el modelo de regresión lineal, y así mismo como producir los intervalos de pronóstico.
+
+Vamos a utilizar las variables determinísticas para producir los pronósticos, en especial las variables dummy.El ejemplo que vamos a considerar que se desea predecir la producción trimestral de cerveza, la cual presenta una leve tendencia y una componente estacional, las cuales son modeladas por componentes determinísticas como se vió anteriormente. Para este caso los pronósticos ex-ante y ex-post resultan ser iguales.
+
+```{r pronostico dummy}
+ recent_production <- aus_production %>%
+  filter(year(Quarter) >= 1992)
+recent_production %>%
+  autoplot(Beer) +
+  labs(y = "Megalitros",
+       title = "producción de cerveza trimestral en Australia")
+tail(recent_production)
+
+fit_beer <- recent_production %>%
+model(TSLM(Beer ~ trend() + season()))
+fc_beer<-fabletools::forecast(fit_beer,h=8)
+
+fc_beer%>%
+  autoplot(recent_production)+
+  labs(title="Pronóstico de la producción de cerveza usando Regresión para 2 años",
+y="Megalitros")
+```
+
+Note que no hay que crear los valores futuros de las variables determinísticas, la función misma lo crea.
+
+Tarea: Hacer los mismo usando las variables de Fourier.
+
+# Pronóstico basado en una variable predictora 
+
+```{r pronostico una variable predictora y escenarios}
+fit_cons <- us_change %>%
+  model(TSLM(Consumption ~ Income))
+new_cons <- scenarios(
+  "Incremento Promedio" = new_data(us_change, 4) %>%
+    mutate(Income = mean(us_change$Income)),
+  "Incremento Extremo" = new_data(us_change, 4) %>%
+    mutate(Income = 12),
+  names_to = "Escenario"
+)
+fcast <- forecast(fit_cons, new_cons)
+
+us_change %>%
+  autoplot(Consumption) +
+  autolayer(fcast) +
+  labs(title = "Consumo Us", y = "% cambio")
+```
+
+
+## Pronóstico basados en multiples variables predictoras  y escenarios
+
+Por ejemplo, se está interesado en comparar el cambio predicho en el consumo cuando hay un crecimiento constante de $1\%$ y $0.5\%$ respectivamente para el ingreso y los ahorros, sin cambios en la tasa de desempleo, versus una caída respectiva de $1\%$ y $0.5\%$, para cada uno de los trimestres luego del final del periodo de la muestra.  Note que los intervalos de predicción calculados no tienen en cuenta la incertidumbre  asociada a los valores futuros de las variables predictoras.
+
+```{r Pronostico basados en escenarios}
+fit_consBest <- us_change %>%
+  model(
+    lm = TSLM(Consumption ~ Income + Savings + Unemployment)
+  )
+
+future_scenarios <- scenarios(
+  Increase = new_data(us_change, 4) %>%
+    mutate(Income=1, Savings=0.5, Unemployment=0),
+  Decrease = new_data(us_change, 4) %>%
+    mutate(Income=-1, Savings=-0.5, Unemployment=0),
+  names_to = "Scenario")
+
+future_scenarios
+
+fc <- forecast(fit_consBest, new_data = future_scenarios)
+us_change %>%
+  autoplot(Consumption) +
+  autolayer(fc) +
+  labs(title = "Consumo US", y = "% change")
+
+fc
+```
+
+Tarea:Hacer los mismo pero incluir incrementos de 0.25 en cada periodo, y además el desempleo del escenario de incremento empieza en 0.25. Realizar lo mismo pero para el escenario de decrecimiento pero valores negativos y el decrecimiento es de -0.25.
 
