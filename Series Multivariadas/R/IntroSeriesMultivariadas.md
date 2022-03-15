@@ -3,10 +3,18 @@ IntroSeriesMultivariadas
 
 ## R Ejemplos de Series Multivariadas
 
-Vamos a ver algunos ejemplos de series de tiempo multivaridas. El primer
-conjunto de datos tiene que ver con las temperaturas relativas promedio
-de noviembre en Europa, Norte América y sur América entre 1910 y 2014 de
-forma anual.
+Vamos a ver algunos ejemplos de series de tiempo multivariadas. El
+primer conjunto de datos tiene que ver con las temperaturas relativas
+promedio de noviembre en Europa, Norte América y sur América entre 1910
+y 2014 de forma anual. Lo de relativo es con respecto a la temperatura
+promedio de noviembre del siglo 20.Note que hay una tendencia a crecer
+en las temperaturas de Europa y de Sur América. Estas series pueden ser
+analizadas a través de series multivariadas clásicas.Incluso, si
+consideramos mediciones mensuales, estas también puede analizadas desde
+el enfoque clásico de series de tiempo. Por qué estas observaciones son
+dependientes? Porque por ejemplo observaciones consecutivas en el tiempo
+tienden a estar mas cerca que las observaciones que están mas alejadas
+en el tiempo.
 
 ``` r
 library(tidyverse)
@@ -137,10 +145,43 @@ plot(MultTsTemp[,1], main = "Sur América")
 
 ![](IntroSeriesMultivariadas_files/figure-gfm/Temperaturas-2.png)<!-- -->
 
+Sin embargo, si por ejemplo consideramos que las mediciones son hechas a
+lo largo de distintos puntos en el mundo(es decir, tenemos muchas series
+de tiempo), o que el intervalo de tiempo entre observaciones es pequeño,
+resultando en datos de alta frecuencia con tamaño de muestra grande.
+Note que las temperaturas pueden afectar la demanda de electricidad y el
+combustible para la calefacción, y también está relacionada con las
+medidas de polución del aire *P**M*<sub>25</sub> y concentración de
+ozono.
+
 ### Acciones
 
 Aquí se muestran los índices diarios de los 99 mercados de acciones
-alrededor del mundo.
+alrededor del mundo. También se muestran las series estandarizadas a que
+tenga media cero y varianza 1.También se muestran las series de los log
+retornos.
+
+Note algunas características de las series:
+<ul>
+<li>
+Note que mayoritariamente las series muestran un crecimiento desde 2003
+y llegando casi hasta 2008.item
+</li>
+<li>
+Después del 2008 hay una caída dramática causada por la crisis
+financiera del 2008. Algunos mercados experimentaron una recuperación
+después del 2009.item
+</li>
+<li>
+Las variabilidades de los mercados financieros mundiales parecen ser
+mayores cuando los mercados estaban a la baja; consulte la figura 1.4.
+Esto no es sorprendente, ya que es probable que el factor miedo, es
+decir, la volatilidad del mercado, domine durante un mercado bajista.
+Por otro lado, los rangos de los índices del mercado mundial en un
+momento dado parecen ser más pequeños cuando el mercado estaba a la
+baja.item
+</li>
+</ul>
 
     ## 'data.frame':    4163 obs. of  100 variables:
     ##  $ Date   : Date, format: "2000-01-03" "2000-01-04" ...
@@ -300,7 +341,7 @@ str(ts_data_stocks)
     ##  FinCenter:          GMT
     ##  Units:              SPCOMP FTSE100 DAXINDX MSWRLD DJES50I DJSTOXX FRCAC40 FTALLSH TOKYOSE HNGKNGI CHSASHR FTSEMIB IBEX35I ASX200I KORCOMP SWISSMI TTOCOMP AMSTEOE DJEURST BNGKSET JAKCOMP SWEDOMX DJSTO50 BGBEL20 MDAXIDX HEXINDX SNGPORI TAIWGHT HKHCHIE MSACWF MSEROP DKKFXIN ATXINDX BUXINDX ASX300I CHZBSHR FSBF120 NLALSHR EUNX100 RMBETRL EUNX150 HKHCHAF MSEAFE MSPACF JAPDOWA DJINDUS BRBOVES JSEOVER NASCOMP NYSEALL FRUSSL2 FBMKLCI NASA100 RSMICEX MXIPC35 GRAGENL PSECOMP RSRTSIN POLWIGI ARGMERV TRKISTB ISEQUIT KOR200I ICRI500 OSLOASH CZPXIDX IGPAGEN DJCMP65 PKSE100 SWSEALI POPSI20 TTOSP60 CTCROBE DJWRLD EGHFINC AWWRLD FTEU100 FTSEGL FTASE20 ISTA100 LNVILSE SPEUROP PEGENRL SXSAX16 VENGENL AMMANFM SRALLSH DJUTILS NSEINDX LUXGENI MADRIDI OMANMSM COSEASH ICEXALL RIGSEIN ESTALSE TOK2NDM TUTUNIN FTSELAT
     ##  Title:              Time Series Object
-    ##  Documentation:      Thu Feb 24 17:10:37 2022
+    ##  Documentation:      Tue Mar  8 09:27:43 2022
 
 ``` r
 plot(ts_data_stocks,plot.type="s")
@@ -314,7 +355,7 @@ plot(ts_data_stocks[,1:6], plot.type="m")
 ```
 
 ![](IntroSeriesMultivariadas_files/figure-gfm/acciones%20otro%20formato-2.png)<!-- -->
-Veamos ahora las ventas diarias de en logaritmo natural sw una marca de
+Veamos ahora las ventas diarias de el logaritmo natural de una marca de
 ropa en 25 provincias en china del 1 de enero de 2008 hasta el 9 de
 diciembre de 2012.
 
@@ -374,7 +415,7 @@ str(ts_data_sales)
     ##  FinCenter:          GMT
     ##  Units:              Province_1 Province_2 Province_3 Province_4 Province_5 Province_6 Province_7 Province_8 Province_9 Province_10 Province_11 Province_12 Province_13 Province_14 Province_15 Province_16 Province_17 Province_18 Province_19 Province_20 Province_21 Province_22 Province_23 Province_24 Province_25
     ##  Title:              Time Series Object
-    ##  Documentation:      Thu Feb 24 17:10:39 2022
+    ##  Documentation:      Tue Mar  8 09:27:44 2022
 
 ``` r
 plot(ts_data_sales,plot.type="s")
