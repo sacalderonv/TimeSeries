@@ -382,6 +382,8 @@ Tarea: Hacer los mismo usando las variables de Fourier.
 
 # Pronóstico basado en una variable predictora 
 
+Supongamos que se desea predecir el consumo con base en en el ingreso. Adicionalmente vamos a hacer escenarios de
+predicción cuando suponemos que hay un incremento en el ingreso por encima del promedio histórico de $\bar{x}=0.73\%$ apróximadamente, y cuando tenemos un valor de incremento extremo del $12\%$.
 ```{r pronostico una variable predictora y escenarios}
 fit_cons <- us_change %>%
   model(TSLM(Consumption ~ Income))
@@ -392,12 +394,15 @@ new_cons <- scenarios(
     mutate(Income = 12),
   names_to = "Escenario"
 )
+new_cons
+
 fcast <- forecast(fit_cons, new_cons)
 
 us_change %>%
   autoplot(Consumption) +
   autolayer(fcast) +
   labs(title = "Consumo Us", y = "% cambio")
+fcast
 ```
 
 
@@ -430,4 +435,8 @@ fc
 ```
 
 Tarea:Hacer los mismo pero incluir incrementos de 0.25 en cada periodo, y además el desempleo del escenario de incremento empieza en 0.25. Realizar lo mismo pero para el escenario de decrecimiento pero valores negativos y el decrecimiento es de -0.25.
+
+Leer sección 7.8 libro fpp3.
+
+### Modelos de Regresión Dinámica
 
