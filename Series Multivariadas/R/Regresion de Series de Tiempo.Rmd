@@ -8,8 +8,9 @@ always_allow_html: true
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+Nota: Para realizar gráficos con objetos tsibble consulte https://www.r-bloggers.com/2020/10/how-to-visualize-time-series-data-tidy-forecasting-in-r/
 
-# Regresión Lineal Saimple Con errores no-autocorrelacionados.
+# Regresión Lineal Simple Con errores no-autocorrelacionados.
 
 Vamos a tratar de relacionar los cambios porcentuales trimestrales del gasto real del consumo personal$(y)$ y el ingreso disponible real persona. Primero visualizamos las series, las cuales son al menos estables en media.
 
@@ -517,7 +518,8 @@ bind_rows(
   facet_grid(vars(type))
 ```
 
-Por supuesto los residuales del modelo ARIMA $\{\hat{\epsilon}_t\}$ deberían parecerse a un ruido blanco.
+Por supuesto los residuales del modelo ARIMA 
+$\{\hat{\epsilon}_t\}$ deberían parecerse a un ruido blanco.
 
 ## Cheqeo de los Residuales del modelo
 
@@ -541,5 +543,68 @@ us_change_future <- tsibble::new_data(us_change, 8) %>%
 forecast(fit, new_data = us_change_future) %>%
   autoplot(us_change) +
   labs(y = "Cambio Porcentual")
+```
+Los intervalos de predicción para este modelo son más angostos que si hubiéramos ajustado un modelo ARIMA sin covariables, porque ahora podemos explicar parte de la variación en los datos utilizando el predictor de ingresos.
+
+Es importante darse cuenta de que los intervalos de predicción de los modelos de regresión (con o sin errores ARIMA) no tienen en cuenta la incertidumbre en los pronósticos de los predictores. Por lo tanto, deben interpretarse como condicionales a los valores futuros supuestos (o estimados) de las variables predictoras.
+
+
+## Ejemplo del pronóstico de la demanda de electricidad
+Vamos a tratar de predecir la demanda de electricidad en Australia como función de la temperatura. Veamos la gráfica de las dos series:
+
+```{r Electricidad 1}
+##usando ffp3
+data("vic_elec")
+str(vic_elec)
+head(vic_elec)
+tail(vic_elec)
+vic_elec %>%
+  pivot_longer(c(Demand, Temperature), names_to="Series") %>%
+  autoplot(value) +
+  labs(y = "% change")
+###Usando ggplot
+vic_elec %>%
+  pivot_longer(c(Demand, Temperature), names_to="Series") %>%
+  ggplot(aes(x = Date, y = value, group = Series)) + 
+  geom_line() + 
+  facet_grid(vars(Series), scales = "free_y")   
+
+###Usando timetk
+vic_elec %>%
+  pivot_longer(c(Demand, Temperature), names_to="Series") %>% 
+    plot_time_series(
+        .date_var = Date,
+        .value = value,
+        .facet_vars = c(Series), # Agrupar por estas
+        .color_var = Series, 
+        .interactive = FALSE,
+        .legend_show = FALSE
+    )
+
+
+
+```
+Evaluemos ahora como es la dependencia entre la temperatura y la demanda de energía. Se tiene la idea que se consume más electricidad en los días fríos debido a la calefacción y en los días calurosos debido al aire acondicionado. Veamos una gráfica entre entre la demanda diaria contra la temperatura máxima diaria, recordemos que las mediciones son cada media hora.
+
+```{r electricidad2}
+vic_elec_daily <- vic_elec %>%
+  #filter(year(Time) == 2014) %>%  ###se activa si desea filtrar por año
+  index_by(Date = date(Time)) %>%
+  summarise(
+    Demand = sum(Demand) / 1e3,
+    Temperature = max(Temperature),
+    Holiday = any(Holiday)
+  ) %>%
+  mutate(Day_Type = case_when(
+    Holiday ~ "Holiday",
+    wday(Date) %in% 2:6 ~ "Weekday",
+    TRUE ~ "Weekend"
+  ))
+
+vic_elec_daily %>%
+  ggplot(aes(x = Temperature, y = Demand, colour = Day_Type)) +
+  geom_point() +
+  labs(y = "Demanda de electricidad (GW)",
+       x = "Temperatura máxima diaria")
 ```
 
