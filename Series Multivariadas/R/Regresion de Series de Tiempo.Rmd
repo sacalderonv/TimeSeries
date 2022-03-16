@@ -440,3 +440,106 @@ Leer sección 7.8 libro fpp3.
 
 ### Modelos de Regresión Dinámica
 
+Vamos a considerar que los errores del modelo de regresión son $\{\eta_t\}$ tal que
+  
+
+ $$y_{t}=\beta_0+\beta_1 x_{1,t}+\cdots,+\beta_k x_{k,t}+\eta_t$$
+ y que asumimos que el modelo de los errores es un $arima(p,d,q)$
+ $$\phi(B)(1-B)^d\eta_t=\theta(B)\epsilon_t$$
+
+donde $\{\epsilon_t\}\sim RB(0,\sigma^2)$, es decir, el modelo tiene dos errores, los errores de la regresión $\eta_t$, y el error del modelo $arima$ que es $\epsilon_t$ que es un ruido blanco.
+
+Vamos a usar la función ARIMA de el paquete \textit{fable}.Supongamos que la función es usada de la siguiente manera:
+
+$ARIMA(y~ x +pdq(1,1,1))$, lo cual ajustará un modelo
+$$y_t'=\beta_1x_t'+\eta_t'$$
+donde $y_t'=y_t-y_{t-1}$, $x_t'=x_t-x_{t-1}$ y $\eta_t'=\eta_t-\eta_{t-1}$ con $\eta_t'=\phi_1+\eta_{t-1}'+\epsilon_t$, el cual es equivalente al modelo
+$$y_t=\beta_0+\beta_1x_t+\eta_t$$
+donde $\{\eta_t\}\sim ARIMA(1,1,0)$. Es decir, si $d=1$ en el argumento, todos las series son diferenciadas.
+
+## Ejemplo Consumo depende del ingreso
+
+Vamos a suponer que los cambios consumo dependen de los cambios en el ingreso y que vamos a tener en cuenta la estructura de autocorrelación en los residuales, a diferencia del primer ejemplo de este script.
+
+Vamos a considerar primero el modelo automático sugerido por la función $ARIMA$ para los errores. Veamos primero las dos serie a relacionar.
+
+```{r regresión dinámica 1}
+us_change %>%
+  pivot_longer(c(Consumption, Income),
+               names_to = "var", values_to = "value") %>%
+  ggplot(aes(x = Quarter, y = value)) +
+  geom_line() +
+  facet_grid(vars(var), scales = "free_y") +
+  labs(title = "US consumption and personal income",
+       y = "Quarterly % change")
+
+```
+
+Ahora veamos el ajuste con una propuesta automática para el modelo de los errores.
+```{r Regresión dinámica 2}
+
+fit <- us_change %>%
+  fabletools::model(fable::ARIMA(Consumption ~ Income))
+report(fit)
+coef(fit)
+```
+
+Note que las series están en diferencias y no en niveles, por lo cual el procedimiento no sugiere una diferencia.Además todos los parámetros resultan significativos.
+
+Nota: Recuerde construir el modelo para los errores usando las herramientas del análisis univariado de series de tiempo.
+
+Así el modelo queda expresando de la siguiente manera:
+$$y_t=0.5949310+0.1976247x_t+\eta_t$$ 
+donde
+$$\eta_t-0.7070037\eta_{t-1}=\epsilon_t-0.6172115\epsilon_{t-1}+0.2066358\epsilon_{t-2}$$
+
+tal que
+
+$$\{\epsilon_t\}\sim NID(0,0.3113)$$
+
+
+Ahora obtengamos los dos conjuntos de residuales del modelo propuesto y chequeemos como se comportan:
+
+```{r regresion dinámica 3}
+bind_rows(
+    `Residuales de la Regresion` =
+        as_tibble(residuals(fit, type = "regression")),
+    `Residuals ARIMA` =
+        as_tibble(residuals(fit, type = "innovation")),
+    .id = "type"
+  ) %>%
+  mutate(
+    type = factor(type, levels=c(
+      "Residuales de la Regresion", "Residuals ARIMA"))
+  ) %>%
+  ggplot(aes(x = Quarter, y = .resid)) +
+  geom_line() +
+  facet_grid(vars(type))
+```
+
+Por supuesto los residuales del modelo ARIMA $\{\hat{\epsilon}_t\}$ deberían parecerse a un ruido blanco.
+
+## Cheqeo de los Residuales del modelo
+
+Veamos los residuales del modelo, es decir los residuales del modelo ARIMA.
+
+```{r Regresión dinámica 4}
+fit%>% feasts::gg_tsresiduals()
+
+```
+
+Qué podemos decir estos residuales comparados con el primer modelo que se ajustó?
+
+Puede que queden outliers!!!
+
+## Pronóstico   
+Vamos a obtener el pronóstico del cambio porcentual del consumo para los siguientes 8 periodos o trimestres. Para esto, se asumirá que el cambio porcentual del ingreso será igual al porcentaje promedio de los últimos 40 años. Primero se crean los valores futuros, y luego se hace el pronóstico basados en el modelo ajustado.
+
+```{r regresion dinámica pronostico}
+us_change_future <- tsibble::new_data(us_change, 8) %>%
+  dplyr::mutate(Income = mean(us_change$Income))
+forecast(fit, new_data = us_change_future) %>%
+  autoplot(us_change) +
+  labs(y = "Cambio Porcentual")
+```
+
