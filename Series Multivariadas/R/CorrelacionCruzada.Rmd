@@ -181,4 +181,23 @@ MTSplot(x)
 ccm(x)
 acf(x)
 ```
+Tarea: Usar las Series us_change del paquete fpp3 y hacer una análisis exploratorio de las variables para ver si existe estructura de dependencia, al menos entre el consumo y las demás variables dos a dos.
+
+```{r Ejercicio 1}
+library(fpp3)
+us_change
+str(us_change)
+us_change %>%
+  pivot_longer(c(Consumption,Income,Production,Savings,Unemployment)) %>%
+  ggplot(aes(Quarter, value, colour = name)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y") +
+  guides(colour = "none") +
+  labs(y="% cambio")
+
+library(GGally)
+us_change %>%
+  GGally::ggpairs(columns = 2:6)
+
+```
 
