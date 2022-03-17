@@ -584,7 +584,9 @@ vic_elec %>%
 
 
 ```
-Evaluemos ahora como es la dependencia entre la temperatura y la demanda de energía. Se tiene la idea que se consume más electricidad en los días fríos debido a la calefacción y en los días calurosos debido al aire acondicionado. Veamos una gráfica entre entre la demanda diaria contra la temperatura máxima diaria, recordemos que las mediciones son cada media hora.
+En la gráfica de las series de tiempo para todos los años se puede observar una relación interesante.
+
+Evaluemos ahora como es la dependencia entre la temperatura y la demanda de energía. Se tiene la idea que se consume más electricidad en los días fríos debido a la calefacción y en los días calurosos debido al aire acondicionado. Veamos una gráfica entre la demanda diaria contra la temperatura máxima diaria, recordemos que las mediciones son cada media hora.
 
 ```{r electricidad2}
 vic_elec_daily <- vic_elec %>%
@@ -607,4 +609,148 @@ vic_elec_daily %>%
   labs(y = "Demanda de electricidad (GW)",
        x = "Temperatura máxima diaria")
 ```
+
+Note que parece haber una relación entre la demanda y la temperatura máxima diaria de forma no lineal y tiene forma de $U$. Además de eso también se observa la relación de los días entre semana, fin de semana y festivos. Veamos ahora la relación entre las variables, pero sólo para el año 2014.
+```{r electricidad 3}
+vic_elec_daily2014<- vic_elec %>%
+  filter(year(Time) == 2014) %>%  ###se activa si desea filtrar por año
+  index_by(Date = date(Time)) %>%
+  summarise(
+    Demand = sum(Demand) / 1e3,
+    Temperature = max(Temperature),
+    Holiday = any(Holiday)
+  ) %>%
+  mutate(Day_Type = case_when(
+    Holiday ~ "Holiday",
+    wday(Date) %in% 2:6 ~ "Weekday",
+    TRUE ~ "Weekend"
+  ))
+
+
+vic_elec_daily2014 %>%
+  pivot_longer(c(Demand, Temperature)) %>%
+  ggplot(aes(x = Date, y = value)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y") + ylab("")
+```
+Vamos ahora a ajustar una regresión cuadrática entre las dos variables con errores \textit{ARMA}, adicionalmente se incluye una variable indicadora para saber especifica si el día es festivo o un día laboral. El modelo ARMA ajustado se hace forma automática, lo cual no es lo mas recomendable.
+
+```{r electricidad 4}
+fit <- vic_elec_daily2014 %>%
+  model(ARIMA(Demand ~ Temperature + I(Temperature^2) +
+                (Day_Type == "Weekday")))
+fit %>% gg_tsresiduals()
+
+report(fit)
+coef(fit)
+
+library(tseries)
+augment(fit)%>% features(.innov,ljung_box,dof=9,lag=50)
+tseries::jarque.bera.test(augment(fit)%>%pull(.innov))
+
+```
+
+Note que hay algunos parámetros que son no son significativos, adicionalmente se sugiere diferenciar las series, y también incluye una componente cíclica. La cual debería ser explorada con anticipación. El modelo debería ser refinado. Note también que el ajuste no es del todo idóneo, porque aún se mantiene una estructura de autocorrelación, además los residuales del modelo no parecen tener distribución normal y mantener colas pesadas, finalmente uno puede ver que parece haber una especie de heterocecasticidad en especial porque hay una varianza mayor al inicio y al final de los residuales, comparado con los meses de abril y mayo. Esto puede afectar los intervalos de predicción pero no la estimación puntual.(Cómo se puede mejorar?Tarea)
+
+Vamos ahora a obtener el pronósticos del modelo basados en escenario estableciendo que la temperatura de los próximos 14 es de 16 grados. Por supuesto que lo ideal sería considerar los valores futuros de la variable predictora.
+
+```{r electricidad 5}
+vic_elec_future <- new_data(vic_elec_daily2014, 14) %>%
+  mutate(
+    Temperature = 26,
+    Holiday = c(TRUE, rep(FALSE, 13)),
+    Day_Type = case_when(
+      Holiday ~ "Holiday",
+      wday(Date) %in% 2:6 ~ "Weekday",
+      TRUE ~ "Weekend"
+    )
+  )
+forecast(fit, vic_elec_future) %>%
+  autoplot(vic_elec_daily2014) +
+  labs(title="Demanda de electricidad diaria: Estado Victoria",
+       y="GW")
+```
+
+Como tarea es necesrio desarrollar las secciones 10.4 y 10.5 del libro fpp3.
+
+
+## Predictores retardados
+
+Veamos el siguiente ejemplo del libro fpp3. Una compañía de seguros de EE. UU. se anuncia en la televisión nacional en un intento de aumentar la cantidad de cotizaciones de seguros proporcionadas (y, en consecuencia, la cantidad de pólizas nuevas). Veamos la gráfica de las series el número de cotizaciones y el gasto en publicidad televisiva de la empresa cada mes desde enero de 2002 hasta abril de 2005.
+
+```{r Predictores retardados 1}
+data(insurance)##del paquete fpp3
+insurance %>%
+  pivot_longer(Quotes:TVadverts) %>%
+  ggplot(aes(x = Month, y = value)) +
+  geom_line() +
+  facet_grid(vars(name), scales = "free_y") +
+  labs(y = "", title = "Publicidad en seguros y cotizaciones")
+```
+
+Si parece que las dos series se mueven juntas, es decir, cuando se aumenta la publicidad parece haber un incremento en las cotizaciones.
+
+Vamos a considerar 4 diferentes modelos, cada uno incluyendo un retardo de la publicidad desde el modelo de efecto instantáneo, hasta un modelo que considera hasta tres retardos de la inversión en publicidad. Por supuesto hay que cosiderar que todos los modelos trabajen sobre el mismo conjunto de entrenamiento. De nuevo el ajuste del modelo ARIMA es automático.
+
+```{r Predictores retardados 2}
+fit <- insurance %>%
+  # Restrige los datos tal que los mkodelos usan el mismo periodo para el ajuste.
+  mutate(Quotes = c(NA, NA, NA, Quotes[4:40])) %>%
+  # Estimate models
+  model(
+    lag0 = ARIMA(Quotes ~ pdq(d = 0) + TVadverts),
+    lag1 = ARIMA(Quotes ~ pdq(d = 0) +
+                 TVadverts + lag(TVadverts)),
+    lag2 = ARIMA(Quotes ~ pdq(d = 0) +
+                 TVadverts + lag(TVadverts) +
+                 lag(TVadverts, 2)),
+    lag3 = ARIMA(Quotes ~ pdq(d = 0) +
+                 TVadverts + lag(TVadverts) +
+                 lag(TVadverts, 2) + lag(TVadverts, 3))
+  )
+```
+
+
+```{r Predictores retardados 3}
+glance(fit)
+```
+
+Basados en el criterio de AICc, podemos ver que el modelo lag1 es que minimiza este criterio, por lo tanto, ese será el que utilizaremos para la estimación incluyendo ahora si todas las observaciones.
+
+```{r Predictores retardados 4}
+fit_best <- insurance %>%
+  model(ARIMA(Quotes ~ pdq(d = 0) +
+              TVadverts + lag(TVadverts)))
+report(fit_best)
+coef(fit_best)
+```
+Note que para este modelo, todos los parámetros son significativos y el modelo para los errores es $ARIMA(1,0,2)$, o $ARMA(1,2)$, así el modelo final es
+$$y_t=2.1554+1.2527x_t+0.1464x_{t-1}+\eta_t$$
+$$\eta_t-0.5123\eta_{t-1}=\epsilon_t+0.9169\epsilon_{t-1}+0.4591\epsilon_{t-2}$$
+Tarea: Evalúe los residuales del modelo y haga un reajuste de ser necesario.
+
+Ahora produzcamos lo pronósticos para los siguientes 20 meses asuminedo un valor fijo de la publicidad en 8.
+
+```{r Predictores retardados 5}
+insurance_future <- new_data(insurance, 20) %>%
+  mutate(TVadverts = 8)
+fit_best %>%
+  forecast(insurance_future) %>%
+  autoplot(insurance) +
+  labs(
+    y = "Quotes",
+    title = "Forecast quotes with future advertising set to 8"
+  )
+
+```
+En seguida se visualizan los intervalos de pronóstico.
+fit_best %>%
+  forecast(insurance_future)%>% hilo()
+
+
+
+
+
+
+
 
