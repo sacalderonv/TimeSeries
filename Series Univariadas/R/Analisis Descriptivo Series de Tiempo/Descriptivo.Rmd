@@ -93,6 +93,41 @@ abline(fit,col = "red") # Se añade la recta ajusta
 ElimiTendchick=chicken-predict(fit)
 plot(ElimiTendchick,main="Serie Chicken Sin tendencia")
 ```
+```{r chicken 3}
+library(tidyverse)
+library(lubridate)
+library(timetk)
+library(tsibble)
+
+# Se configura para gráficas plotly(# FALSE retorna ggplots y no plotly)
+interactive <- FALSE
+indice_chicken=as.Date(as.yearmon(tk_index(chicken)))
+## Otra forma de extraer el indice estimetk::tk_index(chicken)
+df_chicken=data.frame(Fecha=indice_chicken,Pollo=as.matrix(chicken))
+str(df_chicken)
+tibble_chicken=tibble(df_chicken)
+duplicates(tibble_chicken, key = NULL, index=Fecha)   ##Mirar si hay registros duplicados
+
+tibble_chicken_fechas_correct=tibble_chicken
+tibble_chicken_fechas_correct$Fecha=yearmonth(tibble_chicken_fechas_correct$Fecha)
+print(duplicates(tibble_chicken_fechas_correct, key = NULL, index=Fecha))
+tsibble_chicken=tsibble(tibble_chicken_fechas_correct,index=Fecha)
+
+tsibble_chicken
+tibble_chicken
+```
+Note que se ajusta una tendencia que se ve que no es lineal.
+```{r chicken 4}
+tibble_chicken%>%timetk::plot_time_series(Fecha, Pollo, 
+                   .interactive = interactive,
+                   .plotly_slider = TRUE)
+###Usa Loess para hacer el ajuste de la tendencia, es decir usar smooth_vec() como versión simplificada de stats::loess()
+
+```
+
+
+
+
 ## Descomposición
 Vamos a usar la descomposición por medio de filtros de promedios móviles
 ```{r descomposicion}
@@ -101,6 +136,26 @@ plot(chicken_decompo)
 chicken_decompo$trend
 ```
 
+## Descomposición STL
+STL son las iniciales de “Seasonal and Trend decomposition using Loess”,el cual fue desarrollado por R. B. Cleveland et al. (1990).
+
+```{r STL chicken}
+library(feasts)
+library(fable)
+
+tsibble_chicken<-as_tsibble(chicken)
+str(tsibble_chicken)
+tsibble_chicken %>%
+  model(
+    STL(value ~ trend() +
+                   season(window = "periodic"),
+    robust = TRUE)) %>%
+  components() %>%
+  autoplot()
+
+```
+
+Note que en ambos casos se obliga a extraer un componente estacional, sin embargo puede que está componente en verdad no exista, por eso se debe verificar que en efecto hay.
 
 ```{r Caminata Aletoria con Drift}
 set.seed(154) 
@@ -169,6 +224,20 @@ Note que ahora usamos la misma función para verificar si en verdad la varianza 
 FitAR::BoxCox(lAirPass)
 forecast::BoxCox.lambda(lAirPass, method = "guerrero", lower = -1, upper = 2)
 ```
+
+
+```{r Rbox_Cox Yeo-Jhonson}
+library(VGAM)
+library(car)
+
+
+VGAM::yeo.johnson(AirPassengers, lambda = 0)
+car::yjPower(AirPassengers,lambda=0)
+
+timetk::box_cox_vec(AirPassengers,lambda = 'auto',silent = F)
+
+```
+
 Ejercicio: Use la serie <i>varve</i> del paquete <b>astsa</b> para chequear si es necesario hacer transformación Box-Cox.
 
 
@@ -296,6 +365,19 @@ ccf(soi, rec, 48, main="SOI vs Recruitment", ylab="CCF")
 #Corr(rec_{t},soi_{t-h})
 #Corr(soi_{t},rec_{t-h},)
 ```
+
+```{r timetk acf, pacf, ccf}
+index_soi_rec=as.Date(as.yearmon(tk_index(soi)))
+
+df_soi_rec=data.frame(Fecha_soi_rec=index_soi_rec,soi=as.matrix(soi),rec=as.matrix(rec))
+
+tibble_soi_rec=tibble(df_soi_rec)
+duplicates(tibble_soi_rec, key = NULL, index=Fecha_soi_rec)   ##Mirar si hay registros duplicados
+
+tibble_soi_rec%>%plot_acf_diagnostics(Fecha_soi_rec,soi,.ccf_vars = rec,.lags = 20)
+
+```
+
 
 En ambas gráficas  podemos ver que se muestran periodicidades en las correlaciones que corresponden a valores separados por 12 unidades. También podemos ver que las observaciones con 12 meses o un año de diferencia están fuertemente correlacionadas positivamente, al igual que las observaciones en múltiplos como 24, 36, 48,$\cdots$ Las observaciones separadas por seis meses están correlacionadas negativamente, lo que muestra que las excursiones positivas tienden a asociarse con las excursiones negativas a los seis meses ver Shumway2017  capítulo 1.
 
