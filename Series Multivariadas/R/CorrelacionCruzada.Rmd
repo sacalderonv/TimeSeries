@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Vamos a simular dos series independientes de tamaño $n=200$ que siguen:
 
 $$X_{i,t}=0.8X_{i,t-1}+Z_{i,t}$$
+
 donde los procesos de ruido blanco $\{Z_{i,t}\}\sim RB(0,1)$ para $i=1,2$.
 ```{r simul dos series indep}
 set.seed(1000)
@@ -165,6 +166,8 @@ acf(X3t, ci.type='ma')
 pacf(X3t)
 ajuste3=forecast::Arima(X3t,order=c(2,0,0),include.mean = FALSE)
 res3=residuals(ajuste3)
+acf(res3)
+acf(res1)
 ccf(res1,res3)
 ccm(cbind(res1,res3))
 ```
