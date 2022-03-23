@@ -277,9 +277,12 @@ Note que el $R^2$ del ajuste es muy alto, pero también muestra una alta autocor
 
 ```{r Intervencion}
 library(readxl)
+library(zoo)
+
 Desempleo<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Series Univariadas/Bases de Datos/Desempleo.xlsx", col_types = c("text", "numeric"), col_names=c('Fecha','TasaDesempleo'),skip=1)
+
+Desempleo$Fecha=yearmonth(Desempleo$Fecha)
 str(Desempleo)
-Desempleo$Fecha= yearmonth(as.yearmon(Desempleo$Fecha))
 ts_Desempleo=as_tsibble(Desempleo)
 ts_Desempleo%>%timetk::plot_time_series(.value=TasaDesempleo,.date_var=Fecha,.smooth = F)
 
@@ -343,6 +346,15 @@ augment(fit_beer) %>%
        title = "producción de cerveza trimestral en Australia") +
   guides(colour = guide_legend(title = "Series"))
 ```
+Note que se puede producir las variables Dummy como sigue:
+```{r Dummy estacionales 3}
+month1 <- seasonaldummy(ldeaths)
+month1
+
+require(uroot)
+seasonal.dummies(ldeaths)
+```
+
  
 ## Componentes de Fourier
 Vamos a hacer un ajuste haciendo una regresión con componentes de Fourier donde solo tomamos dos componentes en la suma. En este caso solo hay tres componentes de Fourier ya que el segundo componente del seno siempre va a dar cero.
