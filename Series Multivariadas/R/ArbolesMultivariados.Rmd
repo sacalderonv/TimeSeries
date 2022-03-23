@@ -1,0 +1,35 @@
+---
+title: "Modelos de Árboles"
+output: html_document
+date: '2022-03-22'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Modelos de Árboles
+
+Vamos a ver un ejmeplo de árboles binarios de regresión para predicción. 
+
+```{r Arboles Binarios}
+require(tree)
+require(SLBDD)
+FREDMDApril19 <- read.csv("FREDMDApril19.csv", header=TRUE)
+x=as.matrix(FREDMDApril19)
+Y=x[7:710,6] # dependent variable
+X=cbind(x[6:709,],x[5:708,],x[4:707,],x[3:706,],x[2:705,],x[1:704,])
+X1 <- scale(X,center=TRUE,scale=TRUE)
+tree.fit <- tree(Y~.,data=data.frame(X1),split="deviance")
+tree.fit
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
