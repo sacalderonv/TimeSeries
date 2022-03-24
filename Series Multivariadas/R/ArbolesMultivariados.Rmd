@@ -12,24 +12,78 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Vamos a ver un ejmeplo de árboles binarios de regresión para predicción. 
 
-```{r Arboles Binarios}
+```{r Arboles Binarios construccion de la base de datos}
 require(tree)
 require(SLBDD)
-FREDMDApril19 <- read.csv("FREDMDApril19.csv", header=TRUE)
-x=as.matrix(FREDMDApril19)
-Y=x[7:710,6] # dependent variable
+library(dplyr)
+Arboles_orig <- read.csv("2019-08.csv")
+Arboles_orig_sinvars<-Arboles_orig%>%slice(-c(2:13,726:729))%>%select(-c(59,61,96,105,124,129))
+
+###Chequeo sin NA's
+which(is.na(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==1)))
+which(is.na(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==2)))
+which(is.na(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==3)))
+which(is.na(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==4)))
+which(is.na(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==5)))
+which(is.na(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==6)))
+which(is.na(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==7)))
+
+####Construcción de la transformación
+
+Arboles_orig_sinvars_1<-Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==1)%>%slice(-c(1,711,712))
+dim(Arboles_orig_sinvars_1)[1]
+
+Arboles_orig_sinvars_2<-as.data.frame(lapply(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==2)%>%slice(-1), diff, lag=1))%>%slice(-711)
+dim(Arboles_orig_sinvars_2)[1]
+
+Arboles_orig_sinvars_3<-as.data.frame(lapply(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==3)%>%slice(-1), diff, lag=2))  ###No hay variables para hacer la transformación 3
+dim(Arboles_orig_sinvars_3)[1]
+
+
+Arboles_orig_sinvars_4<-as.data.frame(lapply(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==4)%>%slice(-1), log)) %>%slice(-c(711,712))
+dim(Arboles_orig_sinvars_4)[1]
+
+Arboles_orig_sinvars_5<-as.data.frame(lapply(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==5)%>%slice(-1), function(x) diff(log(x)))) %>%slice(-711)
+dim(Arboles_orig_sinvars_5)[1]
+
+Arboles_orig_sinvars_6<-as.data.frame(lapply(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==6)%>%slice(-1), function(x) diff(log(x),2))) 
+dim(Arboles_orig_sinvars_6)[1]
+
+
+Arboles_orig_sinvars_7<-as.data.frame(lapply(Arboles_orig_sinvars%>%select_if(Arboles_orig_sinvars[1,]==7)%>%slice(-1), function(x) diff((x/lag(x))-1)))%>%slice(-1)
+dim(Arboles_orig_sinvars_7)[1]
+###Confirmación de que están todas las columnas
+dim(Arboles_orig_sinvars_1)[2]+dim(Arboles_orig_sinvars_2)[2]+dim(Arboles_orig_sinvars_3)[2]+dim(Arboles_orig_sinvars_4)[2]+dim(Arboles_orig_sinvars_5)[2]+dim(Arboles_orig_sinvars_6)[2]+dim(Arboles_orig_sinvars_7)[2]
+
+
+####Combinando los data.frame
+Fechas=Arboles_orig_sinvars$sasdate[2:711]
+Fred_tibble<- tibble(cbind(Fechas,Arboles_orig_sinvars_1,Arboles_orig_sinvars_2,Arboles_orig_sinvars_4,Arboles_orig_sinvars_5,Arboles_orig_sinvars_6,Arboles_orig_sinvars_7))
+
+
+```
+```{r Graficos y exploratorios}
+######Algunos aspectos exploratorios
+x=as.matrix(cbind(Arboles_orig_sinvars_1,Arboles_orig_sinvars_2,Arboles_orig_sinvars_4,Arboles_orig_sinvars_5,Arboles_orig_sinvars_6,Arboles_orig_sinvars_7))
+require(MTS)
+y=scale(x,scale=TRUE) ##Se estandarizan los datos para que sean dibujados
+tdx=c(1:710/12+1960)  #creación del índice
+MTSplot(y,tdx)
+```
+
+
+```{r Arboles 1}
+require(tree)
+Y=x[7:710,44] # variable dependiente o de respuesta univariada
 X=cbind(x[6:709,],x[5:708,],x[4:707,],x[3:706,],x[2:705,],x[1:704,])
 X1 <- scale(X,center=TRUE,scale=TRUE)
 tree.fit <- tree(Y~.,data=data.frame(X1),split="deviance")
 tree.fit
+
+summary(tree.fit)
+
+plot(tree.fit)
+text(tree.fit,cex=0.2)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

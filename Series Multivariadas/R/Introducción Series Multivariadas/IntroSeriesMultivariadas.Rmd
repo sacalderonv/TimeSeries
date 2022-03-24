@@ -1,0 +1,119 @@
+---
+title: "IntroSeriesMultivariadas"
+output: github_document
+#output: html_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Ejemplos de Series Multivariadas
+
+
+
+Vamos a ver algunos ejemplos de series de tiempo multivariadas. El primer conjunto de datos tiene que ver con las temperaturas relativas promedio de noviembre en Europa, Norte América y sur América entre 1910 y 2014 de forma anual. Lo de relativo es con respecto a la temperatura promedio de noviembre del siglo 20.Note que hay una tendencia a crecer en las temperaturas de Europa y de Sur América. Estas series pueden ser analizadas a través de series multivariadas clásicas.Incluso, si consideramos mediciones mensuales, estas también puede analizadas desde el enfoque clásico de series de tiempo. Por qué estas observaciones son dependientes? Porque por ejemplo observaciones consecutivas en el tiempo tienden a estar mas cerca que las observaciones que están mas alejadas en el tiempo.
+
+```{r Temperaturas}
+library(tidyverse)
+library(tidyquant)
+library(TSstudio)
+library(SLBDD)
+library(timetk)
+library(fable)
+
+data("temperatures")
+head(temperatures)
+str(temperatures)
+MultTsTemp=xts(temperatures[2:4], order.by=as.Date(ISOdate(temperatures$year,1,1)))
+plot(MultTsTemp,legend.loc='bottomright')
+par(mfrow = c(3 , 1))
+plot(MultTsTemp[,1], main = "Europa")
+plot(MultTsTemp[,2], main = "Norte América")
+plot(MultTsTemp[,1], main = "Sur América")
+```
+
+Sin embargo, si por ejemplo consideramos que las mediciones son hechas a lo largo de distintos puntos en el mundo(es decir, tenemos muchas series de tiempo), o que el intervalo de tiempo entre observaciones es pequeño, resultando en datos de alta frecuencia con tamaño de muestra grande. Note que las temperaturas pueden afectar la demanda de electricidad y el combustible para la calefacción, y también está relacionada con las medidas de polución del aire $PM_{25}$ y concentración de ozono.
+
+### Acciones
+
+Aquí se muestran los índices diarios de los 99 mercados de acciones alrededor del mundo. También se muestran las series estandarizadas a que tenga media cero y varianza 1.También se muestran las series de los log retornos.
+
+Note algunas características de las series:
+
+* Note que mayoritariamente las series muestran un crecimiento desde 2003 y llegando casi hasta 2008.Después del 2008 hay una caída  dramática causada por la crisis financiera del 2008. Algunos mercados experimentaron una recuperación después del 2009.
+* Las variabilidades de los mercados financieros mundiales parecen ser mayores cuando los mercados estaban a la baja; consulte la figura relacionada con los retornos. Esto no es sorprendente, ya que es probable que el factor miedo, es decir, la volatilidad del mercado, domine durante un mercado bajista. Por otro lado, los rangos de los índices del mercado mundial en un momento dado parecen ser más pequeños cuando el mercado estaba a la baja; ver gráfica de las acciones estnadarizadas.
+
+```{r acciones, echo=FALSE}
+data("Stockindexes99world")
+str(Stockindexes99world)
+MultTsStocks=xts(Stockindexes99world[2:100], order.by=Stockindexes99world$Date)
+plot(MultTsStocks,legend.loc=NULL)
+
+
+MultTsStocks_std=xts(scale(Stockindexes99world[2:100]), order.by=Stockindexes99world$Date)
+plot(MultTsStocks_std,legend.loc=NULL,main='Series Estandarizadas')
+
+library('PerformanceAnalytics')
+Retornos=PerformanceAnalytics::Return.calculate(MultTsStocks,method="log")
+str(Retornos)
+
+layout(matrix(1:4, 2, 2))
+plot(Retornos[,1:6],multi.panel=2)
+
+par(mfrow = c(3 , 2))
+plot(Retornos[,1])
+plot(Retornos[,2])
+plot(Retornos[,3])
+plot(Retornos[,4])
+plot(Retornos[,5])
+plot(Retornos[,6])
+```
+Vamos ahora hacer gráficas con base en el objeto timeseries del paquete timeSeries 
+```{r acciones otro formato}
+library(timeSeries)
+ts_data_stocks=timeSeries(Stockindexes99world[2:100],Stockindexes99world$Date)
+str(ts_data_stocks)
+plot(ts_data_stocks,plot.type="s")
+
+par(mfrow=c(1, 1))
+plot(ts_data_stocks[,1:6], plot.type="m")
+```
+Tarea: Explorar el índice de precio al consumidor de 33 países Europeos con los datos(SLBDD::CPIEurope200015). También filtrar de la base de datos SLBDD::Stockindexes99world, las acciones de Europa y las acciones de Asia, y ver cómo se comportan por separado.
+
+## Ventas Diarias
+Veamos ahora  las ventas diarias de el logaritmo natural de una marca de ropa en 25 provincias en china del 1 de enero de 2008 hasta el 9 de diciembre de 2012.
+Note primero que los picos ocurren irregularmente al inicio de cada año, seguido de una cierta caída en las ventas. Esto es porque el año nuevo Chino varía de año a año. Además los picos no corren en todas las provincias, ver la gráfica de la segunda provincia.Analizar conjuntamente esas series requerirá de modelar características comunes, al igual que variaciones porpias de cada provincia.
+
+```{r ventas ropa china}
+data("clothing")
+head(clothing)
+daily_index <- seq.Date(from = as.Date("2008-01-01"), # Starting date
+                           to = as.Date("2012-12-16"), # Ending date
+                           by = "day") # Defining the time intervals
+ts_data_sales=timeSeries(clothing,daily_index)
+str(ts_data_sales)
+plot(ts_data_sales,plot.type="s")
+
+plot(ts_data_sales[,1:8],plot.type="s")
+
+par(mfrow=c(1, 1))
+plot(ts_data_sales[,1:8],plot.type="m")
+
+
+xts_sales_china=xts(clothing, order.by=daily_index)
+library(ggfortify)
+autoplot(xts_sales_china[,1:8])
+###Usaremos el formato tsibble
+library(tsibble)
+library(feasts)
+library(fable)
+df_ventas=data.frame(clothing,daily_index)
+tsibble_ventas<-as_tsibble(df_ventas,index=daily_index)
+tsibble_ventas %>%
+  pivot_longer(c(Province_1, Province_2,Province_3,Province_4,Province_5,Province_6,Province_7,Province_8), names_to="Series") %>%
+  autoplot(value) +
+  labs(y = "Ventas Provincias log")
+```
+
