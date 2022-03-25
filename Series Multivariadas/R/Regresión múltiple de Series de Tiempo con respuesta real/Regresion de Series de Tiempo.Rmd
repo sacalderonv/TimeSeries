@@ -49,7 +49,7 @@ us_change %>%
 
 ```
 
-El anterior diagrama de dispersión no permite ver una relación lineal muy clara de forma instantánea.
+El anterior diagrama de dispersión nos permite ver una relación lineal muy clara de forma instantánea.
 Exploremos las autocorrelaciones.
 
 ```{r reg 1 autocorrelaciones}
@@ -84,6 +84,17 @@ Ajustesreg1=us_change %>%
 
 Note que el poder explicativo del ingreso no es muy alto.
 
+
+
+## Verficación de los supuestos
+
+```{r supuestos reg1}
+Ajustesreg1%>% gg_tsresiduals()
+
+```
+
+La gráfica de los residuales no parece mostrar patrones sitemáticos(tendencia o ciclos), sin embargo si parecen estar autocorrelacionados. También parecen tener unos valores atípicos. Con esto, nos podemos dar cuenta que el ajuste del modelo no es bueno, lo cual implica que es necesario cambiar el modelo. Vamos ahora a considerar ahora un modelo donde se incluyan mas variables, también se puede considerar que tenga en cuenta la estructura de autocorrelación presente en los residuales.
+
 ```{r gls}
 salida_sincorrelacion=nlme::gls(Consumption ~ Income,us_change)
 corr = nlme::corARMA(value=c(0.2,0.4),p = 1, q = 1)
@@ -96,15 +107,6 @@ library(lmtest)
 coeftest(salida_concorrelacion)
 ```
 
-
-## Verficación de los supuestos
-
-```{r supuestos reg1}
-Ajustesreg1%>% gg_tsresiduals()
-
-```
-
-La gráfica de los residuales no parece mostrar patrones sitemáticos(tendencia o ciclos), sin embargo si parecen estar autocorrelacionados. También parecen tener unos valores atípicos. Con esto, nos podemos dar cuenta que el ajuste del modelo no es bueno, lo cual implica que es necesario cambiar el modelo. Vamos ahora a considerar ahora un modelo donde se incluyan mas variables, también se puede considerar que tenga en cuenta la estructura de autocorrelación presente en los residuales.
 
 ## Regresión múltiple
 Vamos ahora a considerar que los cambios porcentuales del consumo no solo es función de los cambios porcentuales ingreso sino también de otras variable como producción, desempleo y ahorros. Vamos primero a graficar las series de tiempode  las otras tres variables.
@@ -346,15 +348,6 @@ augment(fit_beer) %>%
        title = "producción de cerveza trimestral en Australia") +
   guides(colour = guide_legend(title = "Series"))
 ```
-Note que se puede producir las variables Dummy como sigue:
-```{r Dummy estacionales 3}
-month1 <- seasonaldummy(ldeaths)
-month1
-
-require(uroot)
-seasonal.dummies(ldeaths)
-```
-
  
 ## Componentes de Fourier
 Vamos a hacer un ajuste haciendo una regresión con componentes de Fourier donde solo tomamos dos componentes en la suma. En este caso solo hay tres componentes de Fourier ya que el segundo componente del seno siempre va a dar cero.

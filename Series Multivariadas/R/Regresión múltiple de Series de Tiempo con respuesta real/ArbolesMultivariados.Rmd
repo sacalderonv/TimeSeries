@@ -62,9 +62,13 @@ Fred_tibble<- tibble(cbind(Fechas,Arboles_orig_sinvars_1,Arboles_orig_sinvars_2,
 
 
 ```
+
+
 ```{r Graficos y exploratorios}
 ######Algunos aspectos exploratorios
-x=as.matrix(cbind(Arboles_orig_sinvars_1,Arboles_orig_sinvars_2,Arboles_orig_sinvars_4,Arboles_orig_sinvars_5,Arboles_orig_sinvars_6,Arboles_orig_sinvars_7))
+#x=as.matrix(cbind(Arboles_orig_sinvars_1,Arboles_orig_sinvars_2,Arboles_orig_sinvars_4,Arboles_orig_sinvars_5,Arboles_orig_sinvars_6,Arboles_orig_sinvars_7))
+FREDMDApril19<-read.csv("FREDMDApril19.csv",header = TRUE)
+x=as.matrix(FREDMDApril19)
 require(MTS)
 y=scale(x,scale=TRUE) ##Se estandarizan los datos para que sean dibujados
 tdx=c(1:710/12+1960)  #creación del índice
@@ -74,7 +78,7 @@ MTSplot(y,tdx)
 
 ```{r Arboles 1}
 require(tree)
-Y=x[7:710,44] # variable dependiente o de respuesta univariada
+Y=x[7:710,6] # variable dependiente o de respuesta univariada
 X=cbind(x[6:709,],x[5:708,],x[4:707,],x[3:706,],x[2:705,],x[1:704,])
 X1 <- scale(X,center=TRUE,scale=TRUE)
 tree.fit <- tree(Y~.,data=data.frame(X1),split="deviance")
