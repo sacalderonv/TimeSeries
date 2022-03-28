@@ -59,7 +59,7 @@ ts_info(Desempleo_Col_xts)
 plot(Desempleo_Col_xts)
 ```
 
-```{r grafico TSstudio Desemplo Col}
+```{r grafico Studio Desemplo Col}
 ts_plot(Desempleo_Col_xts,
            title = "Tasa de Desemplo Mensual Colombia",
            Ytitle = "Tasa de Desempleo(%)",
@@ -424,6 +424,7 @@ tseriesChaos::mutual(astsa::Lynx, partitions = 50, lag.max = 10, plot=TRUE)
 Podemos usar la función *TSstudio::ts_heatmap* para crear un mapa de calor. Este es un gráfico tridimensional, en donde en el eje y están los meses, y en el eje x están los años. Note en este caso que los meses de Diciembre,Enero, Febrero y Marzo presentan los valores mas oscuros, es decir los valores mas grandes a lo largo de los años, en contraste con los meses de Mayo a Septiembre  que presentan colores mas claros. Este es un típico comportamiento de la presencia de un cíclo estacional en la serie.    El flujo de color es horizontal.
 
 ```{r consumo gas}
+TSstudio::USgas
  ts_plot(USgas,
            title = "US Monthly Natural Gas consumption",
            Ytitle = "Billion Cubic Feet",

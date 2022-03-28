@@ -49,6 +49,8 @@ library(forecast)
 forecast::Ccf(tsc1, tsc3, lag.max = 48) 
 library(astsa)
 lag2.plot(tsc1, tsc3, max.lag = 4)
+
+acf(tsc1)
 ```
 
 Primer ajuste de regresión para las series originales asumiendo que los ruidos son IID, es decir vamos a ajustar el modelo $$r_{3t}=\alpha +\beta r_{1t}+e_t$$

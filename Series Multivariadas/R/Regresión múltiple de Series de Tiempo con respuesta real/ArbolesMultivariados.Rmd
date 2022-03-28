@@ -89,5 +89,40 @@ summary(tree.fit)
 plot(tree.fit)
 text(tree.fit,cex=0.2)
 ```
+### Bosques Aletorios
+Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
 
+```{r random forest}
+require(randomForest)
+set.seed(117)
+rf.fit <- randomForest(X1,Y,ntree=500,mtry=20,importance=TRUE)
+rf.fit
+
+
+plot(rf.fit) ###Esta gráfica permite ver la disminución del ECM de predicción al incrementar el número de árboles.
+dim(rf.fit$importance)
+
+plot(1:732,rf.fit$importance[,2],ylab="mean decrease in MSE")   ##La gráfica muestra la disminución medio el EMC de pronóstico de cada predictor. 
+
+varImpPlot(rf.fit)   ###Importancia de las variables
+
+require(pdp)
+require(vip)
+vip(rf.fit, bar = FALSE, horizontal = FALSE, size = 1.5)
+partialPlot(rf.fit,data.frame(cbind(Y,X1)),"USGOOD") ##representación gráfica del efecto marginal de una variable en la respuesta
+```
+
+Tarea:Qué sucede si aumentamos el número de predictoras en las particiones?
+
+Hacer la mejora de requerirse usando la metodología que se menciona enseguida!
+
+
+## Random Forest con remuestreo temporal 
+La idea es usar el reposotorio en github https://github.com/hyanworkspace/rangerts
+donde se está el paquete rangerts que permite usar random forest para el contexto de series de tiempo, el cual está basado en el paquete ranger.
+
+```{r Rf temporal}
+## devtools::install_github("hyanworkspace/rangerts", quiet = T) ## instalación del paquete
+library(rangerts)
+```
 
