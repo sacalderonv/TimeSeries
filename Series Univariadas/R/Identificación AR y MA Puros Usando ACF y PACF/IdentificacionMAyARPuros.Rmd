@@ -72,6 +72,7 @@ library(timetk)
 library(tsibble)
 library(feasts)
 Lluvia <- read_excel("Lluvia.xlsx", col_types = c("date", "numeric"))
+Lluvia%>% timetk::plot_time_series(Fecha, lluvia, .interactive = TRUE)
 Lluvia%>%timetk::plot_acf_diagnostics(
        Fecha, lluvia,               # ACF & PACF
         .lags = 60,          # 7-Days of hourly lags
@@ -80,6 +81,9 @@ acf(Lluvia$lluvia,lag.max = 60)
 df_tsibble_Lluvia=Lluvia
 df_tsibble_Lluvia$Fecha<-tsibble::yearmonth(Lluvia$Fecha)
 tbl_ts_lluvia=tsibble::as_tsibble(df_tsibble_Lluvia)
+tbl_ts_lluvia %>%
+  autoplot(lluvia) +
+  labs(y = "Promedio de lluvias en Colombia mensual")
 tbl_ts_lluvia %>% ACF(lluvia,lag_max =60) %>% autoplot()
 
 ```
