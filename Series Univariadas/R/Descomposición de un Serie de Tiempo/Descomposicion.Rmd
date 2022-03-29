@@ -150,11 +150,29 @@ autoplot(elecequip, series="Data") +
 ```{r STL}
 library(dplyr)
 library(fpp)
+library(fpp3)
+library(fable)
+library(feasts)
 ###La base de datos "elecequip" está en en el paquete fpp
 ###Note que el operador %>% pipe permite concatenar múltiples dplyr operaciones
 ###Manufacture of electrical equipment: computer, electronic and optical products
 elecequip %>%
   stats::stl(t.window=13, s.window="periodic", robust=TRUE) %>%
+  autoplot()
+
+
+###usando libro fpp3 
+elecequip_tsibble=as_tsibble(elecequip)
+
+
+
+
+elecequip_tsibble %>%
+  model(
+    STL(value ~ trend(window = 13) +
+                   season(window = "periodic"),
+    robust = TRUE)) %>%
+  components() %>%
   autoplot()
 
 ```
@@ -199,3 +217,9 @@ predictionHWAP_2
 ```
 
 la función ets,ses, holt y hw de forecast también permiten hacer suavizamiento exponencial.
+
+
+Tarea: Del libro electrónico fpp3 por favor complementar el tema de descomposición y suavizamineto exponencial con la lectura de todas las secciones:
+https://otexts.com/fpp3/decomposition.html
+
+https://otexts.com/fpp3/expsmooth.html
