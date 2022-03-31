@@ -622,6 +622,31 @@ vic_elec %>%
     )
 
 ```
+###Exploración de la estacionalidad por hora, día y meses
+
+```{r estacionalidad exploración}
+vic_elec %>% gg_season(Demand, period = "day") +
+  theme(legend.position = "none") +
+  labs(y="MWh", title="Electricity demand: Victoria")
+```
+```{r estacionalidad exploración 1}
+vic_elec %>% gg_season(Demand, period = "week") +
+  theme(legend.position = "none") +
+  labs(y="MWh", title="Electricity demand: Victoria")
+```
+
+```{r estacionalidad exploración 2}
+vic_elec %>% gg_season(Demand, period = "year") +
+  theme(legend.position = "none") +
+  labs(y="MWh", title="Electricity demand: Victoria")
+```
+```{r}
+tb_vic_elec=as_tibble(vic_elec)
+tb_vic_elec%>%plot_seasonal_diagnostics(.date_var = Time,.value = Demand,.feature_set = c("hour","wday.lbl","month.lbl"))
+```
+
+
+
 
 En la gráfica de las series de tiempo para todos los años se puede observar una relación interesante.
 
@@ -672,7 +697,7 @@ vic_elec_daily2014 %>%
   geom_line() +
   facet_grid(name ~ ., scales = "free_y") + ylab("")
 ```
-Vamos ahora a ajustar una regresión cuadrática entre las dos variables con errores \textit{ARMA}, adicionalmente se incluye una variable indicadora para saber especifica si el día es festivo o un día laboral. El modelo ARMA ajustado se hace forma automática, lo cual no es lo mas recomendable.
+Vamos ahora a ajustar una regresión cuadrática entre las dos variables con errores \textit{ARMA}, adicionalmente se incluye una variable indicadora para saber especifica si el día es festivo o un día laboral. El modelo ARMA ajustado se hace de forma automática, lo cual no es lo mas recomendable.
 
 ```{r electricidad 4}
 fit <- vic_elec_daily2014 %>%
@@ -689,7 +714,7 @@ tseries::jarque.bera.test(augment(fit)%>%pull(.innov))
 
 ```
 
-Note que hay algunos parámetros que son no son significativos, adicionalmente se sugiere diferenciar las series, y también incluye una componente cíclica. La cual debería ser explorada con anticipación. El modelo debería ser refinado. Note también que el ajuste no es del todo idóneo, porque aún se mantiene una estructura de autocorrelación, además los residuales del modelo no parecen tener distribución normal y mantener colas pesadas, finalmente uno puede ver que parece haber una especie de heterocecasticidad en especial porque hay una varianza mayor al inicio y al final de los residuales, comparado con los meses de abril y mayo. Esto puede afectar los intervalos de predicción pero no la estimación puntual.(Cómo se puede mejorar?Tarea)
+Note que hay algunos parámetros que son no son significativos, adicionalmente se sugiere diferenciar las series, y también incluye una componente cíclica, la cual debería ser explorada con anticipación. El modelo debería ser refinado. Note también que el ajuste no es del todo idóneo, porque aún se mantiene una estructura de autocorrelación, además los residuales del modelo no parecen tener distribución normal y mantener colas pesadas, finalmente uno puede ver que parece haber una especie de heterocecasticidad en especial porque hay una varianza mayor al inicio y al final de los residuales, comparado con los meses de abril y mayo. Esto puede afectar los intervalos de predicción pero no la estimación puntual.(Cómo se puede mejorar?Tarea)
 
 Vamos ahora a obtener el pronósticos del modelo basados en escenario estableciendo que la temperatura de los próximos 14 es de 16 grados. Por supuesto que lo ideal sería considerar los valores futuros de la variable predictora.
 
