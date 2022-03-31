@@ -544,6 +544,8 @@ ts_plot(UKgrid_xts,
             Ygrid = TRUE)
 ```
 
+
+
 Como indicamos anteriormente, la primera indicación de la posible existencia de múltiples patrones estacionales en la serie es una frecuencia alta, como por diaria, horaria y en minutos. En esos casos, hay más de una forma de establecer la frecuencia de la serie. Por ejemplo, si capturamos una serie de tiempo de frecuencia diaria, la frecuencia de la serie se puede configurar de la siguiente manera:
 * Diariamente (o 365), asumiendo que el ciclo más apropiado es un año completo.
 * Días de semana (o 7) siempre que la oscilación del día de la semana sea más dominante que la del ciclo de año completo.
@@ -648,9 +650,19 @@ UKgrid_month$hour <- factor(UKgrid_month$hour)
 ```
 Podemos ver en el gráfico de barras del resumen de agregación mensual que, en promedio, la demanda durante la noche (3 a.m.) y la mañana (9 a.m.) varía a lo largo de los meses del año. Además, hay un cambio significativo en la demanda durante la noche en comparación con la agregación entre semana. La variación de la serie de mes a mes indica la existencia de estacionalidad mensual en la serie.
 
-### Usando gráficos de densidades para explorar la estacionalidad.
+### Usando gráficos de densidades y Boxplot para explorar la estacionalidad.
 
 Otro enfoque para analizar patrones estacionales en datos de series de tiempo es trazar la distribución de las unidades de frecuencia mediante el uso de histogramas o gráficos de densidad. Esto nos permitirá examinar si cada unidad de frecuencia tiene una distribución única que puede distinguirla del resto de unidades. Para esto usaremos el paquete <b>ggplot2</b>. Vamos empezar con la serie USgas.
+```{r explorando estacionalidades con timetk}
+require(timetk)
+UKgrid_tbl=as_tibble(extract_grid(type = "tsibble",
+                              columns = "ND",
+                              aggregate = "hourly",
+                              na.rm = TRUE))
+UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","wday.lbl","month.lbl"))
+```
+
+
 
 ```{r exploración estacionalidad ggplot2_1 }
  library(ggplot2)
