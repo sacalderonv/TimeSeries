@@ -584,6 +584,8 @@ Es importante darse cuenta de que los intervalos de predicción de los modelos d
 Vamos a tratar de predecir la demanda de electricidad en Australia como función de la temperatura. Veamos la gráfica de las dos series:
 
 ```{r Electricidad 1}
+require(fpp3)
+library(timetk)
 ##usando ffp3
 data("vic_elec")
 str(vic_elec)
@@ -600,6 +602,13 @@ vic_elec %>%
   geom_line() + 
   facet_grid(vars(Series), scales = "free_y")   
 
+
+
+
+```
+
+
+```{r timetk gráficas}
 ###Usando timetk
 vic_elec %>%
   pivot_longer(c(Demand, Temperature), names_to="Series") %>% 
@@ -612,9 +621,8 @@ vic_elec %>%
         .legend_show = FALSE
     )
 
-
-
 ```
+
 En la gráfica de las series de tiempo para todos los años se puede observar una relación interesante.
 
 Evaluemos ahora como es la dependencia entre la temperatura y la demanda de energía. Se tiene la idea que se consume más electricidad en los días fríos debido a la calefacción y en los días calurosos debido al aire acondicionado. Veamos una gráfica entre la demanda diaria contra la temperatura máxima diaria, recordemos que las mediciones son cada media hora.
