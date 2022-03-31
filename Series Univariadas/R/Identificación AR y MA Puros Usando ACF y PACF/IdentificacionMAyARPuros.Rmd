@@ -37,7 +37,7 @@ plot(filtro_lin)
 acf(filtro_lin)
 pacf(filtro_lin)
 ```
-Tarea: Hacer lo mismo para el proceso $\mathnormal{X_{t}}=A\cos(\theta t)+B\sin(\theta t), \theta\in(-\pi,\pi)$ y $A,B$ variables aleatorias no correlacionadas con medias cero y varianzas 1.
+Tarea: Hacer lo mismo para el proceso $X_{t}=A\cos(\theta t)+B\sin(\theta t), \theta\in(-\pi,\pi)$ y $A,B$ variables aleatorias no correlacionadas con medias cero y varianzas 1.
 ```{r Caminata Aletoria}
 T=1000
 sigma=2
