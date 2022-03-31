@@ -70,6 +70,32 @@ Ygrid = TRUE)
 Qué características presenta esta serie?
 
 
+### Otros objetos
+Note que también se puede crear un objeto tsibble y usar el paquete feast, fable y fabletools(tsibble)  y timetk(tibble), lo cuales funcionan con el paquete tidyverse.
+
+```{r tsibble y timetk}
+require(feasts)
+require(fable)
+require(timetk)
+require(tsibble)
+###Creación objeto tssible a partir de un objeto tibble
+df_desempleo=data.frame(Desempleo=DesempleoyEmpleo_1$Tasadedesempleo,Fecha=Fechas)
+tbl_desempleo=tibble(df_desempleo)
+tbl_desempleo_format_fecha=tbl_desempleo
+tbl_desempleo_format_fecha$Fecha=yearmonth(tbl_desempleo_format_fecha$Fecha)
+###El tipo de fechas debe ser alguno que reconozca tsibble
+
+tsbl_desempleo=as_tsibble(tbl_desempleo_format_fecha,index=Fecha)   ####La fecha en tsibble es importante
+
+##Gráfica de tsibble
+autoplot(tsbl_desempleo,Desempleo)+labs(tittle="Serie de Desempleo Colombia Mensual",y="Tasa de Deszempleo")
+
+###Gráfica timetk
+tbl_desempleo%>%plot_time_series(.value=Desempleo,.date_var=Fecha)
+
+```
+
+
 ## Análisis de Tendencias
 Vamos a ver la forma de estimar la tendencia y/o eliminarla.
 ```{r chicken1}
@@ -114,7 +140,7 @@ print(duplicates(tibble_chicken_fechas_correct, key = NULL, index=Fecha))
 tsibble_chicken=tsibble(tibble_chicken_fechas_correct,index=Fecha)
 
 tsibble_chicken
-tibble_chicken
+
 ```
 Note que se ajusta una tendencia que se ve que no es lineal.
 ```{r chicken 4}
@@ -122,6 +148,12 @@ tibble_chicken%>%timetk::plot_time_series(Fecha, Pollo,
                    .interactive = interactive,
                    .plotly_slider = TRUE)
 ###Usa Loess para hacer el ajuste de la tendencia, es decir usar smooth_vec() como versión simplificada de stats::loess()
+tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.75, degree = 2))
+
+tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.75, degree = 2))%>%
+  ggplot(aes(Fecha, Pollo)) +
+    geom_line() +
+    geom_line(aes(y = Pollo_ajus), color = "red")
 
 ```
 
@@ -135,6 +167,8 @@ chicken_decompo=decompose(chicken)
 plot(chicken_decompo)
 chicken_decompo$trend
 ```
+Simule unos datos III, crear un objeto con periodicidad s=12, y extraer la descomposición, qué puede observar?
+
 
 ## Descomposición STL
 STL son las iniciales de “Seasonal and Trend decomposition using Loess”,el cual fue desarrollado por R. B. Cleveland et al. (1990).
@@ -195,12 +229,12 @@ acf(diff(chicken), 48, main="ACF Primera Diferencia")
  En ocasiones la serie presenta varianza marginal no constante a lo largo del tiempo, lo cual hace necesario tener en cuenta tal característica. 
 En este caso, se siguiere hacer una transformación de potencia para estabilizar la varianza. Esta familia de transformaciones se llaman transformaciones Box-Cox.
 
-\begin{equation}
+$$
 	f_{\lambda}(u_{t})= \begin{cases}
 		\lambda^{-1}(u^{\lambda}_{t}-1), &  \text{si  $u_{t} \geq 0$, para $\lambda>0$,}\\
 		\ln(u_{t}), &\text{ si $u_{t}>0$, para $\lambda=0$}.
 	\end{cases}
-\end{equation}
+$$
 
 ```{r BoxCox}
 data("AirPassengers")
@@ -217,6 +251,9 @@ par(mar = c(3,2,3,2))
 par(mfrow=c(2,1))
 plot(AirPassengers,main="Serie de Pasajeros sin Transformar")
 plot(lAirPass,main="Series con Transformación BoxCox")
+
+##Box-Cox con timetk
+timetk::box_cox_vec(AirPassengers,lambda = 'auto',silent = F)
 ```
 Note que ahora usamos la misma función para verificar si en verdad la varianza fue estabilizada.
 
@@ -234,7 +271,7 @@ library(car)
 VGAM::yeo.johnson(AirPassengers, lambda = 0)
 car::yjPower(AirPassengers,lambda=0)
 
-timetk::box_cox_vec(AirPassengers,lambda = 'auto',silent = F)
+
 
 ```
 
@@ -248,7 +285,7 @@ Vamos a correr lo mismo pero en Python para la transformación de BoxCox
 ```{r configuración, include=FALSE}
 library(knitr) 
 library(reticulate)
-use_condaenv(condaenv = "Python38andR", conda = "auto", required = TRUE)
+use_condaenv(condaenv = "Ambiente38", conda = "auto", required = TRUE)
 #pandas=import("pandas")
 knitr::knit_engines$set(python = reticulate::eng_python) 
 ```
