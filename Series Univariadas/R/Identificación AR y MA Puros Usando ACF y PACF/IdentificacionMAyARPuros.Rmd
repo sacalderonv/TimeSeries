@@ -26,7 +26,7 @@ Note que hay dependencia hasta el rezago $h=2k$.
 k=2
 T=2000+2*k
 
-a=rnorm(2*k+1,2,1)
+a=rnorm(2*k+1,5,1)
 Zt=rnorm(T,0,1) ##proceso IID
 Xt=rep(0,T)
 for(t in (k+1):(T-k))
