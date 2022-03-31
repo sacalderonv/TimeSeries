@@ -49,7 +49,7 @@ us_change %>%
 
 ```
 
-El anterior diagrama de dispersión nos permite ver una relación lineal muy clara de forma instantánea.
+El anterior diagrama de dispersión no permite ver una relación lineal muy clara de forma instantánea.
 Exploremos las autocorrelaciones.
 
 ```{r reg 1 autocorrelaciones}
@@ -84,17 +84,6 @@ Ajustesreg1=us_change %>%
 
 Note que el poder explicativo del ingreso no es muy alto.
 
-
-
-## Verficación de los supuestos
-
-```{r supuestos reg1}
-Ajustesreg1%>% gg_tsresiduals()
-
-```
-
-La gráfica de los residuales no parece mostrar patrones sitemáticos(tendencia o ciclos), sin embargo si parecen estar autocorrelacionados. También parecen tener unos valores atípicos. Con esto, nos podemos dar cuenta que el ajuste del modelo no es bueno, lo cual implica que es necesario cambiar el modelo. Vamos ahora a considerar ahora un modelo donde se incluyan mas variables, también se puede considerar que tenga en cuenta la estructura de autocorrelación presente en los residuales.
-
 ```{r gls}
 salida_sincorrelacion=nlme::gls(Consumption ~ Income,us_change)
 corr = nlme::corARMA(value=c(0.2,0.4),p = 1, q = 1)
@@ -108,8 +97,17 @@ coeftest(salida_concorrelacion)
 ```
 
 
+## Verficación de los supuestos
+
+```{r supuestos reg1}
+Ajustesreg1%>% gg_tsresiduals()
+
+```
+
+La gráfica de los residuales no parece mostrar patrones sistemáticos(tendencia o ciclos), sin embargo si parecen estar autocorrelacionados. También parecen tener unos valores atípicos. Con esto, nos podemos dar cuenta que el ajuste del modelo no es bueno, lo cual implica que es necesario cambiar el modelo. Vamos ahora a considerar ahora un modelo donde se incluyan mas variables, también se puede considerar que tenga en cuenta la estructura de autocorrelación presente en los residuales.
+
 ## Regresión múltiple
-Vamos ahora a considerar que los cambios porcentuales del consumo no solo es función de los cambios porcentuales ingreso sino también de otras variable como producción, desempleo y ahorros. Vamos primero a graficar las series de tiempode  las otras tres variables.
+Vamos ahora a considerar que los cambios porcentuales del consumo no solo es función de los cambios porcentuales ingreso sino también de otras variable como producción, desempleo y ahorros. Vamos primero a graficar las series de tiempo de  las otras tres variables.
 
 ```{r timeplots Reg mult}
 us_change %>%
@@ -281,7 +279,7 @@ Note que el $R^2$ del ajuste es muy alto, pero también muestra una alta autocor
 library(readxl)
 library(zoo)
 
-Desempleo<- read_excel("/Users/sergiocalderon/Documents/GitHub/TimeSeries/Series Univariadas/Bases de Datos/Desempleo.xlsx", col_types = c("text", "numeric"), col_names=c('Fecha','TasaDesempleo'),skip=1)
+Desempleo<- read_excel("Desempleo.xlsx", col_types = c("text", "numeric"), col_names=c('Fecha','TasaDesempleo'),skip=1)
 
 Desempleo$Fecha=yearmonth(Desempleo$Fecha)
 str(Desempleo)
@@ -320,6 +318,22 @@ recent_production %>%
        title = "producción de cerveza trimestral en Australia")
 
 ```
+###Mas exploración  del ciclo estacional
+
+```{r exploracion estacionalidad}
+aus_production %>% gg_season(Beer)
+aus_production %>% gg_subseries(Beer)
+aus_production %>% filter(year(Quarter) > 1991) %>% gg_lag(Beer)
+aus_production %>% ACF(Beer) %>% autoplot()
+```
+## Exploración usando timetk
+```{r}
+require(timetk)
+Prod_beer<-as_tibble(aus_production%>%select(Beer))
+Prod_beer$Quarter<-as.Date(Prod_beer$Quarter)
+Prod_beer%>%plot_seasonal_diagnostics(Quarter,Beer,.feature_set = c("quarter","year"))
+```
+
 
 Vamos a ajustarle a esta serie un modelo con tendencia lineal y con dummy estacionales.La función season() reconoce inmediatamente que para una serie trimestral, el ciclo tiene un periodo de 4, mientras que trend() reconoce que un una tendencia lineal. El modelo a ajustarse es el siguiente:
 
@@ -348,6 +362,17 @@ augment(fit_beer) %>%
        title = "producción de cerveza trimestral en Australia") +
   guides(colour = guide_legend(title = "Series"))
 ```
+Note que se puede producir las variables Dummy como sigue:
+```{r Dummy estacionales 3}
+require(uroot)
+require(forecast)
+month1 <- seasonaldummy(ldeaths)
+month1
+
+
+seasonal.dummies(ldeaths)
+```
+
  
 ## Componentes de Fourier
 Vamos a hacer un ajuste haciendo una regresión con componentes de Fourier donde solo tomamos dos componentes en la suma. En este caso solo hay tres componentes de Fourier ya que el segundo componente del seno siempre va a dar cero.
@@ -496,6 +521,7 @@ Nota: Recuerde construir el modelo para los errores usando las herramientas del 
 
 Así el modelo queda expresando de la siguiente manera:
 $$y_t=0.5949310+0.1976247x_t+\eta_t$$ 
+
 donde
 $$\eta_t-0.7070037\eta_{t-1}=\epsilon_t-0.6172115\epsilon_{t-1}+0.2066358\epsilon_{t-2}$$
 
@@ -526,7 +552,7 @@ bind_rows(
 Por supuesto los residuales del modelo ARIMA 
 $\{\hat{\epsilon}_t\}$ deberían parecerse a un ruido blanco.
 
-## Cheqeo de los Residuales del modelo
+## Chequeo de los Residuales del modelo
 
 Veamos los residuales del modelo, es decir los residuales del modelo ARIMA.
 
@@ -748,9 +774,32 @@ fit_best %>%
   )
 
 ```
+
+
 En seguida se visualizan los intervalos de pronóstico.
+
+```{r intervalos de predicción}
 fit_best %>%
   forecast(insurance_future)%>% hilo()
+```
+
+  
+Tarea: Explore el conjunto de datos walmart_sales_weekly del paquete timetk, que son ventas semanales para una tienda Walmart, cuya descripción está en https://business-science.github.io/timetk/reference/walmart_sales_weekly.html. Estos datos son de una competencia en Kaggle(https://www.kaggle.com/competitions/walmart-recruiting-store-sales-forecasting/data), donde se espera proyectar las ventas de cada departamento(7 en total) usando las variables predictoras disponibles. Proponga dos modelos de los vistos en clase hasta para proyectar las venta de un departamento y evalué los pronósticos obtenidos(Entrenamineto 80%). No debe haber estudiantes con departamentos iguales. Tenga en cuenta que hay unos markdown solo se midieron desde el 2011 y por eso tiene NA's. 
+
+```{r}
+timetk::walmart_sales_weekly
+```
+
+
+```{r Gráfica serie un departamento}
+dep=1
+walmart_sales_weekly%>%group_by(Dept)%>%plot_time_series(Date,Weekly_Sales,.facet_ncol  = 2,    
+                     .interactive = FALSE,.smooth=F)
+
+```
+
+  
+
 
 
 
