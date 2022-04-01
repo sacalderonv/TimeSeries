@@ -150,7 +150,7 @@ tibble_chicken%>%timetk::plot_time_series(Fecha, Pollo,
 ###Usa Loess para hacer el ajuste de la tendencia, es decir usar smooth_vec() como versión simplificada de stats::loess()
 tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.75, degree = 2))
 
-tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.75, degree = 2))%>%
+tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.5, degree = 1))%>%
   ggplot(aes(Fecha, Pollo)) +
     geom_line() +
     geom_line(aes(y = Pollo_ajus), color = "red")

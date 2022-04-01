@@ -729,6 +729,7 @@ vic_elec_future <- new_data(vic_elec_daily2014, 14) %>%
       TRUE ~ "Weekend"
     )
   )
+
 forecast(fit, vic_elec_future) %>%
   autoplot(vic_elec_daily2014) +
   labs(title="Demanda de electricidad diaria: Estado Victoria",

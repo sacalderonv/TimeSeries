@@ -20,7 +20,9 @@ pacf(ts_IID)  ###La autocorrelación Parcial mide la asociación estadística en
 ```
 ###Filtro lineal invariante
 Se desea simular observaciones que provienen de:
+
 $$X_t=\sum_{j=-k}^{k}a_jZ_{t-j}$$
+
 Note que hay dependencia hasta el rezago $h=2k$.
 ```{r filtro lineal}
 k=2
