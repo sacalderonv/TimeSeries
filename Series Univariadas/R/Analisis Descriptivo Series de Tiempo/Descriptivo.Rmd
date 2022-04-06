@@ -168,6 +168,10 @@ plot(chicken_decompo)
 chicken_decompo$trend
 ```
 Simule unos datos III, crear un objeto con periodicidad s=12, y extraer la descomposición, qué puede observar?
+```{r}
+y=ts(rnorm(1000,0,1),start=c(2000,01),frequency = 4)
+plot(decompose(y))
+```
 
 
 ## Descomposición STL
@@ -247,7 +251,8 @@ forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = -1, upper = 
 FitAR::BoxCox(AirPassengers)###Me entrega una gráfica
 plot(forecast::BoxCox(AirPassengers,lambda=-0.294731))###
 lAirPass=log(AirPassengers)
-par(mar = c(3,2,3,2))
+x11()
+par(mar = c(1,1,1,1))
 par(mfrow=c(2,1))
 plot(AirPassengers,main="Serie de Pasajeros sin Transformar")
 plot(lAirPass,main="Series con Transformación BoxCox")

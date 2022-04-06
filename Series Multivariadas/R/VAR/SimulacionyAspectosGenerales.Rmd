@@ -1,0 +1,57 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Procesos VAR Estables
+
+Sea el proceso VAR(p)
+		$${Y}_t={\nu}+A_1 {Y}_{t-1} +\cdots+A_p {Y}_{t-p}+u_t, \  \  t=0,\pm1,\pm2,\cdots,$$
+```{r simul VAR}
+set.seed(123) 
+# Generate sample
+t <- 200 # Longitud de la serie
+k <- 2 # dimensión del vector Y
+p <- 2 # Número de retardos
+
+# Matrices de coeficientes
+A.1 <- matrix(c(-.3, .6, -.4, .5), k) # Matriz A1, retardo 1
+A.2 <- matrix(c(-.1, -.2, .1, .05), k) # Matriz A2, retardo 2
+A <- cbind(A.1, A.2) 
+
+# Generación de la serie
+series <- matrix(0, k, t + 2*p) # Condiciones iniciales
+for (i in (p + 1):(t + 2*p)){ # Generar series con e ~ N(0,0.5)
+  series[, i] <- A.1%*%series[, i-1] + A.2%*%series[, i-2] + rnorm(k, 0, .5)
+}
+
+series <- ts(t(series[, -(1:p)])) # Convertir a una serie con formato ts
+names <- c("V1", "V2") # Renombrar las variables
+
+plot.ts(series) # dibujarlas series
+```
+
+##Simulando usando tsDyn
+
+```{r simul tsDyn}
+library(tsDyn)
+library(MTS)
+set.seed(123) 
+sig=.5
+varcoverr=diag(sig,dim(A)[1])
+var2=tsDyn::VAR.sim(A,n=200,lag=2,include="none",varcov=varcoverr) ###El vector de coeficientes debe ser parte de la matriz de coeficientes.
+ts_var2=ts(var2)
+plot(ts_var2)
+
+```
+
+```{r simul MTS}
+
+intercept=c(rep(0,dim(A)[1]))
+VAR2=MTS::VARMAsim(nobs = 200,arlags = c(2),cnst=intercept,phi = A,sigma=varcoverr)
+ts_VAR2=ts(VAR2$series)
+plot(ts_VAR2)
+```
+
+
+

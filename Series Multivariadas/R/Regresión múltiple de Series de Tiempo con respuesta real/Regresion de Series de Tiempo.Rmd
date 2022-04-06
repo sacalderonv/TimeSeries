@@ -730,7 +730,7 @@ vic_elec_future <- new_data(vic_elec_daily2014, 14) %>%
     )
   )
 
-forecast(fit, vic_elec_future) %>%
+fabletools::forecast(fit, vic_elec_future) %>%
   autoplot(vic_elec_daily2014) +
   labs(title="Demanda de electricidad diaria: Estado Victoria",
        y="GW")
@@ -800,7 +800,7 @@ Ahora produzcamos lo pronósticos para los siguientes 20 meses asuminedo un valo
 insurance_future <- new_data(insurance, 20) %>%
   mutate(TVadverts = 8)
 fit_best %>%
-  forecast(insurance_future) %>%
+  fabletools::forecast(insurance_future) %>%
   autoplot(insurance) +
   labs(
     y = "Quotes",
@@ -814,7 +814,7 @@ En seguida se visualizan los intervalos de pronóstico.
 
 ```{r intervalos de predicción}
 fit_best %>%
-  forecast(insurance_future)%>% hilo()
+  fabletools::forecast(insurance_future)%>% hilo()
 ```
 
   

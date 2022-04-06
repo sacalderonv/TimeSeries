@@ -87,7 +87,7 @@ tree.fit
 summary(tree.fit)
 
 plot(tree.fit)
-text(tree.fit,cex=0.2)
+text(tree.fit,cex=0.5)
 ```
 ### Bosques Aletorios
 Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
@@ -115,6 +115,8 @@ partialPlot(rf.fit,data.frame(cbind(Y,X1)),"USGOOD") ##representación gráfica 
 Tarea:Qué sucede si aumentamos el número de predictoras en las particiones?
 
 Hacer la mejora de requerirse usando la metodología que se menciona enseguida!
+
+Recuerde que en el archivo Arboles.Rmd de series univariadas se encuentra 
 
 
 ## Random Forest con remuestreo temporal 
