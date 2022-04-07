@@ -3,7 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-## Procesos VAR Estables
+## Procesos (Vectores Autorregresivos)VAR Estables
 
 Sea el proceso VAR(p)
 		$${Y}_t={\nu}+A_1 {Y}_{t-1} +\cdots+A_p {Y}_{t-p}+u_t, \  \  t=0,\pm1,\pm2,\cdots,$$
@@ -51,7 +51,35 @@ intercept=c(rep(0,dim(A)[1]))
 VAR2=MTS::VARMAsim(nobs = 200,arlags = c(2),cnst=intercept,phi = A,sigma=varcoverr)
 ts_VAR2=ts(VAR2$series)
 plot(ts_VAR2)
+
 ```
+### Procesos no estables
+a11=1
+a12=0.5
+a21=0.6
+a22=0.1
+
+UnitCircle::uc.check(c(1,-(a11+a12),(a11*a22-a12*a22)))
+
+
+```{r no estables}
+a11=1
+a12=0.5
+a21=0.6
+a22=0.1
+x11()
+UnitCircle::uc.check(c(1,-(a11+a22),(a11*a22-a12*a21)))
+
+A1_ne=matrix(c(a11,a12,a21,a22),2,2)
+intercept=c(rep(0,dim(A)[1]))
+VAR2_ne=MTS::VARMAsim(nobs = 200,arlags = c(1),cnst=intercept,phi = A1_ne,sigma=varcoverr)
+ts_VAR2_ne=ts(VAR2_ne$series)
+plot(ts_VAR2_ne)
+```
+
+
+
+###Ejemplo y Exploración ACF y PACF cruzadas
 
 
 

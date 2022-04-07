@@ -394,7 +394,7 @@ ts_lags(soi,lags=1:12)
 Cuando el proceso es estacionario, o al menos no presenta tendencia, podemos usar el gráfico acf para explorar las posibles relaciones lineales a diferentes rezagos. En seguida mostramos la función de autocorrelación para el índice soi y la serie de nuevos peces. 
 
 ```{r acf1}
-#pdf('/Users/sergiocalderon/Documents/Documentos - iMac de Sergio/Documentos iMac Sergio/Notas de Clase/Notas de clase/Notas de Clase Series de Tiempo Univariadas/Graficas/ACFsoiRec.pdf',paper="USr")
+
 par(mfrow=c(2,1))
 par(mar = c(2.7,2,2.7,2))
 acf(soi, 48, main="Southern Oscillation Index")
@@ -414,9 +414,9 @@ index_soi_rec=as.Date(as.yearmon(tk_index(soi)))
 df_soi_rec=data.frame(Fecha_soi_rec=index_soi_rec,soi=as.matrix(soi),rec=as.matrix(rec))
 
 tibble_soi_rec=tibble(df_soi_rec)
-duplicates(tibble_soi_rec, key = NULL, index=Fecha_soi_rec)   ##Mirar si hay registros duplicados
+tsibble::duplicates(tibble_soi_rec, key = NULL, index=Fecha_soi_rec)   ##Mirar si hay registros duplicados
 
-tibble_soi_rec%>%plot_acf_diagnostics(Fecha_soi_rec,soi,.ccf_vars = rec,.lags = 20)
+tibble_soi_rec%>%plot_acf_diagnostics(Fecha_soi_rec,soi,.ccf_vars = rec,.lags = 36)
 
 ```
 
@@ -522,6 +522,12 @@ USgas_summary
    layout (title = "USgas - Monthly Average", yaxis =list(title = "Mean",   range = c(1500, 2700)))
   
   monthplot(USgas)
+  
+  ####También lo podemos hacer usando el paquete feasts y el objeto tsibble
+  USgas_tsbl=as_tsibble(USgas)
+  require(feasts)
+  USgas_tsbl=as_tsibble(USgas)
+  USgas_tsbl%>%gg_subseries(value)###Puede usar el argumento period=12 y da el mismo resultado, lo que significa es que se pueden agrupar las observaciones que están cada 12.
 ```
 Note que basados en las estadísticas descriptivas podemos ver que las medias son distintas para algunos meses, incluso sin quitar la tendencia. A una misma conclusión llegamos basados en los gráficos. Estas son típicas características de que hay presente un ciclo estacional en la serie.
 
@@ -547,6 +553,15 @@ ts_plot(UKgrid_xts,
             Xtitle = "Year",
             Xgrid = TRUE,
             Ygrid = TRUE)
+
+UKgrid_tstbl <- extract_grid(type = "tsibble",
+                              columns = "ND",
+                              aggregate = "hourly",
+                              na.rm = TRUE)
+
+UKgrid_tbl <-as_tibble(UKgrid_tstbl)
+
+
 ```
 
 
@@ -567,7 +582,7 @@ Usando el paquete <b>lubridate</b> crearemos las características.
 
 ```{r multiples patrones estacionales_1}
 library(xts)
-UKgrid_df <- data.frame(time = index(UKgrid_xts), UKgrid=as.numeric(UKgrid_xts))
+UKgrid_df <- data.frame(time = zoo::index(UKgrid_xts), UKgrid=as.numeric(UKgrid_xts))
 str(UKgrid_df)
 ```
 Ahora crearemos características estacionales basados en los periodos que deseamos explorar, por ejemplo hora del día,o día de la semana, o mes del año.
@@ -665,6 +680,12 @@ UKgrid_tbl=as_tibble(extract_grid(type = "tsibble",
                               aggregate = "hourly",
                               na.rm = TRUE))
 UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","wday.lbl","month.lbl"))
+
+
+```
+
+```{r subseries}
+UKgrid_tstbl%>%gg_subseries(ND)
 ```
 
 
