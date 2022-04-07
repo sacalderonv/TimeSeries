@@ -89,7 +89,7 @@ hist(resi)
 ```
 # Poda del Árbol
 
-```{r Poda}
+```{r Poda Validación cruzada}
 cv.t1 = cv.tree(t1)
 plot(cv.t1$size,cv.t1$dev,type="b")##Parece que el tamaño del árbol es 4
 prune.t1= prune.tree(t1,best=4)

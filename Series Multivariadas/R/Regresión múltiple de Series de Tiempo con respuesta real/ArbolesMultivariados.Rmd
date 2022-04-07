@@ -88,6 +88,13 @@ summary(tree.fit)
 
 plot(tree.fit)
 text(tree.fit,cex=0.5)
+dim(X1)
+n_entre=600
+X1.train=X1[1:n_entre,]
+Y.train=Y[1:n_entre]
+
+X1.test=X1[(n_entre+1):dim(X1)[1],]
+Y.test=Y[(n_entre+1):dim(X1)[1]]
 ```
 ### Bosques Aletorios
 Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores a seleccionarse en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
@@ -95,11 +102,15 @@ Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso t
 ```{r random forest}
 require(randomForest)
 set.seed(117)
-rf.fit <- randomForest(X1,Y,ntree=500,mtry=20,importance=TRUE)
+rf.fit <- randomForest(X1.train,Y.train,ntree=500,mtry=20,importance=TRUE)
 rf.fit
 
 
 plot(rf.fit) ###Esta gráfica permite ver la disminución del ECM de predicción al incrementar el número de árboles.
+```
+
+```{r Importancia y Grácias de dependencia parcial}
+
 dim(rf.fit$importance)
 
 plot(1:732,rf.fit$importance[,2],ylab="mean decrease in MSE")   ##La gráfica muestra la disminución medio el EMC de pronóstico de cada predictor. 
@@ -109,8 +120,34 @@ varImpPlot(rf.fit)   ###Importancia de las variables
 require(pdp)
 require(vip)
 vip(rf.fit, bar = FALSE, horizontal = FALSE, size = 1.5)
-partialPlot(rf.fit,data.frame(cbind(Y,X1)),"USGOOD") ##representación gráfica del efecto marginal de una variable en la respuesta
+partialPlot(rf.fit,data.frame(cbind(Y.train,X1.train)),"USGOOD") ##representación gráfica del efecto marginal de una variable en la respuesta
 ```
+
+```{r Como cambian el error cuadrático medio con respecto a la número de predictores}
+K=30
+oob.err=double(K)
+test.err=double(K)
+
+##mtry is number of Variables randomly chosen at each split
+for(mtry in 1:K) 
+{
+  rf=randomForest(X1.train,Y.train,ntree=500,mtry=mtry,importance=TRUE)
+  oob.err[mtry] = rf$mse[400] 
+  
+  pred<-predict(rf,X1.test) #Predictions on Test Set for each Tree
+  test.err[mtry]= mean((Y.test - pred)^2) #Mean Squared Test Error
+  
+  cat(mtry," ") #printing the output to the console
+}
+oob.err
+test.err
+```
+
+```{r Gráfico}
+matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Error Cuadrático Medio",xlab="Número de Predictores Considerados en cada división")
+legend("top",legend=c("Error Intramuestra","Error en el conjunto de Prueba"),pch=19, col=c("red","blue"))
+```
+
 
 Tarea:Qué sucede si aumentamos el número de predictoras en las particiones?
 
