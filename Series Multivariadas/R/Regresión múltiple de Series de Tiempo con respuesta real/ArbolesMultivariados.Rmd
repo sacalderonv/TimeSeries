@@ -90,7 +90,7 @@ plot(tree.fit)
 text(tree.fit,cex=0.5)
 ```
 ### Bosques Aletorios
-Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
+Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores a seleccionarse en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
 
 ```{r random forest}
 require(randomForest)

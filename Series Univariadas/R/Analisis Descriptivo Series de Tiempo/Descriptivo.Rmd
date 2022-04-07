@@ -542,6 +542,11 @@ Vamos a trabajar la base datos relacionada con el sistema nacional de transmisi�
 
 ```{r mas acerca de estacionalidad}
 library(UKgrid)
+require(TSstudio)
+require(timetk)
+require(feasts)
+require(tsibble)
+require(plotly)
 UKgrid_xts <- extract_grid(type = "xts",
                               columns = "ND",
                               aggregate = "hourly",
@@ -607,6 +612,7 @@ UKgrid_hourly
 Vamos ahora a hacer la gráfica de la media y la desviación estándar con base en las horas. Note que esas gráficas en escalas diferentes, así que hay que usar un gráfico especial.
 
 ```{r horario UKgrid_1}
+require(plotly)
  plot_ly(UKgrid_hourly) %>%
       add_lines(x = ~ hour, y = ~ mean, name = "Media") %>%
       add_lines(x = ~ hour, y = ~ sd, name = "Desviación Estándar", yaxis =
@@ -675,17 +681,18 @@ Podemos ver en el gráfico de barras del resumen de agregación mensual que, en 
 Otro enfoque para analizar patrones estacionales en datos de series de tiempo es trazar la distribución de las unidades de frecuencia mediante el uso de histogramas o gráficos de densidad. Esto nos permitirá examinar si cada unidad de frecuencia tiene una distribución única que puede distinguirla del resto de unidades. Para esto usaremos el paquete <b>ggplot2</b>. Vamos empezar con la serie USgas.
 ```{r explorando estacionalidades con timetk}
 require(timetk)
-UKgrid_tbl=as_tibble(extract_grid(type = "tsibble",
-                              columns = "ND",
-                              aggregate = "hourly",
-                              na.rm = TRUE))
+UKgrid_tbl
 UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","wday.lbl","month.lbl"))
 
 
 ```
 
 ```{r subseries}
-UKgrid_tstbl%>%gg_subseries(ND)
+
+UKgrid_tstbl%>%gg_subseries(ND,period=24)
+
+
+
 ```
 
 
