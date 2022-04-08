@@ -153,6 +153,12 @@ library(fpp)
 library(fpp3)
 library(fable)
 library(feasts)
+data(elecequip)
+autoplot(elecequip)
+elecequip_tsibble=as_tsibble(elecequip)
+elecequip_tsibble%>%gg_subseries(value,period=12)
+elecequip_tsibble<-elecequip_tsibble%>%mutate(diff_value=difference(value))
+elecequip_tsibble%>%gg_subseries(diff_value,period=12)
 ###La base de datos "elecequip" está en en el paquete fpp
 ###Note que el operador %>% pipe permite concatenar múltiples dplyr operaciones
 ###Manufacture of electrical equipment: computer, electronic and optical products

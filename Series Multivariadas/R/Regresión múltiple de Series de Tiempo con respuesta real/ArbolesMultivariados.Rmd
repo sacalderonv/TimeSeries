@@ -88,6 +88,9 @@ summary(tree.fit)
 
 plot(tree.fit)
 text(tree.fit,cex=0.5)
+
+
+########División entrenamiento y prueba
 dim(X1)
 n_entre=600
 X1.train=X1[1:n_entre,]
@@ -97,7 +100,7 @@ X1.test=X1[(n_entre+1):dim(X1)[1],]
 Y.test=Y[(n_entre+1):dim(X1)[1]]
 ```
 ### Bosques Aletorios
-Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores a seleccionarse en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
+Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores a seleccionarse en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
 
 ```{r random forest}
 require(randomForest)
@@ -121,23 +124,29 @@ require(pdp)
 require(vip)
 vip(rf.fit, bar = FALSE, horizontal = FALSE, size = 1.5)
 partialPlot(rf.fit,data.frame(cbind(Y.train,X1.train)),"USGOOD") ##representación gráfica del efecto marginal de una variable en la respuesta
+partialPlot(rf.fit,data.frame(cbind(Y.train,X1.train)),"NDMANEMP") ##representación gráfica del efecto marginal de una variable en la respuesta
 ```
 
 ```{r Como cambian el error cuadrático medio con respecto a la número de predictores}
-K=30
+kinic=150
+Kfinal=180
+K=Kfinal-kinic
 oob.err=double(K)
 test.err=double(K)
 
 ##mtry is number of Variables randomly chosen at each split
-for(mtry in 1:K) 
+i=1
+for(mtry in kinic:Kfinal) 
 {
-  rf=randomForest(X1.train,Y.train,ntree=500,mtry=mtry,importance=TRUE)
-  oob.err[mtry] = rf$mse[400] 
+  
+  rf=randomForest(X1.train,Y.train,ntree=300,mtry=mtry,importance=TRUE)
+  oob.err[i] = rf$mse[400] 
   
   pred<-predict(rf,X1.test) #Predictions on Test Set for each Tree
-  test.err[mtry]= mean((Y.test - pred)^2) #Mean Squared Test Error
+  test.err[i]= mean((Y.test - pred)^2) #Mean Squared Test Error
   
-  cat(mtry," ") #printing the output to the console
+  cat(i," ") #printing the output to the console
+  i=i+1
 }
 oob.err
 test.err
@@ -145,7 +154,7 @@ test.err
 
 ```{r Gráfico}
 matplot(1:mtry , cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Error Cuadrático Medio",xlab="Número de Predictores Considerados en cada división")
-legend("top",legend=c("Error Intramuestra","Error en el conjunto de Prueba"),pch=19, col=c("red","blue"))
+#legend("top",legend=c("Error Intramuestra","Error en el conjunto de Prueba"),pch=19, col=c("red","blue"))
 ```
 
 
