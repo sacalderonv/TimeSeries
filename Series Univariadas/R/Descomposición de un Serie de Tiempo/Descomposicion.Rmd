@@ -149,8 +149,8 @@ autoplot(elecequip, series="Data") +
 
 ```{r STL}
 library(dplyr)
-library(fpp)
 library(fpp3)
+library(fpp)
 library(fable)
 library(feasts)
 data(elecequip)
@@ -201,12 +201,22 @@ fit %>% forecast(method="naive") %>%
 fcast1 <- stlf(elecequip, method='naive')
 fcast <- stlf(elecequip, method='ets')
 
+###Ajuste usando STL de feasts y model
+
+fit_elecequip_tsibble =elecequip_tsibble%>%
+  model(stlf=decomposition_model(STL(value ~ trend(window = 13) +
+                   season(window = "periodic"),
+    robust = TRUE),NAIVE(season_adjust)))
+
+fit_elecequip_tsibble%>%fabletools::forecast()%>%autoplot(elecequip_tsibble)+ labs(y=" a",title=" b")  
+###Por defecto hace el pronóstico para el doble del ciclo estacional 
 ```
 
 #Suavizamiento Exponencial
 Si no se desea alguna componente, hay que establecer los parámetros en cero.
 
 ```{r Suavizamiento exponencial}
+tsibble_lAirPass=as_tsibble(lAirPass)
 HWAP=stats::HoltWinters(lAirPass,seasonal="additive")
 plot(HWAP)
 ajustados=fitted(HWAP)
@@ -220,12 +230,21 @@ predictionHWAP_2=predict(HWAP,n.ahead = 12, prediction.interval = T, level = 0.9
 predictionHWAP_2=forecast::InvBoxCox(predictionHWAP_2,lambda=0)
 predictionHWAP_2
 
+####Usando objeto tsibble con ETS de fable, "A":additive "M": multiplicative, "N":nada, "Ad" "Md" damped. Note que hay algunos parámetros que se pueden estabelcer en cero
+ajustepass=tsibble_lAirPass%>%
+  model(ETS(value~ error("A")+trend("A")+season("A")))
+
+pronostico=ajustepass%>%
+  fabletools::forecast(h=12)
+pronostico
+
+pronostico%>%autoplot(tsibble_lAirPass)+geom_line(aes(y=.fitted),col="#D55E00",data=augment(ajustepass))+labs(y=" ",title="Pronóstico u ajustados")+guides(colour="none")
 ```
 
 la función ets,ses, holt y hw de forecast también permiten hacer suavizamiento exponencial.
 
 
-Tarea: Del libro electrónico fpp3 por favor complementar el tema de descomposición y suavizamineto exponencial con la lectura de todas las secciones:
+Tarea: Del libro electrónico fpp3 por favor complementar el tema de descomposición y suavizamiento exponencial con la lectura de todas las secciones:
 https://otexts.com/fpp3/decomposition.html
 
 https://otexts.com/fpp3/expsmooth.html

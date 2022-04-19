@@ -806,7 +806,9 @@ plot.ts(cs+5*w, main=expression(2*cos(2*pi*t/50+.6*pi) + N(0,25)))
 ```
 Note que cuando la varianza del ruido es mas grande, es mas complicado ver el cíclo.
 
-Vamos a re-escribir el proceso anterior usando la relación trigonométrica $\cos(\alpha \pm \beta) = \cos(\alpha) \cos(\beta) \mp \sin(\alpha) \sin(\beta),$ con lo cual:
+Vamos a re-escribir el proceso anterior usando la relación trigonométrica 
+$\cos(\alpha \pm \beta) = \cos(\alpha) \cos(\beta) \mp \sin(\alpha) \sin(\beta),$
+con lo cual:
 
 $$A \cos(2\pi\omega t + \varphi) = \beta_1 \cos(2\pi\omega t) + \beta_2 \sin(2\pi\omega t)$$
 donde $\beta_1=A\cos(\varphi)$ y $\beta_2=-A\sin(\varphi)$, así que el proceso queda escrito de la siguiente manera:
@@ -899,6 +901,40 @@ spectrum(x,log='no',span=5)
 spectrum(x,log='no',span=c(5,5))
 spectrum(x,log='no',span=c(2,2))
 ```
+Qué sucede si no consideramos un ciclo determinístico a través de funciones sinusoidales sino que lo consideramos a través de variables Dummy? Es decir por ejemplo una componente estacional de periodo 4, modelado a través de variables dummy.
+$$Y_t=\delta_1\gamma_{1,t}+\delta_2\gamma_{2,t}+\delta_3\gamma_{3,t}+\delta_4\gamma_{4,t}+\epsilon_{t}$$
+donde las variables dummy $\gamma_{i,t}, i=1,2,3,4$ indican si se está en el trimestre $i$. Puede en periodograma detactar este tipo de estacionalidades obtenidas a través de dummy estacionales?
+
+```{r Dummy Est}
+
+library(dplyr)
+library(rstanarm)
+library(rstan)
+library(ggplot2)
+library(bayesplot)
+
+
+s=4
+deltas=seq(1:s)
+
+####Ejemplo Fácil Dummy+ruido
+
+T=200*s
+epsilon=rnorm(T,0,1)
+l=diag(s)
+X=matrix(rep(t(l),T/s),ncol=ncol(l),byrow=TRUE)
+Y=X%*%deltas+epsilon
+plot(as.ts(Y))
+acf(as.ts(Y))
+simul=data.frame(resp=Y,diseno=X)
+salida_dummy_ruido=stan_glm(resp~. -1,data=simul)
+PeriodgramaY=spectrum(Y,log='no')
+ubicacionY=which.max(PeriodgramaY$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaY$freq[ubicacionY])
+
+sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaY$freq[ubicacionY])
+```
+
 
 Veamos ahora con una serie de tiempo real. Usaremos la serie SOi y Recruitment para ilustrar su uso. Recordemos que ambas series son mensuales, así que las frecuencias que serán dibujadas en el eje x vendrán en múltiplos de $\frac{1}{12}$. Usaremos ahora la función <b> mvspec</b> del paquete <b>astsa</b>.
 
