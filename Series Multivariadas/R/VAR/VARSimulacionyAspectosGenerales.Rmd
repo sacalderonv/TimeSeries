@@ -54,27 +54,77 @@ plot(ts_VAR2)
 
 ```
 ### Procesos no estables
-a11=1
-a12=0.5
-a21=0.6
-a22=0.1
-
-UnitCircle::uc.check(c(1,-(a11+a12),(a11*a22-a12*a22)))
 
 
 ```{r no estables}
+sig=.5
+
 a11=1
-a12=0.5
-a21=0.6
+a21=0.5
+a12=0.6
 a22=0.1
 x11()
 UnitCircle::uc.check(c(1,-(a11+a22),(a11*a22-a12*a21)))
 
-A1_ne=matrix(c(a11,a12,a21,a22),2,2)
-intercept=c(rep(0,dim(A)[1]))
+A1_ne=matrix(c(a11,a21,a12,a22),2,2)
+eigen(A1_ne)
+intercept=c(rep(0,dim(A1_ne)[1]))
+varcoverr=diag(sig,dim(A1_ne)[1])
 VAR2_ne=MTS::VARMAsim(nobs = 200,arlags = c(1),cnst=intercept,phi = A1_ne,sigma=varcoverr)
 ts_VAR2_ne=ts(VAR2_ne$series)
 plot(ts_VAR2_ne)
+
+```
+Note que la expresiones son 
+$$vec(\Gamma_y(0))=(I_{K^2}-A_1\otimes A_1)^{-1}vec(\Sigma_u)$$
+
+Así,
+
+$$\Gamma_y(h)=A_1\Gamma_y(h-1)$$
+
+```{r covarianzas y correlaciones teóricas}
+a11=0.2
+a21=-0.6
+a12=0.3
+a22=1.1
+
+UnitCircle::uc.check(c(1,-(a11+a22),(a11*a22-a12*a21)))  ##Raíces por fuera del círculo Unitario
+A=matrix(c(a11,a21,a12,a22),2,2)
+Sigmau=matrix(c(1,0.8,0.8,2),2,2)
+eigen(A)   ###Valores Propios por dentro del círculo unitario
+
+###Conformación de los objetos
+I4=diag(4) ## Create the 4-by-4 identity matrix
+pp=kronecker(A,A) # Kronecker product
+pp
+
+c1=c(Sigmau)
+c1
+
+dd=I4-pp
+ddinv=solve(dd)   ## Obtain inverse
+gam0=ddinv%*%matrix(c1,4,1)  # Obtain Gamma_0
+gam0
+
+g0=matrix(gam0,2,2)
+g1=A%*%g0     ## Obtain Gamma_1
+g1
+
+
+g2=A%*%g1
+g2
+
+
+###Correlaciones Cruzadas
+D=diag(sqrt(diag(g0))) # To compute cross-correlation matrices
+D
+
+Di=solve(D)
+Di%*%g0%*%Di
+
+Di%*%g1%*%Di
+
+Di%*%g2%*%Di
 ```
 
 
