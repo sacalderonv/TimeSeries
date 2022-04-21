@@ -53,6 +53,27 @@ ts_VAR2=ts(VAR2$series)
 plot(ts_VAR2)
 
 ```
+####Momentos
+```{r momentos}
+k=2
+p=2
+A.1 <- matrix(c(0.5, 0.4, 0.1, 0.5), k) # Matriz A1, retardo 1
+A.2 <- matrix(c(0,0.25, 0, 0), k) # Matriz A2, retardo 2
+A <- cbind(A.1, A.2) 
+nu=matrix(c(1,2),nrow=k,ncol=1)
+nu_big=rbind(nu,matrix(c(0,0),nrow=k,ncol=1))
+I_big=diag(k*p)
+A_big=rbind(A,cbind(diag(k),matrix(data = 0, nrow = k, ncol = k)))
+mu_big=solve(I_big-A_big)%*%nu_big
+eigen(A_big)
+Mod(eigen(A_big)$values)
+Sigma_big=rbind(cbind(varcoverr,matrix(data = 0, nrow = k, ncol = k)),cbind(matrix(data = 0, nrow = k, ncol = k),matrix(data = 0, nrow = k, ncol = k)))
+J=cbind(diag(k),matrix(data = 0, nrow = k, ncol = k))
+mu=J%*%mu_big
+mu
+```
+
+
 ### Procesos no estables
 
 
