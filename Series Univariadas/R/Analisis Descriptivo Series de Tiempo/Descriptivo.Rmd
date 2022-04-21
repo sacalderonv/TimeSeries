@@ -821,7 +821,7 @@ Note que los valores verdaderos de $\beta_1=$ y $\beta_2=$
 beta1teor=2*cos(.6*pi)
 beta2teor=-2*sin(.6*pi)
 set.seed(90210) # fijamos una semilla para que nos dé el mismo resultado
-x = 2*cos(2*pi*1:500/50 + .6*pi) + rnorm(500,0,5)
+x = 2*cos(2*pi*1:500/10 + .6*pi) + rnorm(500,0,5)
 z1 = cos(2*pi*1:500/50)
 z2 = sin(2*pi*1:500/50)
 summary(fit <- lm(x~0+z1+z2)) # sin intercepto.
@@ -881,7 +881,7 @@ Vamos a retomar el ejemplo anterior donde simulamos una serie de tamaño $T=500$
 ```{r Periodograma_1}
 plot.ts(x)
 spectrum(x,log='no')
-abline(v=1/50, lty=2,col="red")
+abline(v=1/10, lty=2,col="red")
 ###Otra forma de computarlo es vía la transformada de Fourier
 
 Px = Mod(fft(x))^2
@@ -926,8 +926,8 @@ X=matrix(rep(t(l),T/s),ncol=ncol(l),byrow=TRUE)
 Y=X%*%deltas+epsilon
 plot(as.ts(Y))
 acf(as.ts(Y))
-simul=data.frame(resp=Y,diseno=X)
-salida_dummy_ruido=stan_glm(resp~. -1,data=simul)
+#simul=data.frame(resp=Y,diseno=X)
+#salida_dummy_ruido=stan_glm(resp~. -1,data=simul)
 PeriodgramaY=spectrum(Y,log='no')
 ubicacionY=which.max(PeriodgramaY$spec)
 sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaY$freq[ubicacionY])
