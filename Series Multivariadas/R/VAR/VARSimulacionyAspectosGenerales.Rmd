@@ -96,6 +96,8 @@ ts_VAR2_ne=ts(VAR2_ne$series)
 plot(ts_VAR2_ne)
 
 ```
+### Autocovarianzas y Autocorrelaciones Teóricas
+
 Note que la expresiones son 
 $$vec(\Gamma_y(0))=(I_{K^2}-A_1\otimes A_1)^{-1}vec(\Sigma_u)$$
 
@@ -145,12 +147,59 @@ Di%*%g0%*%Di
 
 Di%*%g1%*%Di
 
+Di%*%g1%*%Di
+
 Di%*%g2%*%Di
 ```
 
 
+## Pronósticos
+$$
+{Y}_t={\nu}+\begin{bmatrix}
+		0.5&0&0\\
+		0.1&0.1&0.3\\
+		0&0.2&0.3
+	\end{bmatrix}
+	{Y}_{t-1}+{u}_t.
+	$$
+	
+	con 
+	
+	$$\Sigma_{{u}}=\begin{bmatrix}
+		2.25&0&0\\
+		0.0&1.0&0.5\\
+		0&0.5&0.74
+	\end{bmatrix}$$
+```{r pronósticos}
+A1=matrix(c(0.5,0.1,0,0,0.1,0.2,0,0.3,0.3),3,3)
+Sigma_u=matrix(c(2.25,0,0,0,1.0,0.5,0,0.5,0.74),3,3)
+Sigma_y1=Sigma_u
+Sigma_y2=Sigma_y1+A1%*%Sigma_u%*%t(A1)
+Sigma_y3=Sigma_y2+(A1%*%A1)%*%Sigma_u%*%t(A1%*%A1)
+```
 
-###Ejemplo y Exploración ACF y PACF cruzadas
+Tarea: hacer lo mismo para el proceso VAR(2)
+	\[
+	{Y}_t={\nu}+\begin{bmatrix}
+		0.5&0.1\\
+		0.4&0.5
+	\end{bmatrix}
+	{Y}_{t-1}+\begin{bmatrix}
+		0&0\\
+		0.25&0
+	\end{bmatrix}
+	{Y}_{t-2}+{u}_t.
+	\]
+	
+	con 
+	
+	$$\Sigma_{{u}}=\begin{bmatrix}
+		0.09&0\\
+		0.0&0.04\\
+	\end{bmatrix}$$
+	
+	
+###Intervalos de pronóstico
 
 
 

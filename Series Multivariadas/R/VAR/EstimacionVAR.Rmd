@@ -1,0 +1,93 @@
+---
+title: "Estimación VAR"
+output: html_document
+date: '2022-05-02'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Estimación de Parámetros de un modelo VAR
+
+Vamos a considerar el modelo VAR
+$$
+	{Y}_t={\nu}+A_1 {Y}_{t-1} +\cdots+A_p {Y}_{t-p}+{u}_t
+$$
+y los datos trimestrales, ajustados estacionalmente, de las variables : inversión, ingreso disponible y consumo de 1960Q1 to 1982Q4.
+```{r ejemplo Lutkepohl}
+require( bvartools)
+data(e1)
+require(TSstudio)
+ts_info(e1)
+plot(e1)
+
+adjust_e1=diff(log(e1))
+plot(adjust_e1)
+
+adjust_e1_1978<-window(adjust_e1,end=c(1978,4))
+plot(adjust_e1_1978)
+
+```
+
+Vamos estimar un modelo VAR(2) a los datos, después veremos como escoger el orden $p$.
+
+
+```{r MCVAR }
+ts_info(adjust_e1_1978)
+str(adjust_e1_1978)
+matrix_adjust_e1_1978=as.matrix(adjust_e1_1978[1:75,])
+dim(matrix_adjust_e1_1978)
+Y=t(matrix_adjust_e1_1978[3:75,])
+Z=cbind(rep(1,73),matrix_adjust_e1_1978[2:74,],matrix_adjust_e1_1978[1:73,])
+Z=t(Z)
+Z
+B_hat=Y%*%t(Z)%*%(solve(Z%*%t(Z)))
+B_hat
+T_length=73
+Sigma_u_tilde=1/(T_length)*(Y-B_hat%*%Z)%*%t(Y-B_hat%*%Z)
+Sigma_hat_u=(T_length)/(T_length-3*2-1)*Sigma_u_tilde
+Sigma_hat_u
+
+Covar=solve(Z%*%t(Z))%x%Sigma_hat_u
+Covar
+se=sqrt(diag(Covar))
+library(matrixcalc)
+beta_hat=matrixcalc::vec(B_hat)
+
+##Se debe comparar con un cuantil de la distribución t-student df=T-Kp-1, el cual, para este tamaño, es de casi el cuantil de la normal estándar.
+t_cuantil=qt(0.975,(T_length-3*2-1))
+significance=ifelse((beta_hat/se>t_cuantil | beta_hat/se< -t_cuantil),"Si","No")
+
+parameters=data.frame(beta_hat=beta_hat,se=se,t_ratio=beta_hat/se,Significativo=significance)
+parameters
+```
+
+Tarea:Usar los datos en q-gdp-ukcaus.txt, que tiene las tasas de interés en porcentajesm del GDP del Reino Unido, Canadá y Estados Unidos. Ahcer el mismo tratamiento.
+
+## Estimación usando funciones de R
+
+```{r ML VAR(p)}
+require(MTS)
+MTS::VAR(adjust_e1_1978,p=2,include.mean=TRUE)
+ajuste<-MTS::VAR(adjust_e1_1978,p=2,include.mean=TRUE)
+
+```
+
+```{r VAR usando el paquete vars}
+salid_vars=vars::VAR(adjust_e1_1978,p=2,type="const")
+vars::Bcoef(salid_vars)
+summary(salid_vars)
+```
+
+
+```{r ajuste usando }
+require(fable)
+require(tsibble)
+adjust_e1_1978_tsibble<-as_tsibble(adjust_e1_1978,pivot_longer = FALSE)
+ajuste1<-adjust_e1_1978_tsibble%>%fabletools::model(VAR(vars(invest,income,cons)~ AR(p=2)))
+ajuste1
+glance(ajuste1)
+report(ajuste1)
+```
+
