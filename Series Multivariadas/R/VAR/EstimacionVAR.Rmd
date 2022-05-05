@@ -91,3 +91,17 @@ glance(ajuste1)
 report(ajuste1)
 ```
 
+## Pronóstico con Modelos VAR estimados
+
+```{r Pronostico VAR}
+##Usando la salida de MTS
+MTS::VARpred(ajuste,12)
+##Usando la salida de vars
+predict(salid_vars, n.ahead = 12, ci = 0.95)
+
+##Usando la salida de fable
+ajuste1 %>%
+  forecast(h=8) %>%
+  autoplot(adjust_e1_1978_tsibble %>% filter(year(index) > 1975))
+```
+
