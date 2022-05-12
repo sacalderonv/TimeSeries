@@ -176,7 +176,7 @@ plot(mv_chow_test)
 svars::chow.test(salid_vars,SB=40)
 ```
 
-###Prueba de Causalidad de Granger
+###Prueba de Causalidad de Granger usando el paquete vars
 Usaremos la salida del paquete var para chequear la causalidad
 ```{r Granger}
 vars::causality(salid_vars,cause="invest")
