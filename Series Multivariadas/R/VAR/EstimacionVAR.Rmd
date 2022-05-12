@@ -30,7 +30,7 @@ plot(adjust_e1_1978)
 
 ```
 
-Vamos estimar un modelo VAR(2) a los datos, después veremos como escoger el orden $p$.
+Vamos estimar los parámetros de un modelo VAR(2) a los datos, después veremos como escoger el orden $p$.
 
 
 ```{r MCVAR }
@@ -63,7 +63,7 @@ parameters=data.frame(beta_hat=beta_hat,se=se,t_ratio=beta_hat/se,Significativo=
 parameters
 ```
 
-Tarea:Usar los datos en q-gdp-ukcaus.txt, que tiene las tasas de interés en porcentajesm del GDP del Reino Unido, Canadá y Estados Unidos. Ahcer el mismo tratamiento.
+Tarea:Usar los datos en q-gdp-ukcaus.txt, que tiene las tasas de cambios en porcentajes del GDP del Reino Unido, Canadá y Estados Unidos. Hacer el mismo tratamiento.
 
 ## Estimación usando funciones de R
 
@@ -71,7 +71,7 @@ Tarea:Usar los datos en q-gdp-ukcaus.txt, que tiene las tasas de interés en por
 require(MTS)
 MTS::VAR(adjust_e1_1978,p=2,include.mean=TRUE)
 ajuste<-MTS::VAR(adjust_e1_1978,p=2,include.mean=TRUE)
-
+residuales_MTS=ajuste$residuals
 ```
 
 ```{r VAR usando el paquete vars}
@@ -90,6 +90,30 @@ ajuste1
 glance(ajuste1)
 report(ajuste1)
 ```
+### Selección del Orden
+
+```{r Orden p del VAR}
+t <- 200 # Longitud de la serie
+k <- 2 # dimensión del vector Y
+p <- 2 # Número de retardos
+
+# Matrices de coeficientes
+A.1 <- matrix(c(-.3, .6, -.4, .5), k) # Matriz A1, retardo 1
+A.2 <- matrix(c(-.1, -.2, .1, .05), k) # Matriz A2, retardo 2
+A <- cbind(A.1, A.2) 
+sig=.5
+varcoverr=diag(sig,dim(A)[1])
+
+intercept=c(rep(0,dim(A)[1]))
+VAR2=MTS::VARMAsim(nobs = 200,arlags = c(2),cnst=intercept,phi = A,sigma=varcoverr)
+ts_VAR2=ts(VAR2$series)
+plot(ts_VAR2)
+
+model1=MTS::VARorder(ts_VAR2)
+
+model2=MTS::VARorderI(ts_VAR2)
+
+```
 
 ## Pronóstico con Modelos VAR estimados
 
@@ -103,5 +127,62 @@ predict(salid_vars, n.ahead = 12, ci = 0.95)
 ajuste1 %>%
   forecast(h=8) %>%
   autoplot(adjust_e1_1978_tsibble %>% filter(year(index) > 1975))
+```
+```{r Pronostico MTS}
+MTS::VARpred(ajuste,h=5)
+```
+```{r Pornostico vars}
+predict(salid_vars,n.ahead=5,ci=0.95)
+```
+
+
+## Ajuste del Modelo
+Vamos a usar las funciones del paquete MTS para chequear las autocrrelaciones de los residuales
+```{r Q Portmateau MTS}
+MTS::MTSdiag(ajuste,gof=20,adj=12)
+```
+
+Vamos a usar las funciones del paquete vars para chequear las autocrrelaciones de los residuales
+```{r Q Portmateau vars}
+vars::serial.test(salid_vars, lags.pt = 20, lags.bg = 5)
+
+```
+
+
+##Prueba de normalidad Jarque y Bera
+
+```{r Normalidad}
+vars::normality.test(salid_vars,multivariate.only=TRUE)
+```
+Existen mas pruebas de normalidad en el paquete MVN, por ejemplo la prueba de Mardia,Henze-Zirkler
+
+```{r MVN}
+require(MVN)
+mvn(residuales_MTS,mvnTest = "mardia")
+```
+###Pruebas de estabilidad
+
+```{r estabilidad1}
+require(svars)
+OLS_CUSUM=vars::stability(salid_vars,type="OLS-CUSUM")
+plot(OLS_CUSUM)
+
+mv_chow_test=stability(salid_vars,type="mv-chow-test")
+plot(mv_chow_test)
+```
+
+```{r Prueba de Chow}
+
+svars::chow.test(salid_vars,SB=40)
+```
+
+###Prueba de Causalidad de Granger
+Usaremos la salida del paquete var para chequear la causalidad
+```{r Granger}
+vars::causality(salid_vars,cause="invest")
+
+vars::causality(salid_vars,cause=c("invest","income"))
+
+vars::causality(salid_vars,cause=c("invest","cons"))
 ```
 
