@@ -139,12 +139,12 @@ predict(salid_vars,n.ahead=5,ci=0.95)
 ## Ajuste del Modelo
 Vamos a usar las funciones del paquete MTS para chequear las autocrrelaciones de los residuales
 ```{r Q Portmateau MTS}
-MTS::MTSdiag(ajuste,gof=20,adj=12)
+MTS::MTSdiag(ajuste,gof=20,adj=18)
 ```
 
 Vamos a usar las funciones del paquete vars para chequear las autocrrelaciones de los residuales
 ```{r Q Portmateau vars}
-vars::serial.test(salid_vars, lags.pt = 20, lags.bg = 5)
+vars::serial.test(salid_vars, lags.pt = 20, lags.bg = 0)
 
 ```
 

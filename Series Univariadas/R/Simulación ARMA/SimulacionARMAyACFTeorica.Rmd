@@ -58,7 +58,7 @@ abline(h=0) #Agrega un eje al gráfico
 
 ```{r}
 library(UnitCircle)
-UnitCircle::uc.check(c(2,0,2.2,-3))
+UnitCircle::uc.check(c(1,-0.2,-0.48))
 ```
 
 

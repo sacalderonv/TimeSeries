@@ -1,0 +1,70 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Vamos a ver si hay relaciones de cointegración. Como ejemplo, considere los rendimientos mensuales de los bonos experimentados Aaa y Baa de Moody's desde mayo de 1952 hasta junio de 2005
+
+
+
+```{r cointegración}
+require(fUnitRoots)
+require(urca)
+require(MTS)
+da=read.table("m-bnd.txt")
+head(da)
+tail(da)
+
+bnd=da[,4:5]
+colnames(bnd) <- c("Aaa","Baa")
+bnd_ts=ts(bnd,start=c(1952,5),frequency = 12)
+plot(bnd_ts)
+```
+##Raíces Unitarias
+Vamos a encontrar el rezago a utilizar en las poruebas de Dickey-Fuller, para esto ajustamos automáticamente modelos autoregresivos y vemos que orden se ajustó.
+
+```{r Raices unitarias}
+ar(bnd[,1]) ##Selecciona un modelo VAR usando el crierio de Akaike  a la serie Aaa
+
+ar(bnd[,2]) ##Selecciona un modelo VAR usando el crierio de Akaike a la serie Baa
+
+##Para la serie Aaa
+nn1 <- ur.df(bnd[,1],lags=3,type="none")
+summary(nn1) ###No se rechaza la hipótesis nula de la presencia de raíz unitaria
+
+##Para la serie Baa
+nn2 <- ur.df(bnd[,2],lags=2,type="none")
+summary(nn2)###No se rechaza la hipótesis nula de la presencia de raíz unitaria
+
+###Qué VAR orden del VAR se debería seleccionar en principio para chequear el rango de Co-integración?
+VARorder(bnd)
+```
+###Prueba de co-integración
+
+Llevaremos a cabo las 2 pruebas de cointegración
+
+```{r Prueba de cointegración}
+### Prueba del valor propio máximo
+ n1 <- urca::ca.jo(bnd,ecdet="const",K=10,type="eigen")
+summary(n1)
+##Prueba de la traza
+n2 <- urca::ca.jo(bnd,type="trace",ecdet=c("const"),K=10,spec=c("transitory"))
+summary(n2)
+```
+Para la salida de la prueba considerando el máximo,tenemos dos casos
+
+$	L_{max}(0)=24.37$  y los cuantiles 10pct:13.75 5pct:15.67  1pct:20.20
+
+$	L_{max}(1)=3.73$  y los cuantiles 10pct:7.52  5pct:9.24   1pct:12.97
+
+La conclusión sería que el rango es $m=1$ porque se rechazó $H_0:Rango(\Pi)=m=0$ v.s $H_a:Rango(\Pi)>0$
+
+Análogamente, para la prueba de traza tenemos que:
+
+$	L_{tr}(0)=28.10$  y los cuantiles 10pct:17.85   5pct:19.96  1pct:24.60
+
+$	L_{tr}(1)=3.73$  y los cuantiles 10pct:7.52  5pct:9.24   1pct:12.97
+
+La conclusión también sería que el rango es $m=1$ porque se rechazó $H_0:Rango(\Pi)=m=0$ v.s $H_a:Rango(\Pi)=m+1=1$
+
+
