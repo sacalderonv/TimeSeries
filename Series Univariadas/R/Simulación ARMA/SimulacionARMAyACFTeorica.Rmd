@@ -50,7 +50,7 @@ acf(arimaej)
 ```
 
 ```{r ACFTeorica}
-acf_ARMA<- ARMAacf(ar=c(0.7),ma=c(0.6), lag.max = 10)
+acf_ARMA<- ARMAacf(ar=c(0.0),ma=c(0.8,-0.6), lag.max = 10)
 lags <- 0:10 
 plot(lags,acf_ARMA,xlim=c(1,10),ylab = "ACF",type="h",main = "ACF para ARMA(1,1)")
 abline(h=0) #Agrega un eje al gráfico
@@ -58,7 +58,7 @@ abline(h=0) #Agrega un eje al gráfico
 
 ```{r}
 library(UnitCircle)
-UnitCircle::uc.check(c(1,-0.2,-0.48))
+UnitCircle::uc.check(c(1,0.2,0.7))
 ```
 
 
