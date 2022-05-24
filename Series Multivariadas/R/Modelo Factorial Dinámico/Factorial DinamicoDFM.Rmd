@@ -1,0 +1,78 @@
+---
+title: "Modelo Factorial Dinámico"
+output: html_document
+date: '2022-05-24'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejemplo Modelo Factorial Dinámico
+
+Vamos a considerar los productos internos brutos estandarizados de 19 principales países de la zona Euro.
+
+```{r datos}
+UMEdata = read.csv("UME20002018.csv", header=TRUE)
+x=as.matrix(UMEdata)
+n=nrow(x)
+G=matrix(0,n,19)
+
+for (i in 1:19){G[,i]=x[,1+3*(i-1)]}
+G0=log(G)
+sG0=scale(G0)
+G1=diff(sG0)
+
+y1 <- range(G1)
+tdx <- c(2:76)/4+2000
+plot(tdx,G1[,1],xlab="año",ylab="Tasa de Crecimiento PIB", main="Países Euro",type="l", ylim=y1)
+for (i in 2:19){lines(tdx,G1[,i],col=i)}
+
+out=acf(G1,lag.max=4,type="covariance",plot=FALSE)
+S0=eigen(out$acf[1,,])
+E0=S0$values[1:4]
+EVf0=S0$vectors[,1]
+EVs0=S0$vectors[,2]
+#####
+S1=eigen(out$acf[2,,])
+S1$values[1:4] # Puede tener valores propios complejos
+Mod(S1$values[1:4])
+E1=S1$values[1:4]
+EVf1=S1$vectors[,1]
+EVs1=S1$vectors[,2]
+#####
+S2=eigen(out$acf[3,,])
+S2$values[1:4] # Puede tener valores propios complejos
+Mod(S1$values[1:4])
+E2=S2$values[1:4]
+EVf2=S2$vectors[,1]
+EVs2=S2$vectors[,2]
+
+######
+S3=eigen(out$acf[4,,])
+S3$values[1:4] # Puede tener valores propios complejos
+Mod(S3$values[1:4])
+E3=S3$values[1:4]
+EVf3=S3$vectors[,1]
+EVs3=S3$vectors[,2]
+## 
+
+######
+S4=eigen(out$acf[5,,])
+S4$values[1:4] # Puede tener valores propios complejos
+Mod(S4$values[1:4])
+E4=S4$values[1:4]
+EVf4=S4$vectors[,1]
+EVs4=S4$vectors[,2]
+## 
+###Valores propios para los primeros rezagos
+cbind(S0$values[1:4],Mod(S1$values[1:4]),Mod(S2$values[1:4]),Mod(S3$values[1:4]),Mod(S4$values[1:4]))
+###Primer vector Propio para diferentes rezagos
+EVf=cbind(EVf0,EVf1,EVf2,EVf3)
+EVs=cbind(EVs0,EVs1,EVs2,EVs3) # No se muestra
+ts.plot(EVf,ylab="Cargas",xlab="Países")
+EVf=cbind(-EVf0,EVf1,EVf2,-EVf3) # Cambian algunos signos
+ts.plot(EVf,ylab="Cargas",xlab="Países") # Volver a graficar.
+```
+
+

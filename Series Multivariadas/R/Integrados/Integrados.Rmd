@@ -24,9 +24,9 @@ plot(bnd_ts)
 Vamos a encontrar el rezago a utilizar en las poruebas de Dickey-Fuller, para esto ajustamos automáticamente modelos autoregresivos y vemos que orden se ajustó.
 
 ```{r Raices unitarias}
-ar(bnd[,1]) ##Selecciona un modelo VAR usando el crierio de Akaike  a la serie Aaa
+ar(bnd[,1]) ##Selecciona un modelo AR usando el crierio de Akaike  a la serie Aaa
 
-ar(bnd[,2]) ##Selecciona un modelo VAR usando el crierio de Akaike a la serie Baa
+ar(bnd[,2]) ##Selecciona un modelo AR usando el crierio de Akaike a la serie Baa
 
 ##Para la serie Aaa
 nn1 <- ur.df(bnd[,1],lags=3,type="none")
@@ -37,7 +37,7 @@ nn2 <- ur.df(bnd[,2],lags=2,type="none")
 summary(nn2)###No se rechaza la hipótesis nula de la presencia de raíz unitaria
 
 ###Qué VAR orden del VAR se debería seleccionar en principio para chequear el rango de Co-integración?
-VARorder(bnd)
+MTS::VARorder(bnd)
 ```
 ###Prueba de co-integración
 
@@ -48,7 +48,7 @@ Llevaremos a cabo las 2 pruebas de cointegración
  n1 <- urca::ca.jo(bnd,ecdet="const",K=10,type="eigen")
 summary(n1)
 ##Prueba de la traza
-n2 <- urca::ca.jo(bnd,type="trace",ecdet=c("const"),K=10,spec=c("transitory"))
+n2 <- urca::ca.jo(bnd,type="trace",ecdet=c("const"),K=10)
 summary(n2)
 beta_hat=c(1,-0.89349671,0.05925493)
 wt=beta_hat[1]*bnd[,1]+beta_hat[2]*bnd[,2]+beta_hat[2]
