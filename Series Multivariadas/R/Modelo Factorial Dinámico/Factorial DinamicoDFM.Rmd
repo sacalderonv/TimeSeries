@@ -88,7 +88,66 @@ out$MarmaE ##Similar al anterior pero para los ruidos.
 
 Tarea:Hacer un análisis similar para el conjunto de datos completo UMEdata, donde se encuentran series trimestrales del PIB(GDP), gasto de consumo final(CON) y formación bruta de capital fijo(INV) para  19 países de la zona Euro desde el primero trimestre de 2000 hasta el cuarto trimestre de 2018, un total de 57 variables y 76 observaciones. Trabajr con los retorno de este conjunto. Trabaje con los datos escalados y sin escalar. Qué sucede?
 
-```{r}
+```{r todas las variables}
 
+x=as.matrix(UMEdata)
+n=nrow(x)
+G_all=x
+
+
+G0_all=log(G_all)
+sG0_all=scale(G0_all)
+G1_all=diff(sG0_all)
+
+y1 <- range(G1_all)
+tdx <- c(2:76)/4+2000
+plot(tdx,G1_all[,1],xlab="año",ylab="Tasa de Crecimiento PIB, Consumo, Inversión", main="Países Euro",type="l", ylim=y1)
+for (i in 2:57){lines(tdx,G1_all[,i],col=i)}
+
+out_all=acf(G1_all,lag.max=4,type="covariance",plot=FALSE)
+S0=eigen(out$acf[1,,])
+E0=S0$values[1:4]
+EVf0=S0$vectors[,1]
+EVs0=S0$vectors[,2]
+#####
+S1=eigen(out$acf[2,,])
+S1$values[1:4] # Puede tener valores propios complejos
+Mod(S1$values[1:4])
+E1=S1$values[1:4]
+EVf1=S1$vectors[,1]
+EVs1=S1$vectors[,2]
+#####
+S2=eigen(out$acf[3,,])
+S2$values[1:4] # Puede tener valores propios complejos
+Mod(S1$values[1:4])
+E2=S2$values[1:4]
+EVf2=S2$vectors[,1]
+EVs2=S2$vectors[,2]
+
+######
+S3=eigen(out$acf[4,,])
+S3$values[1:4] # Puede tener valores propios complejos
+Mod(S3$values[1:4])
+E3=S3$values[1:4]
+EVf3=S3$vectors[,1]
+EVs3=S3$vectors[,2]
+## 
+
+######
+S4=eigen(out$acf[5,,])
+S4$values[1:4] # Puede tener valores propios complejos
+Mod(S4$values[1:4])
+E4=S4$values[1:4]
+EVf4=S4$vectors[,1]
+EVs4=S4$vectors[,2]
+## 
+###Valores propios para los primeros rezagos
+cbind(S0$values[1:4],Mod(S1$values[1:4]),Mod(S2$values[1:4]),Mod(S3$values[1:4]),Mod(S4$values[1:4]))
+###Primer vector Propio para diferentes rezagos
+EVf=cbind(EVf0,EVf1,EVf2,EVf3)
+EVs=cbind(EVs0,EVs1,EVs2,EVs3) # No se muestra
+ts.plot(EVf,ylab="Cargas",xlab="Países")
+EVf=cbind(-EVf0,EVf1,EVf2,-EVf3) # Cambian algunos signos
+ts.plot(EVf,ylab="Cargas",xlab="Países") # Volver a graficar.
 ```
 
