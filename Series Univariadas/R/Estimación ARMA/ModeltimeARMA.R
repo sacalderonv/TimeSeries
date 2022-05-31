@@ -10,9 +10,9 @@ library(modeltime.ensemble)
 
 
 ### Datos
-tipos88  <- read.table("~/Documents/GitHub/TimeSeries/Bases de Datos/Estacionarias/tipos88.dat", quote="\"", comment.char="")
+tipos88 <- read.table("~/Documents/GitHub/TimeSeries/Series Univariadas/R/Estimación ARMA/tipos88.dat", quote="\"", comment.char="")
 Intanual=tipos88$V5  #Tipo de interés Anual
-
+x11()
 plot(as.ts(Intanual))
 camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
 sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
@@ -42,7 +42,8 @@ pacf(sercamrelint)
    #The final step is to refit the models to the full dataset using modeltime_refit() and forecast them forward.
 
 ###Creación de objeto Tibble Tydiverse
-camrela_tibble=as_tibble(data.frame(fecha=as.Date(time(sercamrelint)),cambrelativos=camrelintanual))
+library(zoo)
+camrela_tibble=as_tibble(data.frame(fecha=as.yearmon(time(sercamrelint)),cambrelativos=camrelintanual))
 str(camrela_tibble)
 camrela_tibble_ensemble=camrela_tibble
 

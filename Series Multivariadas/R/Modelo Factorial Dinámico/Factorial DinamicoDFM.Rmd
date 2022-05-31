@@ -74,5 +74,21 @@ ts.plot(EVf,ylab="Cargas",xlab="Países")
 EVf=cbind(-EVf0,EVf1,EVf2,-EVf3) # Cambian algunos signos
 ts.plot(EVf,ylab="Cargas",xlab="Países") # Volver a graficar.
 ```
+```{r Seleccion numero de factores}
+library(SLBDD)
+out=dfmpc(G1) ###Estima el modelo donde le número de factores se hace a traves del criterio del salto de los valores propios. Tenga en cuenta el argumento mth.
+out$r ###Saca el número de factores
+out$F ###Saca el factor estimado
+out$L ###Saca la Matriz de cargas
+plot(tdx,-out$F[,1],xlab='año',ylab='Primer factor',type='l')
+plot(1:19,-out$L,xlab='País',ylab='peso o carga',type='l')
+out$MarmaF ##Entrega el orden del AR, MA(ordinarios y estacionales), al igual que el periodo, así como el número de diferencias ordinarias.
+out$MarmaE ##Similar al anterior pero para los ruidos.
+```
 
+Tarea:Hacer un análisis similar para el conjunto de datos completo UMEdata, donde se encuentran series trimestrales del PIB(GDP), gasto de consumo final(CON) y formación bruta de capital fijo(INV) para  19 países de la zona Euro desde el primero trimestre de 2000 hasta el cuarto trimestre de 2018, un total de 57 variables y 76 observaciones. Trabajr con los retorno de este conjunto. Trabaje con los datos escalados y sin escalar. Qué sucede?
+
+```{r}
+
+```
 

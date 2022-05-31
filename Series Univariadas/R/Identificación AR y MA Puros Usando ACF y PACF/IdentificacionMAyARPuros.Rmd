@@ -107,7 +107,7 @@ y=rnorm(200,0,1)
 plot(y,type='l')
 x11()
 acf(y,lag.max=sqrt(length(y)))
-#pacf(y)
+pacf(y)
 ####Ejemplo MA(1)
 set.seed(12345)
 theta1=0.7
@@ -127,7 +127,7 @@ acf(arimaej,ci.type='ma')####Bandas para probar autocorrelación del tipo proces
 pacf(arimaej)
 ###Los órdenes Máximos que se deberían postular para un ARMA(p=4,q=2) mixto.
 
-###Simular un AR(1) phi=0.9
+###Simular un AR(1) phi=0.8
 arimaej=arima.sim(list(order = c(1,0,0),ar=c(0.8)), n = Tlength)
 plot(arimaej)
 acf(arimaej)
