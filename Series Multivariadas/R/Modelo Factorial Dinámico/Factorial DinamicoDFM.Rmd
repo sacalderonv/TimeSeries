@@ -105,49 +105,60 @@ plot(tdx,G1_all[,1],xlab="año",ylab="Tasa de Crecimiento PIB, Consumo, Inversi�
 for (i in 2:57){lines(tdx,G1_all[,i],col=i)}
 
 out_all=acf(G1_all,lag.max=4,type="covariance",plot=FALSE)
-S0=eigen(out$acf[1,,])
-E0=S0$values[1:4]
-EVf0=S0$vectors[,1]
-EVs0=S0$vectors[,2]
+S0_all=eigen(out_all$acf[1,,])
+E0_all=S0_all$values[1:10]
+EVf0_all=S0_all$vectors[,1]
+EVs0_all=S0_all$vectors[,2]
 #####
-S1=eigen(out$acf[2,,])
-S1$values[1:4] # Puede tener valores propios complejos
-Mod(S1$values[1:4])
-E1=S1$values[1:4]
-EVf1=S1$vectors[,1]
-EVs1=S1$vectors[,2]
+S1_all=eigen(out_all$acf[2,,])
+S1_all$values[1:10] # Puede tener valores propios complejos
+Mod(S1_all$values[1:10])
+E1_all=S1_all$values[1:10]
+EVf1_all=S1_all$vectors[,1]
+EVs1_all=S1_all$vectors[,2]
 #####
-S2=eigen(out$acf[3,,])
-S2$values[1:4] # Puede tener valores propios complejos
-Mod(S1$values[1:4])
-E2=S2$values[1:4]
-EVf2=S2$vectors[,1]
-EVs2=S2$vectors[,2]
+S2_all=eigen(out_all$acf[3,,])
+S2_all$values[1:10] # Puede tener valores propios complejos
+Mod(S1_all$values[1:10])
+E2_all=S2_all$values[1:10]
+EVf2_all=S2_all$vectors[,1]
+EVs2_all=S2_all$vectors[,2]
 
 ######
-S3=eigen(out$acf[4,,])
-S3$values[1:4] # Puede tener valores propios complejos
-Mod(S3$values[1:4])
-E3=S3$values[1:4]
-EVf3=S3$vectors[,1]
-EVs3=S3$vectors[,2]
+S3_all=eigen(out_all$acf[4,,])
+S3_all$values[1:10] # Puede tener valores propios complejos
+Mod(S3$values[1:10])
+E3_all=S3_all$values[1:10]
+EVf3_all=S3_all$vectors[,1]
+EVs3_all=S3_all$vectors[,2]
 ## 
 
 ######
-S4=eigen(out$acf[5,,])
-S4$values[1:4] # Puede tener valores propios complejos
-Mod(S4$values[1:4])
-E4=S4$values[1:4]
-EVf4=S4$vectors[,1]
-EVs4=S4$vectors[,2]
+S4_all=eigen(out_all$acf[5,,])
+S4_all$values[1:10] # Puede tener valores propios complejos
+Mod(S4_all$values[1:10])
+E4_all=S4_all$values[1:10]
+EVf4_all=S4_all$vectors[,1]
+EVs4_all=S4_all$vectors[,2]
 ## 
 ###Valores propios para los primeros rezagos
-cbind(S0$values[1:4],Mod(S1$values[1:4]),Mod(S2$values[1:4]),Mod(S3$values[1:4]),Mod(S4$values[1:4]))
+cbind(S0_all$values[1:10],Mod(S1_all$values[1:10]),Mod(S2_all$values[1:10]),Mod(S3_all$values[1:10]),Mod(S4_all$values[1:10]))
 ###Primer vector Propio para diferentes rezagos
 EVf=cbind(EVf0,EVf1,EVf2,EVf3)
 EVs=cbind(EVs0,EVs1,EVs2,EVs3) # No se muestra
 ts.plot(EVf,ylab="Cargas",xlab="Países")
 EVf=cbind(-EVf0,EVf1,EVf2,-EVf3) # Cambian algunos signos
 ts.plot(EVf,ylab="Cargas",xlab="Países") # Volver a graficar.
+```
+```{r Factorial Todos}
+out_all=dfmpc(G1_all,mth = 4) ###Estima el modelo donde le número de factores se hace a traves del criterio del salto de los valores propios. Tenga en cuenta el argumento mth.
+out_all$r ###Saca el número de factores
+out_all$F ###Saca el factor estimado
+out_all$L ###Saca la Matriz de cargas
+out_all$varF
+plot(tdx,-out_all$F[,1],xlab='año',ylab='Primer factor',type='l')
+plot(1:57,-out_all$L,xlab='País',ylab='peso o carga',type='l')
+out$MarmaF ##Entrega el orden del AR, MA(ordinarios y estacionales), al igual que el periodo, así como el número de diferencias ordinarias.
+out$MarmaE ##Similar al anterior pero para los ruidos.
 ```
 

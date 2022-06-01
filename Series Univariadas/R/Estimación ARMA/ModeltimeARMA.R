@@ -46,7 +46,7 @@ library(zoo)
 camrela_tibble=as_tibble(data.frame(fecha=as.yearmon(time(sercamrelint)),cambrelativos=camrelintanual))
 str(camrela_tibble)
 camrela_tibble_ensemble=camrela_tibble
-
+camrela_tibble_ensemble
 ####Entrenamiento y prueba
 splits_camrela <- time_series_split(
     camrela_tibble,
