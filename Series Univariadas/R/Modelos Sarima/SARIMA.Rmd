@@ -208,4 +208,19 @@ ecm=(1/(length(test)))*sum(dife)
 ecm
 ```
 
+```{r Otros Modelamiento}
+library(tidyverse)
+library(tidyquant)
+library(TSstudio)
+library(SLBDD)
+library(timetk)
+library(fable)
+AirPassengers_tsb=as_tsibble(AirPassengers)
+Ajuste_tsibble<- AirPassengers_tsb %>%
+  model(
+    arima012011 = ARIMA(value ~ pdq(0,1,1) + PDQ(0,1,1)),
+    auto = ARIMA(value, stepwise = FALSE, approx = FALSE), 
+  dummy=ARIMA(value ~ pdq(0,1,1)+ season())
+  )
+```
 
