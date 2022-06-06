@@ -46,6 +46,7 @@ plot(x1)
 acf(x1,lag.max = 36)
 monthplot(x1)
 nsdiffs(x1)
+ndiffs(x1)
 p <- polynom(c(1,c(rep(0,11),-0.8)))
 solve(p)
 abs(solve(p))
@@ -66,7 +67,7 @@ Vamos a ver como se hace el modelamiento completo de la serie de pasajeros.
 
 Iniciaremos con la transformación Box-Cox y las pruebas de raíces Unitarias
 
-```{r pressure, echo=FALSE}
+```{r passengers, echo=FALSE}
 ######Ajuste Serie datos AirPassengers por medio del
 #modelo ARIMA estacional, así como su correspondiente
 #análisis de residuales y pronósticos
@@ -79,7 +80,10 @@ plot(AirPassengers)
 ###Para eso, es necesario haber convertido la serie a estacionaria###
 lAirpassengers=log(AirPassengers)
 plot(lAirpassengers)
+
+forecast::ndiffs(lAirpassengers)
 #####Prueba de Dickey Fuller######
+ar(lAirpassengers)
 tseries::adf.test(lAirpassengers,k=10)
 fUnitRoots::adfTest(lAirpassengers,lags = 12,type='nc')   ###Hay la presencia de Raíz Unitaria
 summary(urca::ur.df(lAirpassengers, lags = 12))
@@ -215,12 +219,44 @@ library(TSstudio)
 library(SLBDD)
 library(timetk)
 library(fable)
+library(feasts)
 AirPassengers_tsb=as_tsibble(AirPassengers)
-Ajuste_tsibble<- AirPassengers_tsb %>%
+Ajuste_tsibble_Pass<- AirPassengers_tsb %>%
   model(
-    arima012011 = ARIMA(value ~ pdq(0,1,1) + PDQ(0,1,1)),
-    auto = ARIMA(value, stepwise = FALSE, approx = FALSE), 
-  dummy=ARIMA(value ~ pdq(0,1,1)+ season())
-  )
+    arima011011_Pass = ARIMA(log(value) ~ pdq(0,1,1) + PDQ(0,1,1)),
+    auto_pass = ARIMA(log(value), stepwise = TRUE, approx = FALSE), 
+  dummy_Pass=ARIMA(log(value) ~ pdq(0,1,1)+ season()),
+ fourier_Pass=ARIMA(log(value) ~ pdq(0,1,1)+ fourier(K = 2))
+ )
+
+glance(Ajuste_tsibble_Pass)
+
+#Ajuste_tsibble_Pass %>% select(arima011011_Pass)%>%
+ # gg_tsresiduals()
+
+#augment(Ajuste_tsibble_Pass) %>%
+#  filter(.model=='arima011011_Pass') %>%
+#  features(.innov, ljung_box, lag = 10, dof = 3)
+
+Ajuste_tsibble_Pass %>%
+  fabletools::forecast(h=12) %>%
+  autoplot(AirPassengers_tsb)
+
+Ajuste_tsibble_Pass %>%
+  fabletools::forecast(h=12) %>%
+  filter(.model=='arima011011_Pass') %>%
+  autoplot(AirPassengers_tsb)
+
+Ajuste_tsibble_Pass %>%
+  fabletools::forecast(h=12) %>%
+  filter(.model=='dummy_Pass') %>%
+  autoplot(AirPassengers_tsb)
+
+Ajuste_tsibble_Pass %>%
+  fabletools::forecast(h=12) %>%
+  filter(.model=='fourier_Pass') %>%
+  autoplot(AirPassengers_tsb)
+
 ```
+Vale la pena decir que si los residuales son no correlacionados pero ellos no tiene distribución normal, se puede usar los intervalos bootatrap ver sección 5.5 libro fpp3. Esto se hace añadiendo bootstrap=TRUE en la función  forecast().
 
