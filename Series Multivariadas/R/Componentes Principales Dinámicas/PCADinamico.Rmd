@@ -1,0 +1,51 @@
+---
+title: "Modelo Factorial Dinámico"
+output: html_document
+date: '2022-06-06'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Componentes Principales Dinámicas
+```{r IPC 33 Europa}
+require(SLBDD)
+data(CPIEurope200015)
+CPIEurope200015
+monthly_index <- seq.Date(from = as.Date("2000-01-01"), # Starting date
+                           to = as.Date("2015-10-01"), # Ending date
+                           by = "month") # Defining the time intervals
+
+IPC33=xts(CPIEurope200015, order.by=monthly_index)
+plot(IPC33)
+
+
+length(monthly_index)
+log_IPC33=log(IPC33)
+plot(log_IPC33)
+as.matrix(log_IPC33)
+PCA_log_IPC33=princomp(as.matrix(log_IPC33))
+names(PCA_log_IPC33)
+plot(1:33,PCA_log_IPC33$sdev^2,xlab="Componente",ylab="Varianza",pch="op",main="log IPC 33")
+
+PCA_log_IPC33$scores
+x11()
+par(mfrow = c(3 , 2))
+plot(PCA_log_IPC33$scores[,1],type="l")
+plot(PCA_log_IPC33$scores[,2],type="l")
+plot(PCA_log_IPC33$scores[,3],type="l")
+plot(PCA_log_IPC33$scores[,4],type="l")
+plot(PCA_log_IPC33$scores[,5],type="l")
+plot(PCA_log_IPC33$scores[,6],type="l")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
