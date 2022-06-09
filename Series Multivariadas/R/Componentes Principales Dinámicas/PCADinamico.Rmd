@@ -27,25 +27,64 @@ plot(log_IPC33)
 as.matrix(log_IPC33)
 PCA_log_IPC33=princomp(as.matrix(log_IPC33))
 names(PCA_log_IPC33)
-plot(1:33,PCA_log_IPC33$sdev^2,xlab="Componente",ylab="Varianza",pch="op",main="log IPC 33")
+plot(1:33,PCA_log_IPC33$sdev^2,xlab="Componente",ylab="Varianza",pch="op",main="log IPC 33")  ###Varianza por componente
 
-PCA_log_IPC33$scores
+plot(1:33,cumsum(PCA_log_IPC33$sdev^2)/cumsum(PCA_log_IPC33$sdev^2)[33],xlab="Componente",ylab="Varianza Acumulada",pch="op",main="log IPC 33")###Prporción acumulada por componente
+
+PCA_log_IPC33$scores   ###Componentes principales
 x11()
 par(mfrow = c(3 , 2))
-plot(PCA_log_IPC33$scores[,1],type="l")
-plot(PCA_log_IPC33$scores[,2],type="l")
-plot(PCA_log_IPC33$scores[,3],type="l")
-plot(PCA_log_IPC33$scores[,4],type="l")
-plot(PCA_log_IPC33$scores[,5],type="l")
-plot(PCA_log_IPC33$scores[,6],type="l")
+plot(PCA_log_IPC33$scores[,1],type="l",ylab="PC1") ###Tendencia creciente
+plot(PCA_log_IPC33$scores[,2],type="l",ylab="PC2")##Tendencia, pero no necesariamente monótona
+plot(PCA_log_IPC33$scores[,3],type="l",ylab="PC3")##Tendencia, pero no necesariamente monótona
+plot(PCA_log_IPC33$scores[,4],type="l",ylab="PC4")##Patrones periódicos
+plot(PCA_log_IPC33$scores[,5],type="l",ylab="PC5")
+plot(PCA_log_IPC33$scores[,6],type="l",ylab="PC6")##Patrones periódicos
 ```
 
-## Including Plots
+## Otras gráficas
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r Otras gráficas PCA, echo=FALSE}
+par(mfrow = c(3 , 2))
+plot(PCA_log_IPC33$scores[,7],type="l") ###Tendencia creciente
+plot(PCA_log_IPC33$scores[,8],type="l")##Tendencia, pero no necesariamente monótona
+plot(PCA_log_IPC33$scores[,9],type="l")##Tendencia, pero no necesariamente monótona
+plot(PCA_log_IPC33$scores[,10],type="l")##Patrones periódicos
+plot(PCA_log_IPC33$scores[,11],type="l")
+plot(PCA_log_IPC33$scores[,12],type="l")##Patrones periódicos
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r Series diferenciadas}
+x_t=diff(log_IPC33)[2:190,]   ###tasar de inflación con respecto al mes anterior
+plot(x_t)
+
+PCA_tasa_IPC33=princomp(as.matrix(x_t))
+plot(1:33,PCA_tasa_IPC33$sdev^2,xlab="Componente",ylab="Varianza",pch="op",main="Tasa IPC 33")
+PCA_tasa_IPC33$sdev
+
+plot(1:33,cumsum(PCA_tasa_IPC33$sdev^2)/cumsum(PCA_tasa_IPC33$sdev^2)[33],xlab="Componente",ylab="Proporción Acumulada",pch="op",main="Tasa IPC 33")
+
+par(mfrow = c(3 , 2))
+plot(PCA_tasa_IPC33$scores[,1],type="l",ylab="PC1") ###No Tendencia,pero si patrones estacionales.
+plot(PCA_tasa_IPC33$scores[,2],type="l",ylab="PC2")
+plot(PCA_tasa_IPC33$scores[,3],type="l",ylab="PC3")
+plot(PCA_tasa_IPC33$scores[,4],type="l",ylab="PC4")
+plot(PCA_tasa_IPC33$scores[,5],type="l",ylab="PC5")
+plot(PCA_tasa_IPC33$scores[,6],type="l",ylab="PC6")
+
+
+fviz_pca_var(PCA_tasa_IPC33,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+             )
+```
+Se puede ver que las componentes principales puede aplicarse también a series con raíces unitarias.
+
+```{r Correlaciones cruzazas componentes}
+x11()
+acf(PCA_tasa_IPC33$scores[,1:5])
+```
+

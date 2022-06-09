@@ -23,7 +23,7 @@ set.seed(12)
 n=200
 serie=arima.sim(n=n,list(ar=(0.5)))
 serie2=serie
-serie2[50]=serie2[50]+6
+serie2[50]=serie2[50]-6
 
 par(mfrow=c(1,2))
 plot(serie,ylim=c(-3,6),main="Serie original")
