@@ -43,7 +43,8 @@ linear=as.ts(cumsum(arimaej+a0+xt))
 
 plot(linear)  ###Caminata Aleatoria alrededor de una linea recta.
 
-
+auto.arima(arimaej,d=0,D=0,max.p=20,max.q=0,start.p=0, start.q=0,seasonal=FALSE,max.order=20,stationary=TRUE,ic="aic",stepwise=FALSE,allowmean = TRUE)
+ar(arimaej)
 fUnitRoots::adfTest(arimaej,lags = 10,type='nc')   ####No hay presencia de Raíz Unitaria
 tseries::adf.test(drift)   ####Note que hay Presencia de Raíz Unitaria
 fUnitRoots::adfTest(drift,lags = 10,type='c')
@@ -57,6 +58,25 @@ plot(trend.estacionario)
 fUnitRoots::adfTest(trend.estacionario,lags=10)
 fUnitRoots::adfTest(trend.estacionario,lags=1,type='ct')   ###Cambie 11 rezago hasta 
 
+
+```
+```{r Raiz Unitaria}
+Tlength=200
+
+arimaej_raiz_unit=arima.sim(list(order = c(1,1,1), ar = 0.7,ma=0.6), n = Tlength)
+plot(arimaej_raiz_unit)
+acf(arimaej_raiz_unit)
+pacf(arimaej_raiz_unit)
+
+stats::ar(arimaej_raiz_unit)### Permite Seleccionar el lag
+
+fUnitRoots::adfTest(arimaej_raiz_unit,lags = 10,type='nc')  
+fUnitRoots::adfTest(arimaej_raiz_unit,type='nc') 
+####No hay presencia de Raíz Unitaria
+tseries::adf.test(arimaej_raiz_unit,k=5)   ####Note que hay 
+######
+urca::ur.df(arimaej_raiz_unit,type="none")
+summary(urca::ur.df(arimaej_raiz_unit,type="none"))
 
 ```
 
@@ -79,7 +99,8 @@ plot(logAirP)
 Ahora avanzamos en el setido de verificar si la serie muestra la presencia de una o varias raíces unitarias
 ```{r Pasajeros2}
 adf.test(log(AirPassengers))
-adf.test(log(AirPassengers),k=12)
+ar(log(AirPassengers))
+adf.test(log(AirPassengers),k=13)
 summary(ur.df(log(AirPassengers),type="none"))
 summary(ur.df(log(AirPassengers),type="drift"))
 
@@ -92,8 +113,8 @@ plot(dlogAirPass)
 ## Identificación del Modelo Usando ACF y PACF
 ```{r pasajeros3}
 ####Identificación de los Órdenes Autoregresivos
-acf(dlogAirPass,lag.max = 24,ci.type='ma')  ###Se requiere un MA de orden muy grande
-pacf(dlogAirPass,lag.max = 24)  ####Puede ser un autoregresivo de orden 12
+acf(dlogAirPass,lag.max = 48,ci.type='ma')  ###Se requiere un MA de orden muy grande
+pacf(dlogAirPass,lag.max = 48)  ####Puede ser un autoregresivo de orden 12
 ```
 
 ## Ajuste del Modelo

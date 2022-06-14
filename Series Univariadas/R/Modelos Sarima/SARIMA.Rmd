@@ -80,11 +80,12 @@ plot(AirPassengers)
 ###Para eso, es necesario haber convertido la serie a estacionaria###
 lAirpassengers=log(AirPassengers)
 plot(lAirpassengers)
+monthplot(lAirpassengers)
 
 forecast::ndiffs(lAirpassengers)
 #####Prueba de Dickey Fuller######
 ar(lAirpassengers)
-tseries::adf.test(lAirpassengers,k=10)
+tseries::adf.test(lAirpassengers,k=13)
 fUnitRoots::adfTest(lAirpassengers,lags = 12,type='nc')   ###Hay la presencia de Raíz Unitaria
 summary(urca::ur.df(lAirpassengers, lags = 12))
 adfTest(lAirpassengers,lags=12,type='ct')  ####Puede también indicar
@@ -97,8 +98,11 @@ dlAirpassengers=diff(lAirpassengers,lag=1)
 par(mfrow=c(2,1))
 plot(lAirpassengers)
 plot(dlAirpassengers)
+ar(dlAirpassengers)
 
-adfTest(dlAirpassengers,lags = 2,type='nc')  ###No se debe diferenciar más###
+tseries::adf.test(dlAirpassengers,k = 2)  ###No se debe diferenciar más###
+
+fUnitRoots::adfTest(dlAirpassengers,lags = 12,type='nc') 
 
 ```
 
@@ -107,6 +111,7 @@ adfTest(dlAirpassengers,lags = 2,type='nc')  ###No se debe diferenciar más###
 ```{r Componente Estacional y Ordinaria}
 ####################################
 library(uroot)
+require(forecast)
 ######Diferencia Estacional(continuación AirPassengers)#######
 monthplot(dlAirpassengers)
 nsdiffs(dlAirpassengers)
@@ -223,7 +228,7 @@ library(feasts)
 AirPassengers_tsb=as_tsibble(AirPassengers)
 Ajuste_tsibble_Pass<- AirPassengers_tsb %>%
   model(
-    arima011011_Pass = ARIMA(log(value) ~ pdq(0,1,1) + PDQ(0,1,1)),
+    sarima011011_Pass = ARIMA(log(value) ~ pdq(0,1,1) + PDQ(0,1,1)),
     auto_pass = ARIMA(log(value), stepwise = TRUE, approx = FALSE), 
   dummy_Pass=ARIMA(log(value) ~ pdq(0,1,1)+ season()),
  fourier_Pass=ARIMA(log(value) ~ pdq(0,1,1)+ fourier(K = 2))
@@ -231,11 +236,11 @@ Ajuste_tsibble_Pass<- AirPassengers_tsb %>%
 
 glance(Ajuste_tsibble_Pass)
 
-#Ajuste_tsibble_Pass %>% select(arima011011_Pass)%>%
+#Ajuste_tsibble_Pass %>% select(sarima011011_Pass)%>%
  # gg_tsresiduals()
 
 #augment(Ajuste_tsibble_Pass) %>%
-#  filter(.model=='arima011011_Pass') %>%
+#  filter(.model=='sarima011011_Pass') %>%
 #  features(.innov, ljung_box, lag = 10, dof = 3)
 
 Ajuste_tsibble_Pass %>%
@@ -244,7 +249,7 @@ Ajuste_tsibble_Pass %>%
 
 Ajuste_tsibble_Pass %>%
   fabletools::forecast(h=12) %>%
-  filter(.model=='arima011011_Pass') %>%
+  filter(.model=='sarima011011_Pass') %>%
   autoplot(AirPassengers_tsb)
 
 Ajuste_tsibble_Pass %>%
