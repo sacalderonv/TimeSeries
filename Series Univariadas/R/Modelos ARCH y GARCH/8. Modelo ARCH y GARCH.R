@@ -4,20 +4,22 @@ library(fGarch)
 library(aTSA)
 library(forecast)
 
-###Especificaci?n, simulaci?n y estimaci?n de modelos 
-#ARCH y GARCH por medio de dos librer?as diferentes
+###Especificación, simulación y estimación de modelos 
+#ARCH y GARCH por medio de dos librerías diferentes
 
 ##ARCH(2)
-###Espec?ficar el modelo 
-###Simulaci?n de la serie
+###Específicar el modelo 
+###Simulación de la serie
 set.seed(12)
-spec = garchSpec(model = list(alpha = c(0.2, 0.4), beta = 0))
-ARCH2=garchSim(spec, n = 500)
+spec = fGarch::garchSpec(model = list(alpha = c(0.2, 0.4), beta = 0))
+ARCH2=fGarch::garchSim(spec, n = 500)
+#x11()
 plot(ARCH2)
 acf(ARCH2)
 pacf(ARCH2)
 acf(ARCH2^2)
 pacf(ARCH2^2)
+Box.test(ARCH2,lag=20,type='Ljung-Box')
 Box.test(ARCH2^2,lag=20,type='Ljung-Box')
 salidaarima=arima(ARCH2,order = c(3,0,0),include.mean = FALSE,fixed=c(NA,NA,NA))
 library(lmtest)
@@ -27,14 +29,20 @@ salidaarima
 ##Efectos ARCH
 arch.test(salidaarima)
 resarma=residuals(salidaarima)^2
-x11()
+#x11()
 pacf(resarma,lag.max = 20)
 ######Ajuste de la serie
-m=garchFit(garch~arma(0,0)+garch(2,0),data=ARCH2,trace=F,include.mean = FALSE)
+m=fGarch::garchFit(garch~arma(0,0)+garch(2,0),data=ARCH2,trace=F,include.mean = FALSE)
 m
 
+sigmat=as.ts(m@sigma.t)
+par(mfrow=c(2,1))
+plot(ARCH2)
+plot(sigmat)
+
+
 ###ARCH(1)
-# Omega es el coeficiente constante de la ecuaci?n de varianza
+# Omega es el coeficiente constante de la ecuación de varianza
 set.seed(100)
 spec = garchSpec(model = list(omega=0.5,alpha = c(0.5), beta = 0))
 ARCH1=garchSim(spec, n = 500,extended=F)
@@ -59,20 +67,21 @@ predict(n.ahead=5,m1,plot=TRUE)
 
 
 #####Ajuste Serie datos reales####
-##Importaci?n
-sp5=as.ts(scan(file='~/Documents/Documentos Mac Book Sergio/Time Series/Especializacion Estadistica_Series de Tiempo/Scripts/Bases/SP500.txt'))
+##Importación
+###Establecer el directorio
+sp5=as.ts(scan(file="SP500.txt"))
 
 plot(sp5)
-acf(sp5)
+acf(sp5,ci.type='ma')
 pacf(sp5) 
 acf(sp5^2)
 pacf(sp5^2)
 
-coeftest(auto.arima(sp5)) ####Se podr?a ajustar un ARMA(2,3) con constante
+coeftest(auto.arima(sp5)) ####Se podría ajustar un ARMA(2,2) con constante
 
-modeloarima=arima(sp5,order = c(2,0,2),include.mean = TRUE)
+modeloarima=stats::arima(sp5,order = c(2,0,2),include.mean = TRUE)
 coeftest(modeloarima)
-arch.test(modeloarima)
+aTSA::arch.test(modeloarima)
 acf(modeloarima$residual)
 pacf(modeloarima$residual)
 acf(modeloarima$residual^2)
@@ -82,16 +91,20 @@ modelosp5_1=garchFit(~arma(2,2)+garch(1,1),data=sp5,trace=F,include.mean=T)
 summary(modelosp5_1)
 
 plot(modelosp5_1)
-prediccion=predict(modelosp5_1,n.ahead=10)
+prediccion=predict(modelosp5_1,n.ahead=10,plot=TRUE)
 
 library(rugarch)
 ###Especificaci?n del modelo
-spec1=ugarchspec(variance.model=list(model="sGARCH",garchOrder = c(3,0)),
-                 mean.model=list(armaOrder=c(9,0),include.mean = TRUE),distribution.model = "norm",fixed.pars = list(ar1=0,ar2=0,ar3=0,ar4=0,
-                                                                                                  alpha1=0))
+spec1=rugarch::ugarchspec(variance.model=list(model="sGARCH",garchOrder = c(1,1)),
+                 mean.model=list(armaOrder=c(2,2),include.mean = TRUE),distribution.model = "norm")
+#fixed.pars = list(ar1=0,ar2=0,ar3=0,ar4=0,alpha1=0)
 
 fit1=ugarchfit(data=sp5,spec=spec1)
 show(fit1)
+plot(fit1)
+forc1 = ugarchforecast(fit1, n.ahead = 10)  ###Predicción de la varianza condicional
+plot(forc1)
+
 
 
 ###########Modelos GARCH#########

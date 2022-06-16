@@ -62,7 +62,7 @@ m
 ## Ejemplo real S&P 500
 
 ```{r SandP500}
-sp5=as.ts(scan(file="/Users/macbook/Documents/GitHub/TimeSeries/Bases de Datos/SP500.txt"))
+sp5=as.ts(scan(file="SP500.txt"))
 
 plot(sp5)
 acf(sp5)
