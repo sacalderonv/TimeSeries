@@ -1,0 +1,207 @@
+---
+title: "Clasificación de Series de Tiempo"
+output: html_document
+date: '2022-06-16'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Clustering(Agrupamiento) de Series de Tiempo
+
+Vamos a usar los datos que contienen  las mediciones cada hora del $PM_{2.5}$ de los dispositivos Air-Box para marzo de 2017. Un total de 744 observaciones en el tiempo y en 516 diferentes localizaciones en Taiwan.
+
+```{r Air-Box Taiwan}
+library(readr)
+require(xts)
+require(forecast)
+TaiwanAirBox032017 = read_csv("TaiwanAirBox032017.csv")
+air <- as.matrix(TaiwanAirBox032017)[,-1]
+hourly_index <- seq(from = as.POSIXct("2017-03-01 00:00"), # Starting date
+                           to = as.POSIXct("2017-03-31 23:00"), # Ending date
+                           by = "hour") # Defining the time intervals
+
+Air_xts=xts(air, order.by=hourly_index)
+plot(Air_xts)
+ts.plot(air)
+x=air
+```
+
+##Creación de los ACF
+
+You can also embed plots, for example:
+
+```{r Medidas}
+T=dim(x)[1]
+k=dim(x)[2]
+z=diff(x)
+h=5
+aa=acf(z,lag.max=h,plot=FALSE)  ###Matriz de autocorreelaciones hasta el rezago h.
+
+H <- c(2:6)
+nl<-h
+ACM=matrix(0,nl,k)
+for (i in 1:k){
+ ACM[,i]=aa$acf[H,i,i]
+}
+
+####Se saca la matriz de autocrrelaciones requeridas
+dim(ACM)
+```
+
+```{r Se calculan las medidas}
+###All distances can be computed via the package TSclust
+library(TSclust)
+?diss
+Macf=diss(t(z),METHOD ="ACF", lag.max=h)
+Macf=as.matrix(Macf)
+##Similarity matrices based on PACF, Piccolo measure.
+## and normalized periodogram are computed
+## with the package TSclust
+Mpacf=diss(t(z),METHOD ="PACF", lag.max=h)
+Mpacf=as.matrix(Mpacf)
+Mpic=diss(t(z), METHOD ="AR.PIC")
+Mpic=as.matrix(Mpic)
+MPer=diss(t(z),METHOD ="PER", logarithm=TRUE, normalize=TRUE)
+MPer=as.matrix(MPer)
+```
+
+```{r Histograma de las medidas}
+###Histogram of the distances dropping the zeros
+## for each of the four methods and find
+## the maximum distance between two series
+par(mfcol=c(2,2))
+hist(Macf[Macf>0])
+max(Macf)
+arrayInd(which.max(Macf),dim(Macf))
+
+######
+hist(Mpacf[Mpacf>0])
+max(Macf)
+arrayInd(which.max(Mpacf),dim(Mpacf))
+
+######
+hist(Mpic[Mpic>0])
+max(Mpic)
+arrayInd(which.max(Mpic),dim(Mpic))
+
+####
+hist(MPer[MPer>0])
+max(MPer)
+arrayInd(which.max(MPer),dim(MPer))
+
+#####
+
+
+```
+Al revisar os histogramas de frecuencias se puede ver que la distribución de cada una de las distancias es sesgada a la derecha(distancias grandes), lo cual parece indicar múltiples grupos. En el caso de la distancia PER,  muestra una alta concentración en distancias pequeñas y unas pocas de grandes distancias, indicando la presencia de un grupos grande y uno pequeño. 
+
+
+
+```{r   distancias promedio}
+###The average distances of each method are computed
+md1=apply(Macf,1,mean)
+md2=apply(Mpacf,1,mean)
+md3=apply(Mpic,1,mean)
+md4=apply(MPer,1,mean)
+plot(md1, main="Average acf distances")
+plot(md2, main="Average pacf distances")
+plot(md3, main="Average pic distances")
+plot(md4, main="Average per distances")
+
+####
+##identification of extreme series
+which(md1>.5)
+
+which(md2>.5)
+
+which(md3>.8)
+
+which(md4>.12)
+
+```
+La máxima distancia ocurre con la serie 29. También se computó la distancia promedio de cada serie a todas las demás.
+
+
+```{r Disimilaridades}
+## Continue with Example .
+# We compute the autocorrelation matrices for each series
+# to compute the difference between the determinants
+nR=h+1
+R=array(0,dim=c(k,nR,nR))
+for (i in 1:k){
+ for (j in 1:nR){
+ for (s in 1:nR){
+ d=abs(j-s)
+ if(d==0) R[i,j,s]=1 else R[i,j,s]<-ACM[d,i] } } }
+DetR=matrix(0,k,1)
+for (i in 1:k){
+ DetR[i]=det(R[i,,])}
+Mdis=matrix(0,k,k)
+for (i in 1:k){
+ for (j in 1:k) {
+ Mdis[i,j]=abs(DetR[i]^(1/nl)-DetR[j]^(1/nl)) }}
+MdM=Mdis[Mdis>0]
+hist(MdM)
+max(MdM)
+arrayInd(which.max(Mdis),dim(Mdis))
+mD=apply(Mdis,1,mean)
+plot(mD, main="Average distances determinant")
+```
+Repite el mismo análisis usando el archivo PElectricity1344.csv, el cual cosiste del precio de la electricidad en forma horaria durante 678 remanas en 8 regiones de Nueva Inglaterra, para un total de 1344(7x24x8) series.Cada series a los 7 días de la semana, en cada una de las 24 horas del día, y por cada una de los 8 regiones.
+
+```{r Agrupaciones}
+##A Hierarchical clustering with complete distance is applied
+sc1=hclust(as.dist(Macf),method="complete")
+sc2=hclust(as.dist(Mpacf),method="complete")
+sc3=hclust(as.dist(Mpic),method="complete")
+sc4=hclust(as.dist(MPer),method="complete")
+
+par(mfrow=c(2,2))
+plot(sc1,main="ACF distances",hang=-1)
+plot(sc2,main="PACF distances",hang=-1)
+plot(sc3,main="Pic distances",hang=-1)
+plot(sc4,main="PER distances",hang=-1)
+```
+
+```{r Criterio Step-Plot}
+##Make the Step plot for each method
+wd1=diff(sc1$height)
+plot(wd1,main="ACF distances")
+
+wd2=diff(sc2$height)
+plot(wd2,main="PACF distances")
+
+wd3=diff(sc3$height)
+plot(wd3,main="PER distances")
+
+wd4=diff(sc4$height)
+plot(wd4,main="PER distances")
+```
+```{r Criterios silhoutte y gap }
+library(SLBDD)
+#Apply the Silhouette and gap criteria in the acf cluster
+silh.clus(8,as.dist(Macf), method="complete")$nClus
+silh.clus(8,as.dist(Macf), method="complete")
+
+
+memb=cutree(sc1,1:10)
+gap.clus(Macf,memb, 100)$optim.k
+```
+
+```{r Grupos}
+memb=cutree(sc1,3)
+g1u=which(memb==1)
+g2u=which(memb==2)
+g3u=which(memb==3)
+ng1=length(which(memb==1))
+ng1
+
+ng2=length(which(memb==2))
+ng2
+
+ng3=length(which(memb==3))
+ng3
+```
+

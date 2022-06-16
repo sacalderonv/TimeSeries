@@ -88,8 +88,8 @@ arch.test(modeloarima)
 ```
 
 ```{r SanP500 ajuste}
-modelosp5_1=garchFit(~arma(2,2)+garch(1,1),data=sp5,trace=F,include.mean=T)
-#summary(modelosp5_1)
+modelosp5_1=garchFit(~arma(2,2)+garch(9,0),data=sp5,trace=F,include.mean=T)
+summary(modelosp5_1)
 
 #plot(modelosp5_1)  ###Gráfico de volatilidad
 prediccion=predict(modelosp5_1,n.ahead=10)
