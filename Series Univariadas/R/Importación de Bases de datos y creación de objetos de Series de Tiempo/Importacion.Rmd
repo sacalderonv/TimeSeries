@@ -36,6 +36,7 @@ sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
 sercamrelint
 plot(sercamrelint,main="Cambios relativos")
 plot.ts(sercamrelint)
+acf(sercamrelint,lag.max = 20)
 acf(sercamrelint,ci.type='ma')
 acf(sercamrelint,type='partial')
 

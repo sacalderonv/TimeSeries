@@ -149,7 +149,7 @@ arrayInd(which.max(Mdis),dim(Mdis))
 mD=apply(Mdis,1,mean)
 plot(mD, main="Average distances determinant")
 ```
-Repite el mismo análisis usando el archivo PElectricity1344.csv, el cual cosiste del precio de la electricidad en forma horaria durante 678 remanas en 8 regiones de Nueva Inglaterra, para un total de 1344(7x24x8) series.Cada series a los 7 días de la semana, en cada una de las 24 horas del día, y por cada una de los 8 regiones.
+Repite el mismo análisis usando el archivo PElectricity1344.csv, el cual consiste del precio de la electricidad en forma horaria durante 678 remanas en 8 regiones de Nueva Inglaterra, para un total de 1344(7x24x8) series.Cada series a los 7 días de la semana, en cada una de las 24 horas del día, y por cada una de los 8 regiones.
 
 ```{r Agrupaciones}
 ##A Hierarchical clustering with complete distance is applied
@@ -169,6 +169,7 @@ plot(sc4,main="PER distances",hang=-1)
 ##Make the Step plot for each method
 wd1=diff(sc1$height)
 plot(wd1,main="ACF distances")
+stepp(z,dismethod="ACF")
 
 wd2=diff(sc2$height)
 plot(wd2,main="PACF distances")

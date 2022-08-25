@@ -87,7 +87,7 @@ pacf(modeloarima$residual)
 acf(modeloarima$residual^2)
 pacf(modeloarima$residual^2)
 
-modelosp5_1=garchFit(~arma(2,2)+garch(1,1),data=sp5,trace=F,include.mean=T)
+modelosp5_1=garchFit(~arma(2,2)+garch(9,0),data=sp5,trace=F,include.mean=T)
 summary(modelosp5_1)
 
 plot(modelosp5_1)

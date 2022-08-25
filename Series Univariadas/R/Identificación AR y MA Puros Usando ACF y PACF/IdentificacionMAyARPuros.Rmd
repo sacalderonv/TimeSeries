@@ -16,7 +16,7 @@ ts_IID=as.ts(IID)
 ts_IID
 plot(ts_IID)
 acf(ts_IID,lag.max = sqrt(T))
-pacf(ts_IID)  ###La autocorrelación Parcial mide la asociación estadística en X_{k+1} y X_{1} eliminando ajustado por intervención de las observaciones X_2,...,X_k.
+pacf(ts_IID)  ###La autocorrelación Parcial mide la asociación estadística en X_{k+1} y X_{1} ajustado por intervención de las observaciones X_2,...,X_k.
 ```
 ###Filtro lineal invariante
 Se desea simular observaciones que provienen de:
@@ -91,7 +91,7 @@ tbl_ts_lluvia %>% ACF(lluvia,lag_max =60) %>% autoplot()
 
 ```
 
-Tarea: Chequear la acf y pacf de sus series, además de la serie de pasajeros data(AirPassengers), todas las series del archivo Base_Accidentes.xlsx de la carpeta base de datos, ademas de todas las series de la carpeta Estacionarias. Por favor importarlas, crear objetos de series de tiempo.
+Tarea: Chequear la acf y pacf de sus series, además de la serie de pasajeros data(AirPassengers), todas las series del archivo Base_Accidentes.xlsx de la carpeta base de datos, además de todas las series de la carpeta Estacionarias. Por favor importarlas, crear objetos de series de tiempo.
 
 
 
