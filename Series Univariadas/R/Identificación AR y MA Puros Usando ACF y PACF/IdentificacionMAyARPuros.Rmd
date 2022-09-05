@@ -15,7 +15,7 @@ IID=rnorm(T,4,1)
 ts_IID=as.ts(IID)
 ts_IID
 plot(ts_IID)
-acf(ts_IID,lag.max = sqrt(T))
+acf(ts_IID,lag.max = T-1)
 pacf(ts_IID)  ###La autocorrelación Parcial mide la asociación estadística en X_{k+1} y X_{1} ajustado por intervención de las observaciones X_2,...,X_k.
 ```
 ###Filtro lineal invariante
@@ -47,7 +47,7 @@ sigma=2
 X_t=rnorm(T,0,sigma)
 S_t=as.ts(cumsum(X_t))
 plot(S_t)
-acf(S_t)
+acf(S_t,lag.max = 500)
 pacf(S_t)
 ```
 
@@ -57,13 +57,16 @@ pacf(S_t)
 r1=read.table("w-gs1yr.txt",header=T)[,4] 
 tsr1=ts(r1,start=1962+5/365.25,frequency=365.25/7)
 tsc1=diff(tsr1)
+plot(tsc1)
 acf(tsc1)
+pacf(tsc1)
 ```
 
 
 ```{r SP500}
 sp5=as.ts(scan(file="SP500.txt"))
 sp5
+plot(sp5)
 acf(sp5)
 acf(sp5^2)
 ```
