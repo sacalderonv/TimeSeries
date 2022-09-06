@@ -333,17 +333,17 @@ ts.head(10)
 
 ```
 
-#```{python inicio_1}
+```{python inicio 1}
 print(r.AirPassengers)
 print(r.lAirPass)
-#```
+```
 
-#```{r uso de objeto creado en python}
+```{r uso de objeto creado en python}
 py$data
 library(ggplot2)
 ggplot2::ggplot(data = py$data,aes(x=Month,y=NPassengers) )+geom_line()
 
-#```
+```
 
 ## Gráficas de Retardos
 Vamos a hacer gráficos de dispersión para chequear que tipos de relaciones hay entre los retardos de la variable interés. Vamos a trabajar con algunas series, por ejemplo:
@@ -685,7 +685,13 @@ Otro enfoque para analizar patrones estacionales en datos de series de tiempo es
 ```{r explorando estacionalidades con timetk}
 require(timetk)
 UKgrid_tbl
-UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","wday.lbl","month.lbl"))
+UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","week","wday.lbl","month.lbl"),.geom="boxplot") ##Chequear si se desea un diagrama de caja o violín .geom 
+
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("hour"),.geom="violin")
+
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("wday.lbl"),.geom="violin")
+
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("month.lbl"),.geom="violin")
 
 
 ```
