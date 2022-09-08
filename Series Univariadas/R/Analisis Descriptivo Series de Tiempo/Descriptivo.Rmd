@@ -292,7 +292,9 @@ Vamos a correr lo mismo pero en Python para la transformación de BoxCox
 library(knitr) 
 library(reticulate)
 ###Nos ubicamos en el ambiente dentro de la terminal y damos which python y copiamos la ruta "/opt/anaconda3/envs/Python38andR/bin/python"
-use_python("/opt/anaconda3/envs/Python38andR/bin/python")
+##"/Users/macbook/opt/anaconda3/envs/Ambiente38/bin/python"
+##"/Users/macbook/Library/r-miniconda/bin/python"
+use_python("/Users/macbook/opt/anaconda3/envs/Ambiente38/bin/python")
 #use_virtualenv("~/Python38andR")
 py_config()
 pd <- import("pandas")
@@ -339,6 +341,7 @@ print(r.lAirPass)
 ```
 
 ```{r uso de objeto creado en python}
+
 py$data
 library(ggplot2)
 ggplot2::ggplot(data = py$data,aes(x=Month,y=NPassengers) )+geom_line()
@@ -398,7 +401,7 @@ acf(rec, 48, main="Recruitment")
 ```
 
 ```{r ccf}
-ccf(soi, rec, 48, main="SOI vs Recruitment", ylab="CCF")
+ccf(rec, soi, 48, main="SOI vs Recruitment", ylab="CCF")
 #Corr(rec_{t},soi_{t-h})
 #Corr(soi_{t},rec_{t-h},)
 ```
@@ -448,7 +451,7 @@ length(xtsimul)
 plot(xtsimul)
 acf(xtsimul)
 par(mar = c(3,2,3,2))
-astsa::lag1.plot(xtsimul, 6) 
+astsa::lag1.plot(xtsimul, 12) 
 nonlinearTseries::mutualInformation(xtsimul,lag.max = 100,n.partitions = 50,units = "Bits",do.plot = TRUE) #c("Nats", "Bits", "Bans")
 pacf(xtsimul)
 
