@@ -435,7 +435,7 @@ En el contexto del análisis de series de tiempo, AMI ayuda a cuantificar la can
 
 
 Vamos a simular una serie de la forma
-$$x_t=\frac{x_t-1}{x_{t-3}^2+1}+\epsilon_t$$ y a trabajar con la serie de linces Candienses del paquete astsa lynx.
+$$x_t=\frac{x_t-1}{x_{t-12}^2+1}+\epsilon_t$$ y a trabajar con la serie de linces Candienses del paquete astsa lynx.
 
 ```{r AMI}
 library(nonlinearTseries)
@@ -451,7 +451,7 @@ length(xtsimul)
 plot(xtsimul)
 acf(xtsimul)
 par(mar = c(3,2,3,2))
-astsa::lag1.plot(xtsimul, 12) 
+astsa::lag1.plot(xtsimul, 12,corr = F) 
 nonlinearTseries::mutualInformation(xtsimul,lag.max = 100,n.partitions = 50,units = "Bits",do.plot = TRUE) #c("Nats", "Bits", "Bans")
 pacf(xtsimul)
 
@@ -832,7 +832,7 @@ Note que los valores verdaderos de $\beta_1=$ y $\beta_2=$
 beta1teor=2*cos(.6*pi)
 beta2teor=-2*sin(.6*pi)
 set.seed(90210) # fijamos una semilla para que nos dé el mismo resultado
-x = 2*cos(2*pi*1:500/10 + .6*pi) + rnorm(500,0,5)
+x = 2*cos(2*pi*1:500/50 + .6*pi) + rnorm(500,0,5)
 z1 = cos(2*pi*1:500/50)
 z2 = sin(2*pi*1:500/50)
 summary(fit <- lm(x~0+z1+z2)) # sin intercepto.
