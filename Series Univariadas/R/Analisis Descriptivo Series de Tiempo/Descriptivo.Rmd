@@ -866,7 +866,7 @@ Así, $1/T\leq f_j\leq 1/2$, y el valor máximo sería $f_j=0.5$ y se conoce com
 $$Z_t=\mu+\sum_{j=1}^{T/2}A_j\sin(\omega_j t)+ \sum_{j=1}^{T/2}B_j\cos(\omega_j t)+a_t.$$
 
 Note que éste modelo tiene tantos parámetros como observaciones, con lo cual hay que buscar un procedimiento para seleccionar las frecuencias que deben ser incluidas para explicar la evolución de la serie. Para esto se utilizará la herramienta conocida como el periodograma. Se puede verificar que la contribución de una onda a la varianza es dada por $\frac{\hat{R}^2}{2}$, así que ondas asociadas con amplitudes grandes serán importantes en la explicación de la variabilidad de la serie, mientras que ondas asociadas con amplitudes bajas serán poco importantes. De forma análoga a como se mostró en la sección anterior, los estimadores de los coeficientes $A_j$ y $B_j$ están dados por
-$$\hat{A}_j=\frac{2}{T}\sum_{t=1}^{T}Z_t\sen(\omega_j t)$$  
+$$\hat{A}_j=\frac{2}{T}\sum_{t=1}^{T}Z_t\sin(\omega_j t)$$  
 $$\hat{B}_j=\frac{2}{T}\sum_{t=1}^{T}Z_t\cos(\omega_j t)$$
 y $$\hat{R}_j=\hat{A}_j^2+\hat{B}_j^2,$$
 donde $\omega_j=2\pi f_j$ y $f=\frac{j}{T}$, con lo cual
@@ -892,7 +892,7 @@ Vamos a retomar el ejemplo anterior donde simulamos una serie de tamaño $T=500$
 ```{r Periodograma_1}
 plot.ts(x)
 spectrum(x,log='no')
-abline(v=1/10, lty=2,col="red")
+abline(v=1/50, lty=2,col="red")
 ###Otra forma de computarlo es vía la transformada de Fourier
 
 Px = Mod(fft(x))^2
