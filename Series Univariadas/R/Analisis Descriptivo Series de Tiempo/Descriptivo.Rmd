@@ -1010,6 +1010,14 @@ raices
 conj_raices=Conj(raices)
 raices[12]*conj_raices[12]
 ```
+## Desestacionalizar o eliminación de la componente estacional.
+Al igual como se hizo con la tendencia, hay al menos dos forma de eliminar la componente estacional:
+* Estimando la componente estacional y luego proceder quitarla.
+* Usando diferencias estacionales $(1-B^s)^D$, donde $s$ es el periodo del ciclo estacional.
+
+De las series con estacionalidad, usar el operador diferencia estacional y proceder a eliminar la componente estacional.De las series con estacionalidad, usar el operador diferencia estacional y proceder a eliminar la componente estacional usando la función diff(series,lag=s,differences=D).
+
+
 
 
 # Suavizamiento en el contexto de Series de Tiempo
