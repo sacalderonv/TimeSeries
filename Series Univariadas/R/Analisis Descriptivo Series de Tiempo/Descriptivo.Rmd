@@ -3,6 +3,7 @@ title: "Analisis Descriptivo de Series de Tiempo en R"
 output: github_document
 #output: html_document
 always_allow_html: true
+bibliography:bibliodescriptiva.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -984,6 +985,15 @@ Note que la primera frecuencia mas alta se encuentra en $\omega=1\cdot \frac{1}{
 
 <b> Tarea</b> : Hacer lo mismo pero ahora usar la serie de pasajeros diferenciada, al igual que la serie UKgrid, mas específicamente la serie UKgrid_xts y la serie taylor del paquete forecast.
 
+# Componente Estacional Estocástica
+La componente estacional $S_t^{(s)}$ puede ser estocástica y no determinística. Consideremos el primer caso, donde la evolución es estacionaria, es decir los estacionales no son constante, pero siguen un proceso estacionario, oscilando alrededor de un valor medio de acuerdo con la representación propuesta en [@Pena2010]:
+$$S_t^{(s)}=\mu^{(s)}+\nu_t$$
+donde $\nu_t$ es un proceso estacionario de media cero y $\mu^{(s)}$ es una constante que depende del mes o de las componentes de los $s$ periodos.
+
+Otra forma de introducir la estacionalidad de forma estocástica es permitir que sea cambiante en el tiempo sin ningún valor fijo medio. En este caso la estacionalidad puede proponerse que siga un porceso no estacionario por ejemplo que siga una caminata aleatoria:
+$$S_t^{(s)}=S_{t-s}^{(s)}+\nu_t$$
+siendo $\nu_t$ es un proceso estacionario de media cero.
+
 ```{r simular SARIMA con componente estacional no-estacionario}
 library(sarima) 
 x <- ts(sarima::sim_sarima(n=144, model = list(siorder=1,
@@ -996,9 +1006,9 @@ spectrum(x,log='no',span=5)
 astsa::mvspec(x, log="no")
 ```
 
-```{r simular SARIMA sin componente estacional}
+```{r simular SARIMA con componente estacional estacionaria}
 library(sarima) 
-x <- ts(sim_sarima(n=288,model=list(sar=0.3, nseasons=12, sigma2 = 1)), frequency = 12 )#SAR(1)
+x <- ts(sim_sarima(n=288,model=list(sar=0.8, nseasons=12, sigma2 = 1)), frequency = 12 )#SAR(1)
 plot(x)
 acf(x)
 monthplot(x)
