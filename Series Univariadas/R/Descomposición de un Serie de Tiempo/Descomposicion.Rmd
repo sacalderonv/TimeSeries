@@ -463,7 +463,7 @@ RECM
 ```
 
 ### Rolling
-
+Se puede consultar mas detalles en  https://www.openforecast.org/adam/rollingOrigin.html#fig:ROProcessAnimation y https://cran.r-project.org/web/packages/greybox/index.html.
 ```{r rolling 2}
 library(forecast)
 library(greybox)
