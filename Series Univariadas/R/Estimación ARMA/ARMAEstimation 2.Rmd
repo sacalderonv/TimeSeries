@@ -198,7 +198,7 @@ for(i in 1:ntest)
   x=window(sercamrelint,end=c(1999,4)+(i-1)/12)
   print(length(x))
   refit=Arima(x,order=c(3,0,0),include.mean = FALSE,fixed=c(NA,0,NA),method = c("CSS-ML"))
-  fcmat[i,]=forecast(refit,h=h)$mean
+  fcmat[i,]=test[i]-forecast(refit,h=h)$mean
 }
 fcmat
 ECM=mean(fcmat^2)
