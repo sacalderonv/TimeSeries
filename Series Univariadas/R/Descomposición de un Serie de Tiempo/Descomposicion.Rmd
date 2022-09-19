@@ -270,14 +270,14 @@ modelos<-tsibble_lAirPass%>%
 
 
 
-### Modeltime para ETS
+## Modeltime para ETS
 
 El flujo de trabajo en modeltime es como sigue:
-* Creación de una tabla con el(los) modelo(s) de modeltime. Es decir crear un tabla con el modelo ajustado de los datos de entrenamiento.
+* Creación de una tabla con el(los) modelo(s) de modeltime. Es decir crear un tabla con el modelo ajustado usando los datos de entrenamiento.
 * Etapa de calibración. Cuando el modelo ajustado es aplicado a los datos de prueba. Aquí se buscan los mejores hiperparámetros para calibrar el modelo y que nos entregue el modelo con la mejor capaciadad predictiva. Los siguientes dos pasos hacen parte de la etapa de calibración:
     * Pronóstico sobre los datos de prueba para compararlo con los reales.
     * Con el modelo "calibrado" sobre el conjunto de entrenamiento procedemos a computar las medidas de precisión del pronóstico.
-    * Nota: Se pueden comparar las medidas de precisión sobre el conjunto de entrenamiento y compararlos con las del conjunto de prueba.
+    * Nota: Se pueden comparar las medidas de precisión sobre el conjunto de entrenamiento y  con las del conjunto de prueba.
 
 * Una vez escogido el modelo final(con los hiperparámetros o variables regresoras finales), el que posiblemente tenga mejor capacidad predictiva, debemos reajustar el modelo sobre todos los datos(re-estimar los parámetros con todos los datos: los de entrenamineto y de prueba)
 
@@ -288,29 +288,34 @@ El flujo de trabajo en modeltime es como sigue:
 * 
 
 ```{r ets modeltime preparacion}
+
 library(dplyr)
 library(parsnip)
 library(rsample)
 library(timetk)
 library(modeltime)
-
+library(tsibble)
+library(tidymodels)
+###Creación del objeto sibble
 lAirPass_tbl<-as_tibble(as_tsibble(lAirPass))
 lAirPass_tbl$index=as.Date(lAirPass_tbl$index)
 lAirPass_tbl=rename(lAirPass_tbl,Fecha=index,logAirpass=value)
 lAirPass_tbl<-lAirPass_tbl%>%mutate(Airpass=exp(logAirpass))
 
 lAirPass_tbl
-
+###División en entrenamiento y prueba
 splits_lAirPass_tbl=timetk::time_series_split(lAirPass_tbl,date_var=Fecha,assess = 12,cumulative = TRUE)
 splits_lAirPass_tbl%>% tk_time_series_cv_plan()%>%
   plot_time_series_cv_plan(Fecha,logAirpass)
-
+splits_lAirPass_tbl
 
 
 
 ```
-El caso que trataremos consiste en la estimación de los parámetros, smooth_level($\alpha$), smooth_trend($\beta$), smooth_seasonal($\gamma$).
+El caso que trataremos consiste en la estimación de los parámetros, smooth_level($\alpha$), smooth_trend($\beta$), smooth_seasonal($\gamma$) de un modelo de suavizamineto exponencial.
 ```{r ets modeltime}
+
+#Ajuste del modelo suavizamineto exponencial
 ?modeltime::exp_smoothing
 ets_logAirpass<-modeltime::exp_smoothing(
   error="additive",
@@ -319,7 +324,7 @@ ets_logAirpass<-modeltime::exp_smoothing(
 )%>%
   set_engine("ets")%>%
   fit(logAirpass ~ Fecha,data=training(splits_lAirPass_tbl))
- # Modeltime ----
+ # Modeltime y creación de una tabla con el objeto ajustado sobre el conjunto de prueba y pronóstico sobre el conjunto de prueba.
  
 modeltime_table(ets_logAirpass) %>%
   modeltime_calibrate(testing(splits_lAirPass_tbl))%>%
@@ -329,6 +334,8 @@ modeltime_table(ets_logAirpass) %>%
   )%>%
   plot_modeltime_forecast(.conf_interval_fill = "lightblue")
 
+
+##Se crea un objeto de pronóstico con los valores sobre el conjunto de prueba.
 pronostico_ets<-modeltime_table(ets_logAirpass) %>%
   modeltime_calibrate(testing(splits_lAirPass_tbl))%>%
   modeltime_forecast(
@@ -337,12 +344,14 @@ pronostico_ets<-modeltime_table(ets_logAirpass) %>%
   )
     
  pronostico_ets 
+ 
+ ####Los mismo que hicimos anteriormente pero ahora creando objetos
  ## Modeltime
  model_tbl<-modeltime_table(ets_logAirpass)
 ## Calibración 
   calibration_tbl<-model_tbl%>%
     modeltime_calibrate(testing(splits_lAirPass_tbl))
-## Prueba de pronóstico
+## Pronóstico sobre el conjunto de prueba
   calibration_tbl%>%
    modeltime_forecast(
     new_data = testing(splits_lAirPass_tbl),
