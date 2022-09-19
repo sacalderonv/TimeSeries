@@ -154,6 +154,8 @@ library(fpp)
 library(fable)
 library(feasts)
 data(elecequip)
+?elecequip
+elecequip
 autoplot(elecequip)
 elecequip_tsibble=as_tsibble(elecequip)
 elecequip_tsibble%>%gg_subseries(value,period=12)
@@ -209,6 +211,9 @@ fit_elecequip_tsibble =elecequip_tsibble%>%
     robust = TRUE),NAIVE(season_adjust)))
 
 fit_elecequip_tsibble%>%fabletools::forecast()%>%autoplot(elecequip_tsibble)+ labs(y=" a",title=" b")  
+
+Pronostico<-fit_elecequip_tsibble%>%fabletools::forecast()  
+Pronostico
 ###Por defecto hace el pronóstico para el doble del ciclo estacional 
 ```
 
@@ -251,8 +256,36 @@ pronostico%>%autoplot(tsibble_lAirPass)+geom_line(aes(y=.fitted),col="#D55E00",d
 
 la función ets,ses, holt y hw de forecast también permiten hacer suavizamiento exponencial.
 
+```{r dos modelos usando fable}
+modelos<-tsibble_lAirPass%>%
+   model(ets=ETS(value~ error("A")+trend("A")+season("A")),
+         stl=decomposition_model(STL(value ~ trend(window = 13) +
+                   season(window = "periodic"),
+    robust = TRUE),NAIVE(season_adjust)))
+ modelos 
+
+ modelos%>%fabletools::forecast(h=12)%>%
+   autoplot(tsibble_lAirPass)
+```
+
+
 
 ### Modeltime para ETS
+
+El flujo de trabajo en modeltime es como sigue:
+* Creación de una tabla con el(los) modelo(s) de modeltime. Es decir crear un tabla con el modelo ajustado de los datos de entrenamiento.
+* Etapa de calibración. Cuando el modelo ajustado es aplicado a los datos de prueba. Aquí se buscan los mejores hiperparámetros para calibrar el modelo y que nos entregue el modelo con la mejor capaciadad predictiva. Los siguientes dos pasos hacen parte de la etapa de calibración:
+    * Pronóstico sobre los datos de prueba para compararlo con los reales.
+    * Con el modelo "calibrado" sobre el conjunto de entrenamiento procedemos a computar las medidas de precisión del pronóstico.
+    * Nota: Se pueden comparar las medidas de precisión sobre el conjunto de entrenamiento y compararlos con las del conjunto de prueba.
+
+* Una vez escogido el modelo final(con los hiperparámetros o variables regresoras finales), el que posiblemente tenga mejor capacidad predictiva, debemos reajustar el modelo sobre todos los datos(re-estimar los parámetros con todos los datos: los de entrenamineto y de prueba)
+
+* Usar le modelo para hacer los pronósticos del futuro.
+
+
+
+* 
 
 ```{r ets modeltime preparacion}
 library(dplyr)
@@ -422,6 +455,23 @@ modeltime_table(ets_Colcap) %>%
 
 ```
 
+# Evaluación de los pronósticos
+Antes de hablar de la evaluación de los pronósticos, hablaremos que hay dos tiempos de pronósticos, como los define Hydman en el libro fpp3:
+* Los pronósticos ex-ante son aquellos que se realizan utilizando únicamente la información que está disponible de antemano. Estos son pronósticos genuinos, hechos con anticipación utilizando cualquier información disponible en ese momento.
+
+* Las previsiones ex-post son aquellas que se realizan utilizando información posterior sobre los predictores. Estos no son pronósticos genuinos, pero son útiles para estudiar el comportamiento de los modelos de pronóstico.
+
+El Rolling es un método que permite computar medidas de precisión de los pronósticos. La idea es basada en validación cruzada para series de tiempo, en donde el origen de pronóstico va rodando.
+Ver ejemplo en https://otexts.com/fpp3/tscv.html.
+
+## Medidas de Presición.
+La medida mas usada es el error cuadrático medio de predicción $h-$pasos adelante, es decir, 
+$$ECM[\hat{X}_{T+h|T}]=E[(X_{T+h}-\hat{X}_{T+h|T})^2]=E[e^{2}_{T+h|T}],$$
+donde $X_{T+h}-\hat{X}_{T+h|T}=e_{T+h|T}$ es el error de predicción $h-$pasos adelante y el cual estima mediante $\frac{1}{T-l-h+1}\sum_{t=1}^{t-h+1}e^{2}_{t,h}$. También existen mas medidas de precisión, por ejemplo el error medio absoluto el cual se define como:
+
+$$\frac{1}{T-l-h+1}\sum_{t=1}^{l-h+1}|e_{t,h}|.$$
+
+Vamos a crear el procedimiento de rolling de forma manual.
 ```{r Rolling 1}
 h=3
 lAirPass
@@ -464,12 +514,14 @@ RECM
 
 ### Rolling
 Se puede consultar mas detalles en  https://www.openforecast.org/adam/rollingOrigin.html#fig:ROProcessAnimation y https://cran.r-project.org/web/packages/greybox/index.html.
+
+Haremos rolling unsando la función "ro()"  programada en R del paquete greybox.
 ```{r rolling 2}
 library(forecast)
 library(greybox)
 HWAP_train=stats::HoltWinters(train,seasonal="additive")
 ?ro
-?tsCV ##también permite hacer el rolling.
+
 h=3
 ourCallETS <- "forecast::forecast(stats::HoltWinters(train,alpha=HWAP_train$alpha,beta=HWAP_train$beta,gamma=HWAP_train$gamma),h=h,level=95)"
 ourValueETS <- c("mean","lower","upper")
@@ -488,7 +540,6 @@ library(greybox)
 salida_ets_train_lAirpass<-ets(train,model="AAA")
 salida_ets_train_lAirpass$par
 ?ro
-?tsCV ##también permite hacer el rolling.
 h=3
 ourCallETS <- "forecast::forecast(forecast::ets(data,alpha=salida_ets_train_lAirpass$par[1],beta=salida_ets_train_lAirpass$par[2]),gamma=salida_ets_train_lAirpass$par[3],h=h,level=95)"
 ourValueETS <- c("mean","lower","upper")
@@ -499,4 +550,8 @@ apply(sqrt((Valoresretornados1$holdout -Valoresretornados1$mean)^2),1,mean,na.rm
 
 apply(abs(Valoresretornados1$holdout - -Valoresretornados1$mean),1,mean,na.rm=TRUE) / mean(Valoresretornados1$actuals) ### Error medio absoluto escalado
 ```
+
+
+
+
 
