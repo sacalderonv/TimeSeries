@@ -503,6 +503,7 @@ for(j in 2:h){
   verval=cbind(verval,c(test[j:ntest],rep(NA,j-1)))
 }
 verval=cbind(test[1:ntest],c(test[2:ntest],NA),c(test[3:ntest],NA,NA))
+####Ajuste del modelo con los datos de entrenamiento
 HWAP_train=stats::HoltWinters(train,seasonal="additive")
 HWAP_train$alpha
 HWAP_train$beta
@@ -515,7 +516,7 @@ for(i in 1:(ntest))
     fchstepahe[i,]=as.numeric(forecast::forecast(refit,h=h)$mean)
 }
 fchstepahe
-errores_pred=fchstepahe-verval
+errores_pred=verval -fchstepahe
 ECM=apply(errores_pred^2,MARGIN = 2,mean,na.rm=TRUE)
 RECM=sqrt(ECM)
 RECM
@@ -534,10 +535,10 @@ HWAP_train=stats::HoltWinters(train,seasonal="additive")
 h=3
 ourCallETS <- "forecast::forecast(stats::HoltWinters(train,alpha=HWAP_train$alpha,beta=HWAP_train$beta,gamma=HWAP_train$gamma),h=h,level=95)"
 ourValueETS <- c("mean","lower","upper")
-origins=22
+origins=22   ##número de rolling windows
 Valoresretornados1 <- ro(lAirPass, h=h, origins=origins, call=ourCallETS, value=ourValueETS,ci=FALSE,co=FALSE)
-
-apply(sqrt((Valoresretornados1$holdout -Valoresretornados1$mean)^2),1,mean,na.rm=TRUE) ### Se calcula la raíz del error cudrático medio de predicción
+Valoresretornados1$holdout## Permiten verificar los verdaderos valores h-pasos adelante. 
+sqrt(apply((Valoresretornados1$holdout -Valoresretornados1$mean)^2,1,mean,na.rm=TRUE)) ### Se calcula la raíz del error cudrático medio de predicción
 
 apply(abs(Valoresretornados1$holdout - -Valoresretornados1$mean),1,mean,na.rm=TRUE) / mean(Valoresretornados1$actuals) ### Error medio absoluto escalado
 ```
@@ -555,7 +556,7 @@ ourValueETS <- c("mean","lower","upper")
 origins=22
 Valoresretornados1 <- ro(lAirPass, h=h, origins=origins, call=ourCallETS, value=ourValueETS,ci=FALSE,co=FALSE)
 
-apply(sqrt((Valoresretornados1$holdout -Valoresretornados1$mean)^2),1,mean,na.rm=TRUE) ### Se calcula la raíz del error cudrático medio de predicción
+apply(sqrt((Valoresretornados1$holdout -Valoresretornados1$mean)^2),1,mean,na.rm=TRUE) ### Se calcula la raíz del error cuadrático medio de predicción
 
 apply(abs(Valoresretornados1$holdout - -Valoresretornados1$mean),1,mean,na.rm=TRUE) / mean(Valoresretornados1$actuals) ### Error medio absoluto escalado
 ```
