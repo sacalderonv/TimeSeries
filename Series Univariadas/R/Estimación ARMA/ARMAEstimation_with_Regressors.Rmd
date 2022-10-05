@@ -1,0 +1,278 @@
+---
+title: "ARMA Estimation"
+output:
+  github_document: default
+  html_notebook: default
+---
+
+Este Markdown Permite hacer la estimación de modelos ARMA introduciendo regresoras del tipo Dummy(con periodo corto) y Fourier(con periodo largo) para incorporar la estacionalidad antes de ver los modelos SARIMA(permite que la estacionalidad no sea dertminística sino estocásticas, es decir, puede variar sobre ele tiempo). Si la serie de tiempo presenta una tendencia, asumiremos que es una tendencia estocástica(caminata aleatoria) a menos que se modele mediante una función determinística del tiempo, la cual permite incorporar la tendencia.
+
+
+# Datos de facturación minorista en millones de dólares Autralianos
+
+
+```{r datos}
+library(fpp3)
+data(aus_retail)
+aus_retail
+
+?aus_retail
+aus_cafe <- aus_retail %>%
+  filter(
+    Industry == "Cafes, restaurants and takeaway food services",
+    year(Month) %in% 2004:2018
+  )%>%
+  summarise(Turnover = sum(Turnover))
+
+aus_cafe
+
+aus_cafe%>%autoplot()
+```
+# Exploración de los datos
+
+Note que la serie presenta una varianza creciente. Parece tener estacionalidad y tendencia. Veamos algunas exploraciones acerca de esta serie.
+
+
+```{r exploracion datos cafe}
+###Transformación logarítmica 
+aus_cafe<-aus_cafe%>%mutate(log_Turnover=log(Turnover))
+aus_cafe
+aus_cafe%>%autoplot(vars(log_Turnover,Turnover))
+
+###Diferenciación
+aus_cafe<-aus_cafe%>%mutate(diff_log_Turnover=difference(log_Turnover,lag=1,differences = 1))
+aus_cafe
+
+aus_cafe%>%autoplot(vars(log_Turnover,diff_log_Turnover))
+
+### Estacionalidad
+aus_cafe%>%select(diff_log_Turnover)%>%gg_season(period = "year")
+
+aus_cafe%>%select(diff_log_Turnover)%>%gg_subseries(period = "year")
+
+aus_cafe_tbl<-as_tibble(aus_cafe)
+aus_cafe_tbl$Month<-as.Date(aus_cafe_tbl$Month)
+
+aus_cafe_tbl
+require(timetk)
+aus_cafe_tbl%>%plot_seasonal_diagnostics(.date_var = Month,.value = diff_log_Turnover,.feature_set = c("month.lbl"),.geom="boxplot") 
+
+spectrum(aus_cafe_tbl$diff_log_Turnover[2:length(aus_cafe_tbl$diff_log_Turnover)],log='no')
+abline(v=1/12, lty=2,col="red")
+```
+Note que en efecto hay una estacionalidad de periodo $s=12$.
+
+# Modelamiento del ciclo para la serie diferenciada y transformación logarítmica
+
+```{r ciclo unicamente}
+library(fable)
+ajuste<-aus_cafe%>%model(
+  `FourierK=1`=ARIMA(diff_log_Turnover~fourier(K=1)+pdq(0,0,0)+PDQ(0,0,0),),
+  `FourierK=2`=ARIMA(diff_log_Turnover~fourier(K=2)+pdq(0,0,0)+PDQ(0,0,0)),
+  `FourierK=3`=ARIMA(diff_log_Turnover~fourier(K=3)+pdq(0,0,0)+PDQ(0,0,0)),
+  `Dummy`=ARIMA(diff_log_Turnover~season()+pdq(0,0,0)+PDQ(0,0,0))                              )
+## Podemos agregar la opción fixed como una lista dentro de ARIMA, por ejemplo:
+###fixed = list(ar1 = 0.3, ma2 = 0).
+
+ajuste
+glance(ajuste)
+
+ajuste
+glance(ajuste) %>% arrange(AICc) %>% select(.model:BIC)
+
+ajuste %>%
+  fabletools::forecast(h = "2 years") %>%
+  autoplot(aus_cafe, level = 95) +
+  facet_wrap(vars(.model), ncol = 2) +
+  guides(colour = "none", fill = "none", level = "none") +
+  geom_label(
+    aes(x = yearmonth("2007 Jan"), y = 0.5,
+        label = paste0("AICc = ", format(AICc))),
+    data = glance(ajuste)
+  ) +
+  labs(title= "Total monthly eating-out expenditure",
+       y="$ billions")
+```
+# Análisis de Residuales
+
+```{r chequeo de residuales}
+
+##Chequeo significancia
+library(lmtest)
+ajuste %>%
+  select(Dummy)%>%report()
+
+ajuste %>%
+     select(Dummy)%>%coef()
+
+###Residuales
+ajuste %>%
+  select(Dummy) %>%
+  gg_tsresiduals()
+####Saca algunas carcaterística para comprobar el ajuste del modelo
+
+augment_ajuste_tb<-ajuste %>%
+    select(Dummy)%>%augment()
+```
+
+# Análisis de Residuales(complemento)
+
+
+
+```{r Análisis de Residuales}
+library(tseries)
+# Análisis de residuales
+augment_ajuste_tb
+
+residuales=na.omit(augment_ajuste_tb$.innov)
+plot(residuales,type="l")
+acf(residuales)
+acf(residuales,ci.type="ma")
+acf(residuales^2)
+pacf(residuales)
+#Test de normalidad
+jarque.bera.test(residuales)
+#Test de autocorrelaci?n
+length(residuales)/4
+sqrt(length(residuales))
+Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)#No puedo Rechazar la hipótesis de no autocorrelación!
+
+
+###Estad?sticas CUSUM
+res=residuales
+cum=cumsum(res)/sd(res)
+N=length(res)
+cumq=cumsum(res^2)/sum(res^2)
+Af=0.948 ###Cuantil del 95% para la estad?stica cusum
+co=0.15046####Valor del cuantil aproximado para cusumsq para n/2=91 para alpha=0.01
+LS=Af*sqrt(N)+2*Af*c(1:length(res))/sqrt(N)
+LI=-LS
+LQS=co+(1:length(res))/N
+LQI=-co+(1:length(res))/N
+plot(cum,type="l",ylim=c(min(LI),max(LS)),xlab="t",ylab="",main="CUSUM")
+lines(LS,type="S",col="red")
+lines(LI,type="S",col="red")
+#CUSUMSQ
+plot(cumq,type="l",xlab="t",ylab="",main="CUSUMSQ")                      
+lines(LQS,type="S",col="red")                                                                           
+lines(LQI,type="S",col="red")
+```
+Viendo el ajuste del modelo, parece que hay que ajustarle un modelo MA(1) o AR(1), basado en el análisis de resultados.
+
+Tarea(Chequear los residuales de los otroas modelos)
+### Reajuste del modelo
+
+Esta vez reajustaremos todos los modelos proponiendo un AR(1) a los residuales,adicionando que tiene raíz unitaria(se ha difereciado) y que hay que transformar por Box-Cox
+
+```{r ciclo unicamente modelo final}
+
+ajuste_final<-aus_cafe%>%model(
+  `FourierK=1`=ARIMA(log(Turnover)~fourier(K=1)+pdq(1,1,0)+PDQ(0,0,0),),
+  `FourierK=2`=ARIMA(log(Turnover)~fourier(K=2)+pdq(1,1,0)+PDQ(0,0,0)),
+  `FourierK=3`=ARIMA(log(Turnover)~fourier(K=3)+pdq(1,1,0)+PDQ(0,0,0)),
+  `Dummy`=ARIMA(log(Turnover)~season()+pdq(1,1,0)+PDQ(0,0,0))                              )
+## Podemos agregar la opción fixed como una lista dentro de ARIMA, por ejemplo:
+###fixed = list(ar1 = 0.3, ma2 = 0).
+
+ajuste_final
+glance(ajuste)
+
+ajuste
+glance(ajuste) %>% arrange(AICc) %>% select(.model:BIC)
+
+ajuste_final %>%
+  fabletools::forecast(h = "2 years") %>%
+  autoplot(aus_cafe, level = 95) +
+  facet_wrap(vars(.model), ncol = 2) +
+  guides(colour = "none", fill = "none", level = "none") +
+  geom_label(
+    aes(x = yearmonth("2007 Jan"), y = 4300,
+        label = paste0("AICc = ", format(AICc))),
+    data = glance(ajuste_final)
+  ) +
+  labs(title= "Total monthly eating-out expenditure",
+       y="$ billions")
+```
+
+
+# Análisis de Residuales Modelos Finales
+
+```{r chequeo de residuales final}
+
+##Chequeo significancia
+
+ajuste_final %>%
+  select(Dummy)%>%report()
+
+ajuste_final %>%
+     select(Dummy)%>%coef()
+
+###Residuales
+ajuste_final %>%
+  select(Dummy) %>%
+  gg_tsresiduals()
+####Saca algunas carcaterística para comprobar el ajuste del modelo
+
+augment_ajuste_final_tb<-ajuste_final %>%
+    select(Dummy)%>%augment()
+```
+
+# Análisis de Residuales(complemento)
+
+
+
+```{r Análisis de Residuales final}
+library(tseries)
+# Análisis de residuales
+augment_ajuste_final_tb
+
+residuales=na.omit(augment_ajuste_final_tb$.innov)
+plot(residuales,type="l")
+acf(residuales)
+acf(residuales,ci.type="ma")
+acf(residuales^2)
+pacf(residuales)
+#Test de normalidad
+jarque.bera.test(residuales)
+#Test de autocorrelaci?n
+length(residuales)/4
+sqrt(length(residuales))
+Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)#No puedo Rechazar la hipótesis de no autocorrelación!
+
+
+###Estadísticas CUSUM
+res=residuales
+cum=cumsum(res)/sd(res)
+N=length(res)
+cumq=cumsum(res^2)/sum(res^2)
+Af=0.948 ###Cuantil del 95% para la estad?stica cusum
+co=0.15046####Valor del cuantil aproximado para cusumsq para n/2=91 para alpha=0.01
+LS=Af*sqrt(N)+2*Af*c(1:length(res))/sqrt(N)
+LI=-LS
+LQS=co+(1:length(res))/N
+LQI=-co+(1:length(res))/N
+plot(cum,type="l",ylim=c(min(LI),max(LS)),xlab="t",ylab="",main="CUSUM")
+lines(LS,type="S",col="red")
+lines(LI,type="S",col="red")
+#CUSUMSQ
+plot(cumq,type="l",xlab="t",ylab="",main="CUSUMSQ")                      
+lines(LQS,type="S",col="red")                                                                           
+lines(LQI,type="S",col="red")
+```
+```{r Pronostico con el modelo final}
+ajuste_final %>%select(Dummy)%>%
+  forecast(h = "2 years") %>%
+  autoplot(aus_cafe, level = 95)
+
+cafe_pronostico<-ajuste_final %>%select(Dummy)%>%fabletools::forecast(h="2 years")
+cafe_pronostico
+
+
+IP<-cafe_pronostico%>%hilo(level=c(80,95))
+IP$`80%`
+IP$`95%`
+```
+
+
+Tarea: Hacer una análisis similar con los otros modelos.
+Adicionalmente, ingresar a https://otexts.com/fpp3/training-test.html, para ver como se calcula el ECM de predicción un paso adelante de una forma muy sencialla.

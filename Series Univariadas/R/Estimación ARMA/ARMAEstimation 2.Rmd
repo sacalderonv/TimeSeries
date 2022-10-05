@@ -31,7 +31,7 @@ acf(y,ci.type='ma') ###q máximo 4
 pacf(y) ###p máximo 1
 ##Se puede postular un ARMA(1,4), pero este sería menos parsimonioso.
 #####Arima Automático
-modelo.automatico1=auto.arima(y,d=0,D=0,max.p=1,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="aicc",stepwise=FALSE,allowmean = TRUE)  ###Se propuso un modelo ARMA(1,4), aunque varioscoeficientes no son significativo
+modelo.automatico1=auto.arima(y,d=0,D=0,max.p=1,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="aicc",stepwise=FALSE,allowmean = TRUE)  ###Se propuso un modelo ARMA(1,4), aunque varios coeficientes no son significativo
 modelo.automatico1
 coeftest(modelo.automatico1)
 
