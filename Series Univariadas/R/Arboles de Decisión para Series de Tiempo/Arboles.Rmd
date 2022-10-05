@@ -130,3 +130,5 @@ for (paso in 1:(h))
 predict(prune.t1,newdata=data.frame(M1_pronostico_predX_original))   ###Predicción con las variables verdaderas
 ```
 
+Hay un ejemplo para modelos de árboles, donde se puede incluir la estacionalidad, ver https://petolau.github.io/Regression-trees-for-forecasting-time-series-in-R/
+
