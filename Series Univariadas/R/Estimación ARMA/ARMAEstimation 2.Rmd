@@ -53,7 +53,7 @@ modelo.propuesto1
 
 modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=FALSE,fixed=c(NA,0,NA,0,NA))
 # ,fixed=c(NA,NA,NA,NA,NA)
-
+#
 coeftest(modelo.propuesto_arma)
 ####Ajustar un modelo ARMA(p,q) mixto
 
@@ -70,12 +70,15 @@ tipos88 <- read.table("~/Documents/GitHub/TimeSeries/Series Univariadas/R/Estima
 Intanual=tipos88$V5  #Tipo de interés Anual
 ?ts
 plot(as.ts(Intanual))
+
 ```
 
 ```{r identificación}
 ###Se trabajará con los cambios relativos o serie de retornos
 camrelintanual=log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
 sercamrelint=ts(camrelintanual,start=c(1988,01),frequency=12)
+int_anual=ts(Intanual,start=c(1988,01),frequency=12)
+plot(int_anual)
 sercamrelint
 plot(sercamrelint)
 acf(sercamrelint)
@@ -113,6 +116,13 @@ summary(ARPURO_fixed1)
 PronosticosAR12=forecast(ARPURO_fixed1,h=12,level=0.95)  ###Es mejor usar el objeto de la función ARIMA
 plot(PronosticosAR12)
 ```
+```{r pronostico en niveles}
+ARPURO_niveles=forecast::Arima(int_anual,order=c(3,1,0),include.mean = FALSE,method = c("CSS-ML"),lambda = 0,fixed=c(NA,0,NA))
+coeftest(ARPURO_niveles)
+pronostico_nieveles=forecast(ARPURO_niveles,h=12,level=0.95)
+plot(pronostico_nieveles)
+```
+
 
 ```{r ARMA mixto}
 ARMAmixto_fixed1=forecast::Arima(sercamrelint,order=c(3,0,2),include.mean = FALSE,method = c("CSS-ML")) #,fixed=c(NA,NA,NA,NA,NA,0,0)
