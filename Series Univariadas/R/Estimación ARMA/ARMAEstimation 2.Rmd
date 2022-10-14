@@ -157,9 +157,10 @@ acf(residuales)
 acf(residuales^2)
 pacf(residuales)
 #Test de normalidad
-jarque.bera.test(residuales)
+tseries::jarque.bera.test(residuales)
 #Test de autocorrelaci?n
 length(residuales)/4
+sqrt(length(residuales))
 sqrt(length(residuales))
 Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)#No puedo Rechazar la hipótesis de no autocorrelación!
 

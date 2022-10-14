@@ -67,7 +67,7 @@ Note que en efecto hay una estacionalidad de periodo $s=12$.
 ```{r ciclo unicamente}
 library(fable)
 ajuste<-aus_cafe%>%model(
-  `FourierK=1`=ARIMA(diff_log_Turnover~fourier(K=1)+pdq(0,0,0)+PDQ(0,0,0),),
+  `FourierK=1`=ARIMA(diff_log_Turnover~fourier(K=1)+pdq(0,0,0)+PDQ(0,0,0)),
   `FourierK=2`=ARIMA(diff_log_Turnover~fourier(K=2)+pdq(0,0,0)+PDQ(0,0,0)),
   `FourierK=3`=ARIMA(diff_log_Turnover~fourier(K=3)+pdq(0,0,0)+PDQ(0,0,0)),
   `Dummy`=ARIMA(diff_log_Turnover~season()+pdq(0,0,0)+PDQ(0,0,0))                              )
