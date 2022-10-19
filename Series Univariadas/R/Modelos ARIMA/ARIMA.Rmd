@@ -82,7 +82,7 @@ summary(urca::ur.df(arimaej_raiz_unit,type="none"))
 
 ## Serie de Pasajeros
 
-Vamos a Analizar la Serie de Pasajeros.Iniciamos con las gráficas y transformaicón de Box-Cox
+Vamos a Analizar la Serie de Pasajeros.Iniciamos con las gráficas y transformación de Box-Cox
 
 ```{r Pasajeros1, echo=FALSE}
 data("AirPassengers")
