@@ -70,13 +70,13 @@ pacf(arimaej_raiz_unit)
 
 stats::ar(arimaej_raiz_unit)### Permite Seleccionar el lag
 
-fUnitRoots::adfTest(arimaej_raiz_unit,lags = 10,type='nc')  
+fUnitRoots::adfTest(arimaej_raiz_unit,lags =3 ,type='nc')  
 fUnitRoots::adfTest(arimaej_raiz_unit,type='nc') 
 ####No hay presencia de Raíz Unitaria
-tseries::adf.test(arimaej_raiz_unit,k=5)   ####Note que hay 
+tseries::adf.test(arimaej_raiz_unit,k=3)   ####Note que hay 
 ######
-urca::ur.df(arimaej_raiz_unit,type="none")
-summary(urca::ur.df(arimaej_raiz_unit,type="none"))
+prueba_df=ur.df(arimaej_raiz_unit,type="none",lags=4)
+summary(prueba_df)
 
 ```
 
@@ -85,10 +85,11 @@ summary(urca::ur.df(arimaej_raiz_unit,type="none"))
 Vamos a Analizar la Serie de Pasajeros.Iniciamos con las gráficas y transformación de Box-Cox
 
 ```{r Pasajeros1, echo=FALSE}
+library(FitAR)
 data("AirPassengers")
 plot(AirPassengers)
 forecast::BoxCox.lambda(AirPassengers,method="guerrero",lower=0)
-BoxCox.lambda(AirPassengers,method="loglik",lower=0)
+forecast::BoxCox.lambda(AirPassengers,method="loglik",lower=0)
 forecast::BoxCox(AirPassengers,lambda="auto")
 FitAR::BoxCox(AirPassengers,interval = c(-2, 2)) ####hace la búsqueda sobre el intervalo propuesto
 
@@ -98,6 +99,8 @@ plot(logAirP)
 ## Prueba de Raíz Unitaria
 Ahora avanzamos en el setido de verificar si la serie muestra la presencia de una o varias raíces unitarias
 ```{r Pasajeros2}
+ar(log(AirPassengers)) ##Selecciona un modelo AR usando el crierio de Akaike  a la serie Aaa
+
 adf.test(log(AirPassengers))
 ar(log(AirPassengers))
 adf.test(log(AirPassengers),k=13)
@@ -108,6 +111,9 @@ summary(ur.df(log(AirPassengers),type="drift"))
 dlogAirPass=diff(logAirP)
 plot(dlogAirPass)
 #####Transformación requrida para los datos(transformación Box-Cox y diferencia ordinaria)
+ar(dlogAirPass)
+adf.test(dlogAirPass,k=15)
+summary(ur.df(dlogAirPass,type="none",lags = 14))
 
 ```
 ## Identificación del Modelo Usando ACF y PACF
@@ -133,14 +139,14 @@ coeftest(AjusteArima)
 
 ```{r pasajeros5}
 residuales=AjusteArima$residuals
-SDresiduales=rstandard(AjusteArima)
+#SDresiduales=rstandard(AjusteArima)
 plot(residuales)
-plot(SDresiduales)
+#plot(SDresiduales)
 acf(residuales)
 pacf(residuales)
 
-acf(SDresiduales)
-pacf(SDresiduales)
+#acf(SDresiduales)
+#pacf(SDresiduales)
 
 
 #Test de normalidad
