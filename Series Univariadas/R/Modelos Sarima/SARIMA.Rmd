@@ -52,13 +52,45 @@ solve(p)
 abs(solve(p))
 ###Note lo cerca que están la raíces de la no estacionariedad del proceso, por eso
 ####aunque si bien el proceso es estacionario, notamos hay una cercanía a 
-####e tener una compoenete estacional.
+####e tener una componente estacional.
 ####El anterior modelo puede escribirse como:
 x2 <- ts(sim_sarima(n=144, model=list(sar=0.8, iorder=0, siorder=0, nseasons=12),n.start=24),frequency = 12)
 plot(x2)
 acf(x2, lag.max=48)
 monthplot(x2)
 nsdiffs(x2)
+
+x3=ts(sim_sarima(n=144, model=list(sar=0.7, sma=0.5, iorder=0, siorder=1, nseasons=12),n.start=24),frequency = 12)
+plot(x3)
+acf(x3, lag.max=48)
+monthplot(x3)
+nsdiffs(x3)
+
+###diferencia estacional
+Dx3=diff(x3,lag=12,differences = 1)###lag:periodo s.
+plot(Dx3)
+acf(Dx3,lag.max = 36)
+monthplot(Dx3)
+nsdiffs(Dx3)
+
+
+
+#########3
+x3=ts(sim_sarima(n=144, model=list(ma=0.6, sma=0.5, iorder=0, siorder=1, nseasons=12),n.start=24),frequency = 12)
+plot(x3)
+acf(x3, lag.max=48)
+monthplot(x3)
+nsdiffs(x3)
+
+Dx3=diff(x3,lag=12,differences = 1)###lag:periodo s.
+plot(Dx3)
+acf(Dx3,lag.max = 36)
+monthplot(Dx3)
+nsdiffs(Dx3)
+
+
+
+
 ```
 
 ## Ejemplo Pasajeros
@@ -94,13 +126,13 @@ adfTest(lAirpassengers,lags=12,type='ct')  ####Puede también indicar
 ####Diferencia Ordinaria############
 
 dlAirpassengers=diff(lAirpassengers,lag=1)
-#x11()
+x11()
 par(mfrow=c(2,1))
 plot(lAirpassengers)
 plot(dlAirpassengers)
 ar(dlAirpassengers)
 
-tseries::adf.test(dlAirpassengers,k = 2)  ###No se debe diferenciar más###
+tseries::adf.test(dlAirpassengers,k = 15)  ###No se debe diferenciar más###
 
 fUnitRoots::adfTest(dlAirpassengers,lags = 12,type='nc') 
 
@@ -271,7 +303,7 @@ Vale la pena decir que si los residuales son no correlacionados pero ellos no ti
 Accidentes laborales desde enero de 1979 hasta diciembre de 1998. Aquí vamos a tener en cuenta tres variables de intervención:
 * $D_t:$ número de días laborales.
 * $I_{1t}^{(h)}:$ variable de impulso que toma el valor 1 si la semana santa cae en ese mes, y cero en otro caso.
-* $I_{2t}^{(h)}:$ Variable que que toma el valor de 1 cuando febrero tiene un día más por ser un año bisiesto.
+* $I_{2t}^{(h)}:$ Variable  que toma el valor de 1 cuando febrero tiene un día más por ser un año bisiesto.
 
 La razón por la cual es razonable incluir estas variables es porque el número de accidentes laborales puede estar siendo afectado por estos sucesos.
 Sin embargo, hay mas formas de incluir tales efectos, por ejemplo la función calendar.effects del paquete tsoutliers extrae estos efectos pero desde otra respectiva. Por ejemplo, para los días laborales se calcula una variable asociada llamada día laboral($td_t$), la cual es como sigue: Sea $wd_t$ el número de días laborales por ejemplo en un mes t. $nwd_t$ es el número de días no laborales en el mes $t$. La variable $td_t$ es como sigue:
@@ -341,6 +373,7 @@ class(ce)<-"matrix"
 ley=as.matrix(ls)
 colnames(ley)<-"ley"
 efectos<-cbind(ce,ley)
+efectos
 ```
 
 Vamos ajustar un modelo basado en el logaritmo del número de accidentes. Un modelo incial propuesto sin las regresoras es:
@@ -354,9 +387,12 @@ modelo_accidentes = Arima(accidentes_ts, c(2, 1, 0),seasonal = list(order = c(1,
 
 coeftest(modelo_accidentes)
 ###Incorporando regresoras
-modelo_accidentes_xreg = Arima(accidentes_ts, c(2, 1, 0),seasonal = list(order = c(1, 1, 2), period = 12),lambda = 0,xreg = efectos)
+modelo_accidentes_xreg = Arima(accidentes_ts, c(2, 1, 0),seasonal = list(order = c(1, 1, 1), period = 12),lambda = 0,xreg = efectos)
 
 coeftest(modelo_accidentes_xreg)
+regresoras_futuras=matrix(c(3,0,0,1),1,4)
+h=12
+forecast::forecast(modelo_accidentes_xreg,h=1,xreg=regresoras_futuras)
 ```
 
 ```{r ajuste del modelo2}
