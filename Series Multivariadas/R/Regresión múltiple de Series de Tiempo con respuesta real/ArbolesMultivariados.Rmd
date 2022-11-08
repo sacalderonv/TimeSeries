@@ -58,6 +58,18 @@ Y.train=Y[1:n_entre]
 X1.test=X1[(n_entre+1):dim(X1)[1],]
 Y.test=Y[(n_entre+1):dim(X1)[1]]
 ```
+# La poda del árbol
+
+La poda del árbol puede incluir los datos de validación para  elegir el modelo.
+
+```{r poda}
+cv.tree.fit= cv.tree(tree.fit)
+plot(cv.tree.fit$size,cv.tree.fit$dev,type="b")##Parece que el tamaño del árbol es 2
+prune.tree.fit= prune.tree(tree.fit,best=2)
+plot(prune.tree.fit)   ####Gráfica de árbol con la poda
+text(prune.tree.fit,pretty=1)
+```
+
 ### Bosques Aletorios
 Vamos a considerar el mismo ejemplo del modelo árboles anterior, en este caso tenemos $n=704$ observaciones y $k=732$ variables. Los predictores están estandarizados. El argumento ntree controla el número de árboles, mientras que mtry controla el número de predictores a seleccionarse en cada partición, es decir $g$, en la notación que manejamos. Por defecto, el crecimiento del árbol se deja bajo la condición que el número de datos puntuales no sean inferior a 5. Eso se puede cambiar usando el argumento $nodsize$ y $maxnodes$.  
 

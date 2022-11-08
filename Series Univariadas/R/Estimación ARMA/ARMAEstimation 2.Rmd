@@ -30,10 +30,7 @@ acf(y)
 acf(y,ci.type='ma') ###q máximo 4
 pacf(y) ###p máximo 1
 ##Se puede postular un ARMA(1,4), pero este sería menos parsimonioso.
-#####Arima Automático
-modelo.automatico1=auto.arima(y,d=0,D=0,max.p=1,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="aicc",stepwise=FALSE,allowmean = TRUE)  ###Se propuso un modelo ARMA(1,4), aunque varios coeficientes no son significativo
-modelo.automatico1
-coeftest(modelo.automatico1)
+
 
 ######
 modelo.propuesto1=forecast::Arima(y,order=c(1,0,0)) ###AR(1)
@@ -52,14 +49,22 @@ modelo.propuesto1
 ####Use el argumento fixed=c(NA,0,NA) en la función ARIMA#
 
 modelo.propuesto_arma=forecast::Arima(y,order=c(1,0,4),include.mean=FALSE,fixed=c(NA,0,NA,0,NA))
-# ,fixed=c(NA,NA,NA,NA,NA)
+# ,fixed=c(NA,NA,NA,NA,NA) 
 #
 coeftest(modelo.propuesto_arma)
 ####Ajustar un modelo ARMA(p,q) mixto
 
 ####Ajuste del modelo Teórico
 forecast::Arima(y,order=c(2,0,1),include.mean=FALSE)
+coeftest(forecast::Arima(y,order=c(2,0,1),include.mean=FALSE))
 forecast::Arima(y,order=c(2,0,1),include.mean=FALSE,fixed=c(0,NA,NA))
+coeftest(forecast::Arima(y,order=c(2,0,1),include.mean=FALSE,fixed=c(0,NA,NA)))
+
+
+#####Arima Automático
+modelo.automatico1=auto.arima(y,d=0,D=0,max.p=1,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="aicc",stepwise=FALSE,allowmean = TRUE)  ###Se propuso un modelo ARMA(1,4), aunque varios coeficientes no son significativo
+modelo.automatico1
+coeftest(modelo.automatico1)
 ```
 
 

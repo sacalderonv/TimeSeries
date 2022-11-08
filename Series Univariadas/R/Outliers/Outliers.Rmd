@@ -126,6 +126,7 @@ xreg = outliers.effects(outliers,n )
 ###El siguiente procedimiento busca que al ajustar, en el modelo con el efecto de los outliers, se busquen si hay mas outliers.
 analisis=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=xreg)
 analisis
+coeftest(analisis)
 resi_analisis= residuals(analisis)
 coef_analisis= coefs2poly(analisis)
 outliers_analisis= locate.outliers(resi_analisis,coef_analisis)
@@ -135,6 +136,7 @@ xreg_analisis = outliers.effects(outliers_analisis,n )
 total_outliers=cbind(xreg,xreg_analisis)
 analisis_final=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=total_outliers)
 analisis_final
+coeftest(analisis_final)
 resi_final= residuals(analisis_final)
 coef_final= coefs2poly(analisis_final)
 outliers_final= locate.outliers(resi_final,coef_final)
