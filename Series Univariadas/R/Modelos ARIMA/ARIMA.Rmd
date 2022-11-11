@@ -70,12 +70,12 @@ pacf(arimaej_raiz_unit)
 
 stats::ar(arimaej_raiz_unit)### Permite Seleccionar el lag
 
-fUnitRoots::adfTest(arimaej_raiz_unit,lags =3 ,type='nc')  
+fUnitRoots::adfTest(arimaej_raiz_unit,lags =1 ,type='nc')  
 fUnitRoots::adfTest(arimaej_raiz_unit,type='nc') 
 ####No hay presencia de Raíz Unitaria
 tseries::adf.test(arimaej_raiz_unit,k=3)   ####Note que hay 
 ######
-prueba_df=ur.df(arimaej_raiz_unit,type="none",lags=4)
+prueba_df=ur.df(arimaej_raiz_unit,type="none",lags=8)
 summary(prueba_df)
 
 ```
@@ -93,7 +93,8 @@ forecast::BoxCox.lambda(AirPassengers,method="loglik",lower=0)
 forecast::BoxCox(AirPassengers,lambda="auto")
 FitAR::BoxCox(AirPassengers,interval = c(-2, 2)) ####hace la búsqueda sobre el intervalo propuesto
 
-logAirP=BoxCox(AirPassengers,lambda=0)
+#logAirP=BoxCox(AirPassengers,lambda=0)
+logAirP=log(AirPassengers)
 plot(logAirP)
 ```
 ## Prueba de Raíz Unitaria
@@ -107,13 +108,14 @@ adf.test(log(AirPassengers),k=13)
 summary(ur.df(log(AirPassengers),type="none"))
 summary(ur.df(log(AirPassengers),type="drift"))
 
-######SE debe chequear si hay que difereciar de nuevo!!!
+######SE debe chequear si hay que diferenciar de nuevo!!!
 dlogAirPass=diff(logAirP)
 plot(dlogAirPass)
 #####Transformación requrida para los datos(transformación Box-Cox y diferencia ordinaria)
 ar(dlogAirPass)
 adf.test(dlogAirPass,k=15)
 summary(ur.df(dlogAirPass,type="none",lags = 14))
+monthplot(dlogAirPass)
 
 ```
 ## Identificación del Modelo Usando ACF y PACF
@@ -129,7 +131,7 @@ pacf(dlogAirPass,lag.max = 48)  ####Puede ser un autoregresivo de orden 12
 #####Ajuste del Modelo
 ####Note que entramos la serie original
 library(TSA)
-AjusteArima=forecast::Arima(AirPassengers,order = c(12,1,0),lambda = 0,include.constant = TRUE)
+AjusteArima=forecast::Arima(AirPassengers,order = c(12,1,12),lambda = 0,include.constant = TRUE)
 summary(AjusteArima)
 coeftest(AjusteArima)
 
@@ -154,7 +156,7 @@ jarque.bera.test(residuales)
 #Test de autocorrelación
 length(residuales)/4
 sqrt(length(residuales))
-Box.test(residuales, lag =36 , type = "Ljung-Box", fitdf = 13)
+Box.test(residuales, lag =36 , type = "Ljung-Box", fitdf = 25)
 
 
 ###Estad?sticas CUSUM

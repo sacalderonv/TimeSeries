@@ -112,9 +112,9 @@ plot(AirPassengers)
 ###Para eso, es necesario haber convertido la serie a estacionaria###
 lAirpassengers=log(AirPassengers)
 plot(lAirpassengers)
-monthplot(lAirpassengers)
+#monthplot(lAirpassengers)
 
-forecast::ndiffs(lAirpassengers)
+#forecast::ndiffs(lAirpassengers)
 #####Prueba de Dickey Fuller######
 ar(lAirpassengers)
 tseries::adf.test(lAirpassengers,k=13)

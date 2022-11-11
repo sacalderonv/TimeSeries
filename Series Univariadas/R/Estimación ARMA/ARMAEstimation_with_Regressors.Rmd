@@ -135,7 +135,7 @@ jarque.bera.test(residuales)
 #Test de autocorrelaci?n
 length(residuales)/4
 sqrt(length(residuales))
-Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)#No puedo Rechazar la hipótesis de no autocorrelación!
+Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 0)#No puedo Rechazar la hipótesis de no autocorrelación!
 
 
 ###Estad?sticas CUSUM
@@ -167,7 +167,7 @@ Esta vez reajustaremos todos los modelos proponiendo un AR(1) a los residuales,a
 ```{r ciclo unicamente modelo final}
 
 ajuste_final<-aus_cafe%>%model(
-  `FourierK=1`=ARIMA(log(Turnover)~fourier(K=1)+pdq(1,1,0)+PDQ(0,0,0),),
+  `FourierK=1`=ARIMA(log(Turnover)~fourier(K=1)+pdq(1,1,0)+PDQ(0,0,0)),
   `FourierK=2`=ARIMA(log(Turnover)~fourier(K=2)+pdq(1,1,0)+PDQ(0,0,0)),
   `FourierK=3`=ARIMA(log(Turnover)~fourier(K=3)+pdq(1,1,0)+PDQ(0,0,0)),
   `Dummy`=ARIMA(log(Turnover)~season()+pdq(1,1,0)+PDQ(0,0,0))                              )
@@ -175,10 +175,13 @@ ajuste_final<-aus_cafe%>%model(
 ###fixed = list(ar1 = 0.3, ma2 = 0).
 
 ajuste_final
-glance(ajuste)
+glance(ajuste_final)
 
 ajuste
-glance(ajuste) %>% arrange(AICc) %>% select(.model:BIC)
+glance(ajuste_final) %>% arrange(AICc) %>% select(.model:BIC)
+
+ajuste_final %>%
+     select(Dummy)%>%coef()
 
 ajuste_final %>%
   fabletools::forecast(h = "2 years") %>%
