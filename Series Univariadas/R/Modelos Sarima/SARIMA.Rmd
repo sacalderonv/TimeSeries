@@ -391,6 +391,7 @@ modelo_accidentes_xreg = Arima(accidentes_ts, c(2, 1, 0),seasonal = list(order =
 
 coeftest(modelo_accidentes_xreg)
 regresoras_futuras=matrix(c(3,0,0,1),1,4)
+colnames(regresoras_futuras)<-colnames(efectos)
 h=12
 forecast::forecast(modelo_accidentes_xreg,h=1,xreg=regresoras_futuras)
 ```

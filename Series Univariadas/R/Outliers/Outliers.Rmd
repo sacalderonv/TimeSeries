@@ -114,6 +114,7 @@ plot(pronostico_out$residuals,ylim=c(-3,5))
 ```{r Pasajeros}
 library(lmtest)
 data("AirPassengers")
+plot(AirPassengers)
 serie <- AirPassengers
 ajuste=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 )
 resi= residuals(ajuste)
@@ -122,6 +123,7 @@ outliers= locate.outliers(resi,coef)
 outliers
 n=length(serie)
 xreg = outliers.effects(outliers,n )
+xreg
 
 ###El siguiente procedimiento busca que al ajustar, en el modelo con el efecto de los outliers, se busquen si hay mas outliers.
 analisis=Arima(serie,order=c(0,1,1),seasonal = list(order = c(0, 1, 1)),include.mean=F,lambda =0 ,xreg=xreg)

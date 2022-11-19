@@ -47,7 +47,7 @@ hist(ARCH2)
 salidaarima=arima(ARCH2,order = c(3,0,0),include.mean = FALSE,fixed=c(NA,NA,NA))
 library(lmtest)
 coeftest(salidaarima)
-salidaarima
+residuales=salidaarima$residuales
 ####Pruebas Portmanteau#####
 ##Efectos ARCH
 arch.test(salidaarima)
@@ -57,6 +57,7 @@ pacf(resarma,lag.max = 20)
 ######Ajuste de la serie
 m=fGarch::garchFit(formula=~arma(0,0)+garch(2,0),data=ARCH2$garch,trace=F,include.mean = FALSE)
 m
+#plot(m) ##correr en la consola
 ```
 
 ## Ejemplo real S&P 500
@@ -74,13 +75,13 @@ pacf(sp5^2)
 ```
 
 ```{r SandP500_1 efectos ARCH}
-coeftest(auto.arima(sp5)) ####Se podría ajustar un ARMA(2,3) con constante
+coeftest(auto.arima(sp5)) ####Se podría ajustar un ARMA(2,2) con constante
 modeloarima=arima(sp5,order = c(2,0,2),include.mean = TRUE)
 coeftest(modeloarima)
 acf(modeloarima$residual)
 pacf(modeloarima$residual)
 acf(modeloarima$residual^2)
-pacf(modeloarima$residual^2)
+pacf(modeloarima$residual^2)  ##Se sugiere un ARCH(9), el cual es bastante alto, indicando posiblemente el uso de un modelo GARCH.
 arch.test(modeloarima)
 
 
@@ -88,11 +89,13 @@ arch.test(modeloarima)
 ```
 
 ```{r SanP500 ajuste}
-modelosp5_1=garchFit(~arma(2,2)+garch(9,0),data=sp5,trace=F,include.mean=T)
+modelosp5_1=garchFit(sp5~arma(2,2)+garch(9,0),data=sp5,trace=F,include.mean=T)
 summary(modelosp5_1)
 
-#plot(modelosp5_1)  ###Gráfico de volatilidad
+#plot(modelosp5_1)  ###Gráfico de volatilidad y correr en la consola
 prediccion=predict(modelosp5_1,n.ahead=10)
+prediccion
+
 
 library(rugarch)
 spec1=ugarchspec(variance.model=list(model="sGARCH",garchOrder = c(9,0)),
@@ -102,7 +105,7 @@ spec1=ugarchspec(variance.model=list(model="sGARCH",garchOrder = c(9,0)),
                                                                       #                            alpha1=NA)
 fit1=ugarchfit(data=sp5,spec=spec1)
 show(fit1)
-plot(fit1)
+#plot(fit1)
 forc1 = ugarchforecast(fit1, n.ahead = 20)  ###Predicción de la varianza condicional
 plot(forc1)
 ```
