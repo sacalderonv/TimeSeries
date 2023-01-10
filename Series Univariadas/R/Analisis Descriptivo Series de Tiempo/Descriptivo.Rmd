@@ -45,7 +45,7 @@ Veamos ahora la tasa de desempleo de Colombia. Hay que hacerle un ajuste a la ba
 ```{r Desempleo y empleo importacion y ajuste}
 library(readxl)
 library(tidyverse)
-DesempleoyEmpleo <- read_excel("DesempleoyEmpleo.xlsx", range="A9:C249")
+DesempleoyEmpleo <- read_excel("DesempleoyEmpleo.xlsx", range="A6:C269")
 str(DesempleoyEmpleo)
 DesempleoyEmpleo_1=DesempleoyEmpleo %>% map_df(rev)
 tail(DesempleoyEmpleo)
@@ -56,7 +56,7 @@ head(DesempleoyEmpleo_1)
 library(zoo)
 library(xts)
 Fechas=as.yearmon(DesempleoyEmpleo_1$Fecha)
-Desempleo_Col_xts=xts(x = DesempleoyEmpleo_1$Tasadedesempleo,frequency = 12,order.by = Fechas)
+Desempleo_Col_xts=xts(x = DesempleoyEmpleo_1$Tasa_de_desempleo,frequency = 12,order.by = Fechas)
 ts_info(Desempleo_Col_xts)
 plot(Desempleo_Col_xts)
 ```
