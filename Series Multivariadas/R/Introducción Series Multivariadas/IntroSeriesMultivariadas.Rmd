@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-Vamos a ver algunos ejemplos de series de tiempo multivariadas. El primer conjunto de datos tiene que ver con las temperaturas relativas promedio de noviembre en Europa, Norte América y sur América entre 1910 y 2014 de forma anual. Lo de relativo es con respecto a la temperatura promedio de noviembre del siglo 20.Note que hay una tendencia a crecer en las temperaturas de Europa y de Sur América. Estas series pueden ser analizadas a través de series multivariadas clásicas.Incluso, si consideramos mediciones mensuales, estas también puede analizadas desde el enfoque clásico de series de tiempo. Por qué estas observaciones son dependientes? Porque por ejemplo observaciones consecutivas en el tiempo tienden a estar mas cerca que las observaciones que están mas alejadas en el tiempo.
+Vamos a ver algunos ejemplos de series de tiempo multivariadas. El primer conjunto de datos tiene que ver con las temperaturas relativas promedio de noviembre en Europa, Norte América y sur América entre 1910 y 2014 de forma anual. Lo de relativo es con respecto a la temperatura promedio de noviembre del siglo 20. Note que hay una tendencia a crecer en las temperaturas de Europa y de Sur América. Estas series pueden ser analizadas a través de series multivariadas clásicas.Incluso, si consideramos mediciones mensuales, estas también puede analizadas desde el enfoque clásico de series de tiempo. Por qué estas observaciones son dependientes? Porque por ejemplo observaciones de temperaturas consecutivas en el tiempo tienden a estar mas cerca que las observaciones de las temperaturas que están mas alejadas en el tiempo.
 
 ```{r Temperaturas}
 library(tidyverse)
@@ -84,7 +84,7 @@ Tarea: Explorar el índice de precio al consumidor de 33 países Europeos con lo
 
 ## Ventas Diarias
 Veamos ahora  las ventas diarias de el logaritmo natural de una marca de ropa en 25 provincias en china del 1 de enero de 2008 hasta el 9 de diciembre de 2012.
-Note primero que los picos ocurren irregularmente al inicio de cada año, seguido de una cierta caída en las ventas. Esto es porque el año nuevo Chino varía de año a año. Además los picos no corren en todas las provincias, ver la gráfica de la segunda provincia.Analizar conjuntamente esas series requerirá de modelar características comunes, al igual que variaciones porpias de cada provincia.
+Note primero que los picos ocurren irregularmente al inicio de cada año, seguido de una cierta caída en las ventas. Esto es porque el año nuevo Chino varía de año a año. Además los picos no corren en todas las provincias, ver la gráfica de la segunda provincia. Analizar conjuntamente esas series requerirá de modelar características comunes, al igual que variaciones propias de cada provincia.
 
 ```{r ventas ropa china}
 data("clothing")

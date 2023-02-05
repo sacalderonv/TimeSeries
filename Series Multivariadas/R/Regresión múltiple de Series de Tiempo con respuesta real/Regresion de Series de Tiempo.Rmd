@@ -826,10 +826,42 @@ timetk::walmart_sales_weekly
 
 
 ```{r Gráfica serie un departamento}
-dep=1
-walmart_sales_weekly%>%group_by(Dept)%>%plot_time_series(Date,Weekly_Sales,.facet_ncol  = 2,    
+dep=95 ###1   3   8  13  38  93  95
+walmart_sales_weekly%>%group_by(Dept)%>%plot_time_series(Date,.value=Weekly_Sales,.facet_ncol  = 2,    
                      .interactive = FALSE,.smooth=F)
 
+walmart_sales_weekly%>%group_by(Dept)%>%plot_time_series(Date,.value=Temperature,.facet_ncol  = 2,    
+                     .interactive = FALSE,.smooth=F)
+dplyr::filter(walmart_sales_weekly,Dept==dep)%>%pivot_longer(c(Weekly_Sales,Temperature,Unemployment,Fuel_Price,CPI), names_to="Series") %>% 
+    plot_time_series(
+        .date_var = Date,
+        .value = value,
+        .facet_vars = c(Series), # Agrupar por estas
+        .color_var = Series, 
+        .interactive = FALSE,
+        .legend_show = FALSE
+    )
+
+
+dplyr::filter(walmart_sales_weekly,Dept==dep) %>%
+  ggplot(aes(x = Temperature, y = Weekly_Sales)) +
+  geom_point() +
+  labs(y = "Weekly_Sales",
+       x = "Temperatura Promedio Semanal en la región")
+
+
+dplyr::filter(walmart_sales_weekly,Dept==dep) %>%
+  ggplot(aes(x = Unemployment, y = Weekly_Sales)) +
+  geom_point() +
+  labs(y = "Weekly_Sales",
+       x = "Desempleo")
+
+
+dplyr::filter(walmart_sales_weekly,Dept==dep) %>%
+  ggplot(aes(x = CPI, y = Weekly_Sales)) +
+  geom_point() +
+  labs(y = "Weekly_Sales",
+       x = "CPI")
 ```
 
   
