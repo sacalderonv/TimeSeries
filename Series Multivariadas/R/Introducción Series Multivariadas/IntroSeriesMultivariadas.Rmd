@@ -116,4 +116,10 @@ tsibble_ventas %>%
   autoplot(value) +
   labs(y = "Ventas Provincias log")
 ```
+## Ejercicio
+
+
+Trabajar el archivo WW2b.csv y graficar las series originales y diferenciadas.  Cree usted que tendría sentido analizar esta serie de forma conjunta?
+
+
 

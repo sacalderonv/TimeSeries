@@ -7,29 +7,29 @@ Vamos a ver algunos ejemplos de series de tiempo multivariadas. El
 primer conjunto de datos tiene que ver con las temperaturas relativas
 promedio de noviembre en Europa, Norte América y sur América entre 1910
 y 2014 de forma anual. Lo de relativo es con respecto a la temperatura
-promedio de noviembre del siglo 20.Note que hay una tendencia a crecer
+promedio de noviembre del siglo 20. Note que hay una tendencia a crecer
 en las temperaturas de Europa y de Sur América. Estas series pueden ser
 analizadas a través de series multivariadas clásicas.Incluso, si
 consideramos mediciones mensuales, estas también puede analizadas desde
 el enfoque clásico de series de tiempo. Por qué estas observaciones son
-dependientes? Porque por ejemplo observaciones consecutivas en el tiempo
-tienden a estar mas cerca que las observaciones que están mas alejadas
-en el tiempo.
+dependientes? Porque por ejemplo observaciones de temperaturas
+consecutivas en el tiempo tienden a estar mas cerca que las
+observaciones de las temperaturas que están mas alejadas en el tiempo.
 
 ``` r
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
 
-    ## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
-    ## ✓ tibble  3.1.6     ✓ dplyr   1.0.7
-    ## ✓ tidyr   1.1.4     ✓ stringr 1.4.0
-    ## ✓ readr   1.4.0     ✓ forcats 0.5.1
+    ## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+    ## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
+    ## ✔ tidyr   1.2.0     ✔ stringr 1.4.1
+    ## ✔ readr   2.1.2     ✔ forcats 0.5.1
 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
+    ## ✖ dplyr::filter() masks stats::filter()
+    ## ✖ dplyr::lag()    masks stats::lag()
 
 ``` r
 library(tidyquant)
@@ -87,13 +87,6 @@ library(tidyquant)
 library(TSstudio)
 library(SLBDD)
 library(timetk)
-```
-
-    ## Registered S3 method overwritten by 'tune':
-    ##   method                   from   
-    ##   required_pkgs.model_spec parsnip
-
-``` r
 library(fable)
 ```
 
@@ -151,8 +144,9 @@ de tiempo), o que el intervalo de tiempo entre observaciones es pequeño,
 resultando en datos de alta frecuencia con tamaño de muestra grande.
 Note que las temperaturas pueden afectar la demanda de electricidad y el
 combustible para la calefacción, y también está relacionada con las
-medidas de polución del aire *P**M*<sub>25</sub> y concentración de
-ozono.
+medidas de polución del aire
+![PM\_{25}](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;PM_%7B25%7D "PM_{25}")
+y concentración de ozono.
 
 ### Acciones
 
@@ -162,26 +156,21 @@ tenga media cero y varianza 1.También se muestran las series de los log
 retornos.
 
 Note algunas características de las series:
-<ul>
-<li>
-Note que mayoritariamente las series muestran un crecimiento desde 2003
-y llegando casi hasta 2008.item
-</li>
-<li>
-Después del 2008 hay una caída dramática causada por la crisis
-financiera del 2008. Algunos mercados experimentaron una recuperación
-después del 2009.item
-</li>
-<li>
-Las variabilidades de los mercados financieros mundiales parecen ser
-mayores cuando los mercados estaban a la baja; consulte la figura 1.4.
-Esto no es sorprendente, ya que es probable que el factor miedo, es
-decir, la volatilidad del mercado, domine durante un mercado bajista.
-Por otro lado, los rangos de los índices del mercado mundial en un
-momento dado parecen ser más pequeños cuando el mercado estaba a la
-baja.item
-</li>
-</ul>
+
+- Note que mayoritariamente las series muestran un crecimiento desde
+  2003 y llegando casi hasta 2008.Después del 2008 hay una caída
+  dramática causada por la crisis financiera del 2008. Algunos mercados
+  experimentaron una recuperación después del 2009.
+- Las variabilidades de los mercados financieros mundiales parecen ser
+  mayores cuando los mercados estaban a la baja; consulte la figura
+  relacionada con los retornos. Esto no es sorprendente, ya que es
+  probable que el factor miedo, es decir, la volatilidad del mercado,
+  domine durante un mercado bajista. Por otro lado, los rangos de los
+  índices del mercado mundial en un momento dado parecen ser más
+  pequeños cuando el mercado estaba a la baja; ver gráfica de las
+  acciones estnadarizadas.
+
+<!-- -->
 
     ## 'data.frame':    4163 obs. of  100 variables:
     ##  $ Date   : Date, format: "2000-01-03" "2000-01-04" ...
@@ -341,7 +330,7 @@ str(ts_data_stocks)
     ##  FinCenter:          GMT
     ##  Units:              SPCOMP FTSE100 DAXINDX MSWRLD DJES50I DJSTOXX FRCAC40 FTALLSH TOKYOSE HNGKNGI CHSASHR FTSEMIB IBEX35I ASX200I KORCOMP SWISSMI TTOCOMP AMSTEOE DJEURST BNGKSET JAKCOMP SWEDOMX DJSTO50 BGBEL20 MDAXIDX HEXINDX SNGPORI TAIWGHT HKHCHIE MSACWF MSEROP DKKFXIN ATXINDX BUXINDX ASX300I CHZBSHR FSBF120 NLALSHR EUNX100 RMBETRL EUNX150 HKHCHAF MSEAFE MSPACF JAPDOWA DJINDUS BRBOVES JSEOVER NASCOMP NYSEALL FRUSSL2 FBMKLCI NASA100 RSMICEX MXIPC35 GRAGENL PSECOMP RSRTSIN POLWIGI ARGMERV TRKISTB ISEQUIT KOR200I ICRI500 OSLOASH CZPXIDX IGPAGEN DJCMP65 PKSE100 SWSEALI POPSI20 TTOSP60 CTCROBE DJWRLD EGHFINC AWWRLD FTEU100 FTSEGL FTASE20 ISTA100 LNVILSE SPEUROP PEGENRL SXSAX16 VENGENL AMMANFM SRALLSH DJUTILS NSEINDX LUXGENI MADRIDI OMANMSM COSEASH ICEXALL RIGSEIN ESTALSE TOK2NDM TUTUNIN FTSELAT
     ##  Title:              Time Series Object
-    ##  Documentation:      Tue Mar  8 09:27:43 2022
+    ##  Documentation:      Mon Feb  6 10:29:48 2023
 
 ``` r
 plot(ts_data_stocks,plot.type="s")
@@ -355,9 +344,21 @@ plot(ts_data_stocks[,1:6], plot.type="m")
 ```
 
 ![](IntroSeriesMultivariadas_files/figure-gfm/acciones%20otro%20formato-2.png)<!-- -->
+Tarea: Explorar el índice de precio al consumidor de 33 países Europeos
+con los datos(SLBDD::CPIEurope200015). También filtrar de la base de
+datos SLBDD::Stockindexes99world, las acciones de Europa y las acciones
+de Asia, y ver cómo se comportan por separado.
+
+## Ventas Diarias
+
 Veamos ahora las ventas diarias de el logaritmo natural de una marca de
 ropa en 25 provincias en china del 1 de enero de 2008 hasta el 9 de
-diciembre de 2012.
+diciembre de 2012. Note primero que los picos ocurren irregularmente al
+inicio de cada año, seguido de una cierta caída en las ventas. Esto es
+porque el año nuevo Chino varía de año a año. Además los picos no corren
+en todas las provincias, ver la gráfica de la segunda provincia.
+Analizar conjuntamente esas series requerirá de modelar características
+comunes, al igual que variaciones propias de cada provincia.
 
 ``` r
 data("clothing")
@@ -415,7 +416,7 @@ str(ts_data_sales)
     ##  FinCenter:          GMT
     ##  Units:              Province_1 Province_2 Province_3 Province_4 Province_5 Province_6 Province_7 Province_8 Province_9 Province_10 Province_11 Province_12 Province_13 Province_14 Province_15 Province_16 Province_17 Province_18 Province_19 Province_20 Province_21 Province_22 Province_23 Province_24 Province_25
     ##  Title:              Time Series Object
-    ##  Documentation:      Tue Mar  8 09:27:44 2022
+    ##  Documentation:      Mon Feb  6 10:29:49 2023
 
 ``` r
 plot(ts_data_sales,plot.type="s")
@@ -441,8 +442,6 @@ xts_sales_china=xts(clothing, order.by=daily_index)
 library(ggfortify)
 ```
 
-    ## Warning: package 'ggfortify' was built under R version 4.0.5
-
     ## Registered S3 methods overwritten by 'ggfortify':
     ##   method                 from    
     ##   autoplot.Arima         forecast
@@ -452,6 +451,7 @@ library(ggfortify)
     ##   autoplot.decomposed.ts forecast
     ##   autoplot.ets           forecast
     ##   autoplot.forecast      forecast
+    ##   autoplot.glmnet        parsnip 
     ##   autoplot.stl           forecast
     ##   autoplot.ts            forecast
     ##   fitted.ar              forecast
@@ -463,3 +463,36 @@ autoplot(xts_sales_china[,1:8])
 ```
 
 ![](IntroSeriesMultivariadas_files/figure-gfm/ventas%20ropa%20china-4.png)<!-- -->
+
+``` r
+###Usaremos el formato tsibble
+library(tsibble)
+```
+
+    ## 
+    ## Attaching package: 'tsibble'
+
+    ## The following object is masked from 'package:zoo':
+    ## 
+    ##     index
+
+    ## The following object is masked from 'package:lubridate':
+    ## 
+    ##     interval
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, union
+
+``` r
+library(feasts)
+library(fable)
+df_ventas=data.frame(clothing,daily_index)
+tsibble_ventas<-as_tsibble(df_ventas,index=daily_index)
+tsibble_ventas %>%
+  pivot_longer(c(Province_1, Province_2,Province_3,Province_4,Province_5,Province_6,Province_7,Province_8), names_to="Series") %>%
+  autoplot(value) +
+  labs(y = "Ventas Provincias log")
+```
+
+![](IntroSeriesMultivariadas_files/figure-gfm/ventas%20ropa%20china-5.png)<!-- -->

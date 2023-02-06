@@ -1,0 +1,567 @@
+---
+title: "Importacion y creación de objetos de Series de Tiempo"
+#output: github_document
+output: 
+  html_document:
+    toc: true
+    theme: united
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+# Creación de un objeto de Series de Tiempo
+
+## Objetos *ts*
+
+Los objetos de la librería base para series de tiempo son denominados **ts**, y se crean fácilmente usando el comando *ts()* como lo vemos a continuación:
+
+```{r importacion}
+tipos88  = read.table("tipos88.dat", quote="\"", comment.char="")
+Intanual = ts(tipos88$V5) #Tipo de interés Anual
+plot(Intanual,main="Interés anual",ylab="")
+```
+
+
+El objeto *ts* es un formato para series de tiempo univariadas regulares. Las caraterísticas de una serie regular son; Ciclo o periodo(unidad de tiempo regular y repetitiva que divide la serie en subconjuntos consecutivos e igualmente espaciados), Frecuencia(define la longitud o el número de unidades de un cíclo) y las marcas de tiempo(provee el tiempo en que cada observación fue obtenida y puede ser usada como índice de la serie. La diferencia($\delta$) entre los tiempos de dos observaciones consecutivas debe ser igual).
+
+Este objeto *ts* tiene dos elementos: los valores de la serie y sus correspondientes marcas de tiempo.
+
+Sin embargo, los objetos *ts* poseen dos desventajas:
+
+- Las marcas de tiempo no soporta mútiples cíclos estacionales, por ejemplo, series diarias con ciclos semanales y ciclos anuales.
+- En los casos en que la marca de tiempo de la serie tenga más de dos elementos, como fechas u horas, no es posible recuperar el valor original de la marca de tiempo de la serie, ya que uno o más elementos se pierden al pasarlos a objetos *ts*, estos quedarán representados por decimales pero recuperar la fecha original puede ser imposible.
+
+Esto lo veremos en el siguente ejemplo, en el cual trataremos la serie anterior del interés anual en retornos. Los retornos se obtienen a partir de la siguiente expresión:
+
+$$z_t = \log\left(\frac{y_t}{y_{t-1}}\right)$$
+```{r retornos interes}
+camrelintanual = log(Intanual[2:length(Intanual)]/Intanual[1:(length(Intanual)-1)])
+sercamrelint   = ts(camrelintanual,start=c(1988,01),frequency=12)
+time(sercamrelint)[1:12]
+```
+
+Ahora graficamos el objeto que hemos creado.
+
+```{r retornos plot}
+plot(sercamrelint,main="Cambios relativos")
+plot.ts(sercamrelint) # Usamos .ts para especificar que es para objetos ts, pero en la practica no es necesario
+```
+
+Veamos su función de autocorrelación, también incluyendo intervalos de confianza para un proceso de promedios móviles y la función de autocorrelación parcial.
+
+```{r retornos acf}
+acf(sercamrelint,lag.max = 20)
+acf(sercamrelint,ci.type='ma')
+acf(sercamrelint,type='partial')
+```
+
+```{r retornos interes info}
+str(sercamrelint) # Así vemos la estructura de la serie de tiempo y los primeros datos que la componen 
+head(time(sercamrelint),20) # Así vemos las marcas de tiempo
+head(cycle(sercamrelint),15) # Así vemos las posiciones de acuerdo al periodo de la serie
+frequency(sercamrelint) # Así vemos la frecuencia de la serie
+deltat(sercamrelint)# Así vemos el salto que hay entre las marcas de tiempo, en este caso es 1/12
+```
+La librería *TSstudio* también puede resultar muy útil para visualizar esta informacíón de forma compacta.
+
+```{r tsstudio ,message=FALSE} 
+library(TSstudio)
+ts_info(sercamrelint)
+```
+
+## Objetos *zoo*
+
+El Paquete **zoo** se puede usar para trabajar con series regulares e irregulares espaciadas en el tiempo. Tiene dos componentes: la estructura de los datos y el vector de índices.
+
+Para introducirnos al paquete utilizaremos la serie del precio del petróleo BRENT en Europa.
+```{r TSstudio,message=FALSE}
+data(EURO_Brent)
+library(zoo)
+
+```
+
+```{r zoo brent}
+ts_info(EURO_Brent)
+class(EURO_Brent)# Es un objeto zoo y es una serie regularmente espaciada zooreg
+head(index(EURO_Brent)) # Así vemos los primeros índices de la serie
+class(index(EURO_Brent)) # Así vemos la clase de los índices de la serie
+attributes(index(EURO_Brent)) #??
+```
+
+También podemos cambiar la clase del índice.
+
+
+```{r indice zoo}
+index(EURO_Brent) <- as.Date(index(EURO_Brent))
+head(EURO_Brent)
+class(index(EURO_Brent))
+```
+
+Vamos a crear objetos regular e irregularmente espaciados
+```{r creacion de objetos zoo}
+data(US_indicators)
+str(US_indicators)
+Ventas_vehiculos1 = zoo(x=US_indicators$`Vehicle Sales`,frequency=12)  #Crea un objeto zoo de frecuencia 12, note que el crea el índice automáticamente
+class(Ventas_vehiculos1)
+frequency(Ventas_vehiculos1)
+head(Ventas_vehiculos1)
+class(index(Ventas_vehiculos1))
+```
+
+Ahora, establecemos los índices con el parámetro *order.by*.
+
+```{r creacion de objetos zoo indice}
+Ventas_vehiculos2 = zoo(x = US_indicators$`Vehicle Sales`,
+                         order.by = US_indicators$Date,
+frequency = 12)
+head(Ventas_vehiculos2)
+class(Ventas_vehiculos2)
+class(index(Ventas_vehiculos2))
+```
+
+Graficamos ambas series
+
+```{r plots zoo}
+plot(Ventas_vehiculos1)
+plot(Ventas_vehiculos2)
+```
+
+Y finalmente, analizamos la regularidad de la serie, esto lo hacemos con el comando *is.regular()*
+
+- Si los tiempos de la serie están igualmente espaciados se llaman **regulares**.
+
+  - Una serie regular se llama **regular estricta** cuando todas sus marcas de tiempo están espaciadas de la misma forma y los periodos son fijos.
+  - Una serie regular, no es regular en sentido estricto, si sus marcas de tiempo no siempre son las mismas. Es decir, pueden existir puntos en el tiempo que no siempre son observados, como por ejemplo, los años bisiestos.
+
+- Si los tiempos de la serie no están igualmente espaciados se llaman **iregulares**.
+
+
+```{r regular}
+is.regular(Ventas_vehiculos1,strict = TRUE)
+is.regular(Ventas_vehiculos1,strict = FALSE)
+
+
+is.regular(Ventas_vehiculos2,strict = TRUE) # Por contener año bisiesto no es estrictamente una serie regualr.
+is.regular(Ventas_vehiculos2,strict = FALSE)
+```
+
+##  Objetos *xts*
+
+El paquete *xts* (extensible time series) es una extensión del paquete zoo y provee la clase **xts** y un conjunto de funciones y herramientas para pre-procesamiento, manipulación y visualización de series de tiempo. Recuerde que una clase xts es un objeto zoo con atributos adicionales. 
+```{r xts ,message=FALSE}
+library(xts)
+library(readxl)
+data("Michigan_CS")###De TSstudio
+ts_info(Michigan_CS)
+class(Michigan_CS) #xts y zoo, lo cual es estándar en objeto xts.
+frequency(Michigan_CS)
+is.regular(Michigan_CS, strict = TRUE)
+head(Michigan_CS)
+plot(Michigan_CS)
+```
+
+Como vemos, los objetos *xts* cuentan con gráficos diferentes especiales para Series de Tiempo.
+
+Trabajaremos de nuevo con los datos de los indicadores de Estados Unidos de desempleo y venta de autos.
+
+```{r covertir dataframe en objeto xts}
+head(US_indicators)
+str(US_indicators)
+
+US_indicators_xts = xts(x = US_indicators[,c("Vehicle Sales",
+   "Unemployment Rate")],frequency = 12,
+order.by = US_indicators$Date)
+head(US_indicators_xts)
+ts_info(US_indicators_xts)
+frequency(US_indicators_xts)
+class(US_indicators_xts)
+periodicity(US_indicators_xts) # Así podemos saber la periodicidad, si es diaria, mensual...
+tclass(US_indicators_xts) # Así podemos saber la clase del índice
+
+
+# Retornando a los datos de Michigan
+periodicity(Michigan_CS)
+tclass(Michigan_CS)
+tformat(Michigan_CS) <- "%m-%d-%Y" # Así cambiamos el formato de los índices
+head(Michigan_CS)
+```
+
+
+Por último, crearemos un objeto *xts* para la serie del índice de Colcap, la cual es una serie diaria y se compone de 974 observaciones. La graficaremos junto con su función de autocorrelación y aplicaremos la función *str()*
+
+```{r Colcap}
+Colcap   = read_excel("Datos históricos COLCAP-3.xlsx")
+TsColCap = xts(Colcap$Ultimo, order.by = as.Date(Colcap$Fecha, "%Y-%m-%d"))
+
+plot(TsColCap)
+acf(TsColCap)
+str(TsColCap)
+```
+
+## Objetos *tsibble*
+Los tibble son un tipo de data frame que facilitan el trabajo con tidyverse. Ahora, para el trabajo con series de tiempo estos objetos se pueden indexar, dando origen a los objetos tsibble.
+
+La mayor ventaja de los objetos tsibble es su compatibilidad con tidyverse. Sin embargo, tambieén poseen ciertas desventajas, como que son únicamente para series regulares y almacenan sólo un ciclo estacional.
+
+A continuación veremos cómo crear un tsibble usando nuevamente los datos de los indicadores en US_indicators.
+
+```{r,message=FALSE}
+library(tsibble)
+library(dplyr)
+library(fpp3) # Esta librería llama ya a tsibble y dplyr
+
+US_tsibble <- US_indicators %>%
+  mutate(Mes = yearmonth(Date)) %>%
+  as_tsibble(index = Mes)
+
+```
+
+La función *yearmonth()* hace parte del paquete tsibble y permite crear indices para series mensuales. Para series semanales está la función *yearweek()* y para series trimestrales la función *yearquarter()*. Sin embargo, soportan también diferentes clases para los índices, siendo compatibles también con la librería lubridate.
+
+Con la función *autoplot()* podemas graficar estos objetos en ggplot.
+
+```{r}
+US_tsibble %>%
+  autoplot(`Vehicle Sales`)
+```
+Así, también pueden usarse todas las herramientas del paquete *ggplot2*.
+
+```{r}
+US_tsibble %>%
+  autoplot(`Vehicle Sales`) +
+  labs(y="Ventas de vehículos",x="Mes") +
+  theme_light()
+```
+
+
+También se puede graficar la función de autocorrelación y la parcial.
+
+
+```{r}
+US_tsibble %>% 
+  ACF(`Vehicle Sales`) %>% 
+  autoplot() +
+  labs(title="acf de la venta de vehículos")
+
+US_tsibble %>% 
+  ACF(`Vehicle Sales`,type="partial") %>% 
+  autoplot() +
+  labs(title="pacf de la venta de vehículos")
+```
+
+
+## Objetos *msts*
+
+Como mencionamos anteriormente, los objetos para series de tiempo introducidos hasta el momento solo permiten almacenar un ciclo. En caso de tener una serie con múltiples estacionalidades es recomendable guardarlas como un objeto msts.
+
+En este ejemplo usaremos la serie de Colcap porque es una serie diaria y estas suelen tener dos ciclos estacionales, uno semanal y otro anual.
+
+La creación de este tipo de objetos es muy sencilla con la función *msts()* del paquete *forecast*. En el argumento de *seasonal.periods* se ingresa un vector con los periodos estacionales, si solo se coloca un número en vez vector el objeto coincidirá con un objeto ts.
+
+```{r, message=FALSE}
+library(forecast)
+Colcap_msts = msts(Colcap$Ultimo, seasonal.periods=c(7,365.25), start=c(2016,2,10))
+plot(Colcap_msts)
+```
+
+
+## Convertir objetos de series de tiempo
+
+Es importante aclarar que no todas las funciones reciben los mismos objetos de Series de Tiempo. Por lo tanto siempre será importante hacer uso de las siguientes funciones dependiendo del caso.
+
+- as.ts()
+- as.zoo()
+- as.xts()
+- as_tsibble()
+
+# Algunos gráficos interactivos
+
+Los paquetes *TSstudio* y *dygraphis* permiten obtener gráficas interactivas que resultarán útiles para conocer ciertos valores puntuales de la serie  o hacer zoom en tramos de la misma.
+
+Como ejemplo usaremos nuevamente la serie de la tasa de interés en retornos.
+
+```{r gráfico interactivo 1}
+TSstudio::ts_plot(sercamrelint,title="",slider=TRUE)
+TSstudio::ts_cor(sercamrelint) # Funciones de autocorrelación
+```
+
+
+```{r grafico interactivo 2}
+library(dygraphs)
+dygraph(sercamrelint,main="Gráfico de Retorno Interés Anual", ylab="Cambios relativos del tipo de interés anual")%>% dyRangeSelector()
+```
+
+
+# Fecha y formatos de hora
+
+El paquete base provee 2 tipos de clases de fechas y horas:
+
+**Date:** Es una representación simple usando el formato de fecha YYYY-m-d
+
+**POSIXct/POSIXlt:** También conocido como Clases DateTime  y el formato estandar es YYYY-m-d H:M:S. 
+
+Veamos un ejemplo de cada uno:
+
+```{r Fecha y formatos de tiempo}
+library(lubridate)
+
+# Formato Date
+fecha <- as.Date("2014-5-12")
+fecha
+class(fecha)  
+
+
+# Formato POSIXct/POSIXlt
+hora_ct <- as.POSIXct("2014-5-12 20:05:35", tz = "EST")
+hora_ct
+class(hora_ct)
+```
+Ahora, veamos la siguiente base de datos conformada por 7 formatos distintos para los índices de tiempo.
+
+```{r Reformateando y convirtiendo objetos de fecha csv}
+url <-
+   "https://github.com/PacktPublishing/Hands-On-Time-Series-Analysis-with-R/raw/master/Chapter02/dates_formats.csv"
+
+dates_df <- read.csv(url, stringsAsFactors = FALSE)
+str(dates_df)
+```
+
+Analicemos el primer formato: 
+
+```{r Reformateando y convirtiendo objetos de fecha}
+dates_df$Japanese_format_new <- as.Date(dates_df$Japanese_format)
+
+head(dates_df[, c("Japanese_format", "Japanese_format_new")])
+identical(dates_df$Japanese_format, dates_df$Japanese_format_new)
+class(dates_df$Japanese_format)  # Los diferentes formatos uno caractér y el otro fecha
+class(dates_df$Japanese_format_new)
+```
+
+En este caso, la función *as.Date()* Convierte directamente de caractér a Fecha, esto porque el objeto caracter tiene la misma estructura ISO8601, entonces no se necesita especificar el formato.
+
+En el siguiente ejemplo se muestra que debe especificarse el formato cuando el caracter no tiene structura ISO8601:
+
+```{r Reformateando y convirtiendo objetos de fecha 1}
+head(dates_df$US_format)
+dates_df$US_format_new <- as.Date(dates_df$US_format, format = "%m/%d/%Y")
+head(dates_df$US_format_new)
+```
+
+Veamos un último ejemplo.
+
+```{r Reformateando y convirtiendo objetos de fecha 2}
+head(dates_df$US_long_format)
+dates_df$US_long_format_new <- as.Date(dates_df$US_long_format, format =
+   "%A, %B %d, %Y")
+head(dates_df$US_long_format_new)
+class(dates_df$US_long_format_new)
+```
+
+## Reformateando y conversión de objetos de hora
+
+Tenemos la siguiente fecha aún en formato caracter y lo convertimos en POSIXct
+
+```{r Ojetos de hora}
+time_str <- "2018-12-31 23:59:59"
+class(time_str)
+time_posix_ct1 <- as.POSIXct(time_str)
+class(time_posix_ct1)
+
+#Comparemos los dos objetos
+
+time_str
+time_posix_ct1
+```
+
+Ahora veamos el paso de Valores numéricos a POSIXct basados en el punto de origen
+
+```{r Ojetos de hora punto}
+time_numeric <- 1546318799   #El valor numérico representa el número de segundos trasncurridos desde el punto de origen
+class(time_numeric)
+time_posix_ct2 <- as.POSIXct(time_numeric, origin = "1970-01-01")  
+print(c(time_posix_ct1, time_posix_ct2))
+identical(time_posix_ct1, time_posix_ct2)
+ 
+####Note que los ejemplos anteriores no requieren el paso de reformateo
+#Monday, December 31,    PM   %A, %B %d,  %p  PM
+Sys.setlocale(locale="en_US.UTF-8")
+time_US_str <- "Monday, December 31, 2018 11:59:58 PM"
+time_posix_ct3 <- as.POSIXct(time_US_str, format = "%A, %B %d, %Y %I:%M:%S %p")
+time_posix_ct3
+identical(time_posix_ct1, time_posix_ct2,time_posix_ct3)
+```
+
+## Creación de Fechas o indices de horas
+
+Crearemos una secuencia de fechas diaria que empiece el 1ro de enero del 2016 y finalice el 31 de diciembre del 2018.
+
+```{r Creación de Fechas o indices de horas 0}
+daily_index <- seq.Date(from = as.Date("2016-01-01"), # Fecha inicial
+                           to = as.Date("2018-12-31"), # Fecha final
+                           by = "day") # Intervalos de tiempo
+
+head(daily_index)
+```
+
+Ahora las marcas de tiempo tendrán una distancia de 3 días.
+
+```{r Creación de Fechas o indices de horas 1}
+daily_3_index <- seq.Date(from = as.Date("2016-01-01"),
+                             to = as.Date("2018-12-31"),
+by = "3 days")
+head(daily_3_index)
+```
+
+
+Otra forma de hacerlo en decir cuantos periodos de tiempo se requiere,
+
+```{r Creación de Fechas o indices de horas 3}
+hourly_index <- seq.POSIXt(from = as.POSIXct("2018-06-01"), by = "hours",
+   length.out = 48)
+str(hourly_index)
+head(hourly_index)
+tail(hourly_index)
+```
+## Usando la librería lubridate
+
+Carguemos la librería y veamos el siguiente ejemplo:
+
+```{r Lubridate}
+library(lubridate)
+time_US_str <- "Monday, December 31, 2018 11:59:59 PM"
+class(time_US_str)
+time_US_str
+
+# Y lo convertimos en un objeto POSIXct
+
+time_base <- as.POSIXct(time_US_str,
+                           format = "%A, %B %d, %Y %I:%M:%S %p")
+class(time_base)
+time_base
+```
+
+En ocasiones será necesario poder leer las fechas en español o en algún otro idioma. Lo hacemos de la siguiente forma:
+
+```{r Lubridate 1}
+
+Sys.setlocale(locale="es_ES.UTF-8")   # Establece fecha en español
+#Sys.setlocale(locale="en_US.UTF-8")  # Establece fecha en inglés
+time_Col_str="Lunes, Diciembre 31, 2018 11:59:59 PM"
+time_Col_base <- as.POSIXct(time_Col_str,format = "%A, %B %d, %Y %I:%M:%S %p")
+time_Col_base
+class(time_Col_base)
+```
+Ahora, con la función *mdy_hms()* convertimos el caracter guardado en time_US_str, en formato POSIXct
+
+```{r Lubridate class}
+time_lubridate <- mdy_hms(time_US_str, tz = "EST")
+class(time_lubridate)
+time_lubridate
+```
+Y finalmente, algunas funciones útiles:
+
+```{r Lubridate funciones}
+yday(time_lubridate) # Posición del día en el año
+qday(time_lubridate) # Posición de día en el trimestre
+day(time_lubridate)  # Posición de día en el mes
+```
+
+# Series multivariadas
+
+En ocasiones, tendremos que analizar dos o más series de tiempo de manera simultánea, esto es lo que se conoce como una **serie de tiempo multivariada**.
+La mayoría de los objetos que vimos anteriormente admiten series multivariadas, a continuación mostraremos algunos ejemplos con los objetos *xts*, *tsibble* y *timeSeries*, que no lo hemos explorado.
+
+Usaremos las siguientes librerías:
+
+```{r librerías multi, message=FALSE}
+library(tidyverse)
+library(tidyquant)
+library(TSstudio)
+library(SLBDD)
+library(timetk)
+library(fable)
+```
+
+Llamamos a los datos de temperature de la librería *SLBDD* y los guardaremos en un objeto *xts*.
+
+```{r Temperaturas}
+data("temperatures")
+head(temperatures)
+str(temperatures)
+MultTsTemp = xts(temperatures[2:4],order.by=as.Date(ISOdate(temperatures$year,1,1)))
+
+plot(MultTsTemp,legend.loc='bottomright')
+par(mfrow = c(3 , 1))
+plot(MultTsTemp[,1], main = "Europa")
+plot(MultTsTemp[,2], main = "Norte América")
+plot(MultTsTemp[,1], main = "Sur América")
+```
+Otro método para graficar series multivariadas es con la librería *ggfortify* como lo vemos a continuación
+
+```{r}
+library(ggfortify)
+autoplot(MultTsTemp)
+```
+
+Ahora, usaremos los datos de los índices diarios de los 99 mercados de acciones alrededor del mundo y usaremos los objetos *timeSeries*.
+
+```{r acciones otro formato}
+library(timeSeries)
+data("Stockindexes99world")
+ts_data_stocks = timeSeries(Stockindexes99world[2:100],Stockindexes99world$Date)
+str(ts_data_stocks)
+plot(ts_data_stocks,plot.type="s")
+
+plot(ts_data_stocks[,1:6], plot.type="m")
+```
+
+Finalmente, el objeto tsibble que creamos con los indicadores de Estados Unidos ya era una serie multivariada bidimensional. Mostraremos como graficarlas: 
+
+```{r}
+US_tsibble %>%
+  pivot_longer(cols=2:3, names_to="Series",values_to="Valor") %>%
+  ggplot(aes(Mes, Valor, color = Series)) +
+  geom_line() +
+  facet_grid(Series ~ ., scales = "free_y") +
+  guides(colour = "none") +
+  labs(y="Indicadores")
+```
+
+Veamos otro ejemplo con los datos de venta de ropa en China.
+
+```{r ventas ropa china}
+data("clothing")
+head(clothing)
+
+# Creamos los índices o marcas de tiempo
+daily_index = seq.Date(from = as.Date("2008-01-01"),to = as.Date("2012-12-16"),by = "day") 
+
+df_ventas = data.frame(clothing,daily_index)
+
+# Creamos el objeto tsibble:
+tsibble_ventas <- as_tsibble(df_ventas,index=daily_index)
+```
+
+Una vez creado el objeto tsibble lo graficamos. Notemos que en ocasiones es necesario graficar las series de tiempo de forma separada dependiendo de la escala. Como en este caso comparten escala se graficarán todas en un mismo cuadro.
+
+```{r ventas ropa china plot}
+tsibble_ventas %>%
+  pivot_longer(c(Province_1,Province_2,Province_3,Province_4,Province_5,
+                 Province_6,Province_7,Province_8), names_to="Series") %>%
+  autoplot(value) +
+  labs(y = "Ventas Provincias log")
+```
+
+# Referencias 
+
+Hyndman, R. J., & Athanasopoulos, G. (2018). Forecasting: principles and practice. OTexts.
+
+Krispin, R. (2019). Hands-On Time Series Analysis with R: Perform time series analysis and forecasting using R. Packt Publishing Ltd.
+
+Peña, D., & Tsay, R. S. (2021). Statistical learning for big dependent data. John Wiley & Sons.
+
+
