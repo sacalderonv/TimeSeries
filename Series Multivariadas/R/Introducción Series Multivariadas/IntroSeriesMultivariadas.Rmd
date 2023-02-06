@@ -120,6 +120,6 @@ tsibble_ventas %>%
 
 
 Trabajar el archivo WW2b.csv y graficar las series originales y diferenciadas.  Cree usted que tendría sentido analizar esta serie de forma conjunta?
-
+Haga prueba de raíces unitarias a cada serie individualmente. Existe Raíz unitaria? Ahora proceda a graficar las series diferenciadas, qué puede usted observar?
 
 
