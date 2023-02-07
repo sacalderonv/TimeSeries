@@ -90,6 +90,7 @@ MTS::MTSplot(Matrix_series_simul,caltime=daily_index)
 ccf(X1t,X2t,lag.max = 20)
 acf(Matrix_series_simul,lag=20)
 MTS::ccm(Matrix_series_simul,lags=20)
+pacf(Matrix_series_simul,lag=20)
 ```
 Es claro que la CCF muestral nos dice que hay dependencia de las series en varios rezagos, sin embargo esto no tiene sentido porque las series se simularon de forma independiente.
 
