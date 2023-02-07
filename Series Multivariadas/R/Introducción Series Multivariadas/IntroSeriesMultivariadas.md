@@ -22,9 +22,9 @@ library(tidyverse)
 
     ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
 
-    ## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
-    ## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
-    ## ✔ tidyr   1.2.0     ✔ stringr 1.4.1
+    ## ✔ ggplot2 3.3.5     ✔ purrr   0.3.4
+    ## ✔ tibble  3.1.6     ✔ dplyr   1.0.9
+    ## ✔ tidyr   1.2.0     ✔ stringr 1.4.0
     ## ✔ readr   2.1.2     ✔ forcats 0.5.1
 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
@@ -79,13 +79,16 @@ library(tidyquant)
     ##   method            from
     ##   as.zoo.data.frame zoo
 
-    ## ══ Need to Learn tidyquant? ════════════════════════════════════════════════════
-    ## Business Science offers a 1-hour course - Learning Lab #9: Performance Analysis & Portfolio Optimization with tidyquant!
-    ## </> Learn more at: https://university.business-science.io/p/learning-labs-pro </>
-
 ``` r
 library(TSstudio)
 library(SLBDD)
+```
+
+    ## Warning in system2("/usr/bin/otool", c("-L", shQuote(DSO)), stdout = TRUE):
+    ## running command ''/usr/bin/otool' -L '/Library/Frameworks/R.framework/Resources/
+    ## library/tcltk/libs//tcltk.so'' had status 1
+
+``` r
 library(timetk)
 library(fable)
 ```
@@ -330,7 +333,7 @@ str(ts_data_stocks)
     ##  FinCenter:          GMT
     ##  Units:              SPCOMP FTSE100 DAXINDX MSWRLD DJES50I DJSTOXX FRCAC40 FTALLSH TOKYOSE HNGKNGI CHSASHR FTSEMIB IBEX35I ASX200I KORCOMP SWISSMI TTOCOMP AMSTEOE DJEURST BNGKSET JAKCOMP SWEDOMX DJSTO50 BGBEL20 MDAXIDX HEXINDX SNGPORI TAIWGHT HKHCHIE MSACWF MSEROP DKKFXIN ATXINDX BUXINDX ASX300I CHZBSHR FSBF120 NLALSHR EUNX100 RMBETRL EUNX150 HKHCHAF MSEAFE MSPACF JAPDOWA DJINDUS BRBOVES JSEOVER NASCOMP NYSEALL FRUSSL2 FBMKLCI NASA100 RSMICEX MXIPC35 GRAGENL PSECOMP RSRTSIN POLWIGI ARGMERV TRKISTB ISEQUIT KOR200I ICRI500 OSLOASH CZPXIDX IGPAGEN DJCMP65 PKSE100 SWSEALI POPSI20 TTOSP60 CTCROBE DJWRLD EGHFINC AWWRLD FTEU100 FTSEGL FTASE20 ISTA100 LNVILSE SPEUROP PEGENRL SXSAX16 VENGENL AMMANFM SRALLSH DJUTILS NSEINDX LUXGENI MADRIDI OMANMSM COSEASH ICEXALL RIGSEIN ESTALSE TOK2NDM TUTUNIN FTSELAT
     ##  Title:              Time Series Object
-    ##  Documentation:      Mon Feb  6 10:29:48 2023
+    ##  Documentation:      Tue Feb  7 14:54:31 2023
 
 ``` r
 plot(ts_data_stocks,plot.type="s")
@@ -416,7 +419,7 @@ str(ts_data_sales)
     ##  FinCenter:          GMT
     ##  Units:              Province_1 Province_2 Province_3 Province_4 Province_5 Province_6 Province_7 Province_8 Province_9 Province_10 Province_11 Province_12 Province_13 Province_14 Province_15 Province_16 Province_17 Province_18 Province_19 Province_20 Province_21 Province_22 Province_23 Province_24 Province_25
     ##  Title:              Time Series Object
-    ##  Documentation:      Mon Feb  6 10:29:49 2023
+    ##  Documentation:      Tue Feb  7 14:54:32 2023
 
 ``` r
 plot(ts_data_sales,plot.type="s")
@@ -451,7 +454,6 @@ library(ggfortify)
     ##   autoplot.decomposed.ts forecast
     ##   autoplot.ets           forecast
     ##   autoplot.forecast      forecast
-    ##   autoplot.glmnet        parsnip 
     ##   autoplot.stl           forecast
     ##   autoplot.ts            forecast
     ##   fitted.ar              forecast
@@ -496,3 +498,10 @@ tsibble_ventas %>%
 ```
 
 ![](IntroSeriesMultivariadas_files/figure-gfm/ventas%20ropa%20china-5.png)<!-- -->
+\## Ejercicio
+
+Trabajar el archivo WW2b.csv y graficar las series originales y
+diferenciadas. Cree usted que tendría sentido analizar esta serie de
+forma conjunta? Haga prueba de raíces unitarias a cada serie
+individualmente. Existe Raíz unitaria? Ahora proceda a graficar las
+series diferenciadas, qué puede usted observar?

@@ -116,10 +116,22 @@ tsibble_ventas %>%
   autoplot(value) +
   labs(y = "Ventas Provincias log")
 ```
+## Imaginar
+Qué otras series de tiempo paracen estar relacionadas?
+* La tasa de cambio del desempleo con la tasa de crecimiento de PIB?
+
+*La inversión, el ingreso y el consumo de un país?
+
+* Las tasa de interés y la inflación?
+
+
+
 ## Ejercicio
 
 
 Trabajar el archivo WW2b.csv y graficar las series originales y diferenciadas.  Cree usted que tendría sentido analizar esta serie de forma conjunta?
 Haga prueba de raíces unitarias a cada serie individualmente. Existe Raíz unitaria? Ahora proceda a graficar las series diferenciadas, qué puede usted observar?
+
+Qué otras series podrían estar relacionadas entre si y deberían modelarse conjuntamente?
 
 
