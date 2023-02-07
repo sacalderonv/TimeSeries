@@ -333,7 +333,7 @@ str(ts_data_stocks)
     ##  FinCenter:          GMT
     ##  Units:              SPCOMP FTSE100 DAXINDX MSWRLD DJES50I DJSTOXX FRCAC40 FTALLSH TOKYOSE HNGKNGI CHSASHR FTSEMIB IBEX35I ASX200I KORCOMP SWISSMI TTOCOMP AMSTEOE DJEURST BNGKSET JAKCOMP SWEDOMX DJSTO50 BGBEL20 MDAXIDX HEXINDX SNGPORI TAIWGHT HKHCHIE MSACWF MSEROP DKKFXIN ATXINDX BUXINDX ASX300I CHZBSHR FSBF120 NLALSHR EUNX100 RMBETRL EUNX150 HKHCHAF MSEAFE MSPACF JAPDOWA DJINDUS BRBOVES JSEOVER NASCOMP NYSEALL FRUSSL2 FBMKLCI NASA100 RSMICEX MXIPC35 GRAGENL PSECOMP RSRTSIN POLWIGI ARGMERV TRKISTB ISEQUIT KOR200I ICRI500 OSLOASH CZPXIDX IGPAGEN DJCMP65 PKSE100 SWSEALI POPSI20 TTOSP60 CTCROBE DJWRLD EGHFINC AWWRLD FTEU100 FTSEGL FTASE20 ISTA100 LNVILSE SPEUROP PEGENRL SXSAX16 VENGENL AMMANFM SRALLSH DJUTILS NSEINDX LUXGENI MADRIDI OMANMSM COSEASH ICEXALL RIGSEIN ESTALSE TOK2NDM TUTUNIN FTSELAT
     ##  Title:              Time Series Object
-    ##  Documentation:      Tue Feb  7 14:54:31 2023
+    ##  Documentation:      Tue Feb  7 15:15:24 2023
 
 ``` r
 plot(ts_data_stocks,plot.type="s")
@@ -419,7 +419,7 @@ str(ts_data_sales)
     ##  FinCenter:          GMT
     ##  Units:              Province_1 Province_2 Province_3 Province_4 Province_5 Province_6 Province_7 Province_8 Province_9 Province_10 Province_11 Province_12 Province_13 Province_14 Province_15 Province_16 Province_17 Province_18 Province_19 Province_20 Province_21 Province_22 Province_23 Province_24 Province_25
     ##  Title:              Time Series Object
-    ##  Documentation:      Tue Feb  7 14:54:32 2023
+    ##  Documentation:      Tue Feb  7 15:15:24 2023
 
 ``` r
 plot(ts_data_sales,plot.type="s")
@@ -498,10 +498,24 @@ tsibble_ventas %>%
 ```
 
 ![](IntroSeriesMultivariadas_files/figure-gfm/ventas%20ropa%20china-5.png)<!-- -->
-\## Ejercicio
+
+## Imaginar
+
+Qué otras series de tiempo paracen estar relacionadas?
+
+- La tasa de cambio del desempleo con la tasa de crecimiento de PIB?
+
+- La inversión, el ingreso y el consumo de un país?
+
+- Las tasa de interés y la inflación?
+
+## Ejercicio
 
 Trabajar el archivo WW2b.csv y graficar las series originales y
 diferenciadas. Cree usted que tendría sentido analizar esta serie de
 forma conjunta? Haga prueba de raíces unitarias a cada serie
 individualmente. Existe Raíz unitaria? Ahora proceda a graficar las
 series diferenciadas, qué puede usted observar?
+
+Qué otras series podrían estar relacionadas entre si y deberían
+modelarse conjuntamente?

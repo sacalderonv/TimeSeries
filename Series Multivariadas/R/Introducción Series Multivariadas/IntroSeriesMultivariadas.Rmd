@@ -116,11 +116,13 @@ tsibble_ventas %>%
   autoplot(value) +
   labs(y = "Ventas Provincias log")
 ```
+
 ## Imaginar
 Qué otras series de tiempo paracen estar relacionadas?
+
 * La tasa de cambio del desempleo con la tasa de crecimiento de PIB?
 
-*La inversión, el ingreso y el consumo de un país?
+* La inversión, el ingreso y el consumo de un país?
 
 * Las tasa de interés y la inflación?
 
