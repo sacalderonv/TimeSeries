@@ -17,6 +17,8 @@ y=ts(sal[inic:length(sal)])
 #x11()
 plot(y)
 acf(y)
+acf(y,plot = F)
+mean(y)
 
 # * Caminata Aleatoria ----
 
