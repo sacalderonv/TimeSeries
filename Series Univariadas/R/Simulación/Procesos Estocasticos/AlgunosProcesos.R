@@ -8,7 +8,7 @@ acf(iid)
 T=550
 inic=30
 k=2
-x=rnorm(T,0,1) ##Proceso IID
+x=rnorm(T,0,1) ##Proceso IID de entrada
 #a=rnorm(2*k+1,0,1)
 a=c(-2,-1,1,2,3) ###Están en el orden a_{-k}....a_{0}...a_{k}
 ## Es decir, -2X_{t+2}-1X_{t+1}+1X_{t}+2X_{t-1}+3X{t-2}
@@ -19,6 +19,30 @@ plot(y)
 acf(y)
 acf(y,plot = F)
 mean(y)
+####IC. para la media del proceso ----
+##Para el filtro lineal invariante, la media poblacional del proceso es cero.
+n=length(y)
+xbar=mean(y)
+alpha=0.05 ###Para in IC del 95%
+qnormal=qnorm(1-alpha/2,0,1)
+##Calculo de la autocovarianza
+gamma_est_h=acf(y,plot=F,type="covariance",lag.max = sqrt(n))
+raiz_n=trunc(sqrt(n))
+nu=as.numeric(2*sum((1-(seq(1:raiz_n)/n))*gamma_est_h[1:raiz_n]$acf)+gamma_est_h[0]$acf)
+
+###IC de confianza
+Lim_inf=xbar-qnormal*sqrt(nu)/sqrt(n)
+Limn_suo=xbar+qnormal*sqrt(nu)/sqrt(n)
+Lim_inf
+Limn_suo
+
+###IC como si fuera IID
+Lim_inf_IID=xbar-qnormal*sqrt(gamma_est_h[0]$acf)/sqrt(n)
+Limn_suo_IID=xbar+qnormal*sqrt(gamma_est_h[0]$acf)/sqrt(n)
+Lim_inf_IID
+Limn_suo_IID
+
+
 
 # * Caminata Aleatoria ----
 
