@@ -81,7 +81,7 @@ require(fable)
 require(timetk)
 require(tsibble)
 ###Creación objeto tssible a partir de un objeto tibble
-df_desempleo=data.frame(Desempleo=DesempleoyEmpleo_1$Tasa_de_desempleo,Fecha=Fechas)
+df_desempleo=data.frame(Desempleo=DesempleoyEmpleo_1$Tasadedesempleo,Fecha=Fechas)
 tbl_desempleo=tibble(df_desempleo)
 tbl_desempleo_format_fecha=tbl_desempleo
 tbl_desempleo_format_fecha$Fecha=yearmonth(tbl_desempleo_format_fecha$Fecha)
@@ -295,7 +295,9 @@ library(reticulate)
 ###Nos ubicamos en el ambiente dentro de la terminal y damos which python y copiamos la ruta "/opt/anaconda3/envs/Python38andR/bin/python"
 ##"/Users/macbook/opt/anaconda3/envs/Ambiente38/bin/python"
 ##"/Users/macbook/Library/r-miniconda/bin/python"
-use_python("/Users/macbook/opt/anaconda3/envs/Ambiente38/bin/python")
+##/Users/sergiocalderonunal/opt/anaconda3/envs/Ambiente3104/bin/python
+#use_python("/Users/macbook/opt/anaconda3/envs/Ambiente38/bin/python")
+use_python("/Users/sergiocalderonunal/opt/anaconda3/envs/Ambiente3104/bin/python")
 #use_virtualenv("~/Python38andR")
 py_config()
 pd <- import("pandas")
