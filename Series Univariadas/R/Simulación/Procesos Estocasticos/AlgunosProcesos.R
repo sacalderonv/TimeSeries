@@ -1,9 +1,9 @@
 # Simulaciones -----
 #* Proceso IID ----
-T=1000
+T=100
 iid=ts(rnorm(T,0,1))
 plot(iid)
-acf(iid)
+acf(iid,ci = 0.99,ci.type = "white")
 # * Filtro Lineal invariante \sum_{j=-k}{k}a_{j}x_{t-j} ----
 T=550
 inic=30
@@ -51,7 +51,9 @@ sigma=1
 x=rnorm(T,0,sigma)
 St=ts(cumsum(x))
 plot(St)
-acf(St)
+par(mfrow=c(2,1))
+acf(St,lag.max = T-1)
+pacf(St,lag.max=T-1)
 
 #* Proceso cíclico ----
 T=1000
@@ -65,4 +67,5 @@ at=rnorm(T,0,sigma)
 t=seq(1:T)
 Zt=ts(mu+R*sin(omega*t)+at)
 plot(Zt)
-acf(Zt)
+acf(Zt,T-1)
+pacf(Zt)
