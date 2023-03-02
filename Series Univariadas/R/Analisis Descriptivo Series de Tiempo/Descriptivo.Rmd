@@ -1,8 +1,8 @@
 ---
 title: "Analisis Descriptivo de Series de Tiempo en R"
 output: github_document
-#output: html_document
-always_allow_html: true
+output: html_document
+#always_allow_html: true
 bibliography:bibliodescriptiva.bib
 ---
 
@@ -120,6 +120,7 @@ abline(fit,col = "red") # Se añade la recta ajusta
 ###Eliminamos la tendencia con la predicción la recta
 ElimiTendchick=chicken-predict(fit)
 plot(ElimiTendchick,main="Serie Chicken Sin tendencia")
+acf(ElimiTendchick,lag.max =179 )
 ```
 ```{r chicken 3}
 library(tidyverse)
