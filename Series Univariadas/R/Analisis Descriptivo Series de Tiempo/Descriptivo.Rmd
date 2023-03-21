@@ -81,7 +81,7 @@ require(fable)
 require(timetk)
 require(tsibble)
 ###Creación objeto tssible a partir de un objeto tibble
-df_desempleo=data.frame(Desempleo=DesempleoyEmpleo_1$Tasa_de_desempleo,Fecha=Fechas)
+df_desempleo=data.frame(Desempleo=DesempleoyEmpleo_1$Tasa_de_desempleo,Fecha=DesempleoyEmpleo_1$Fecha)
 tbl_desempleo=tibble(df_desempleo)
 tbl_desempleo_format_fecha=tbl_desempleo
 tbl_desempleo_format_fecha$Fecha=yearmonth(tbl_desempleo_format_fecha$Fecha)
@@ -90,7 +90,7 @@ tbl_desempleo_format_fecha$Fecha=yearmonth(tbl_desempleo_format_fecha$Fecha)
 tsbl_desempleo=as_tsibble(tbl_desempleo_format_fecha,index=Fecha)   ####La fecha en tsibble es importante
 
 ##Gráfica de tsibble
-autoplot(tsbl_desempleo,Desempleo)+labs(tittle="Serie de Desempleo Colombia Mensual",y="Tasa de Deszempleo")
+autoplot(tsbl_desempleo,Desempleo)+labs(tittle="Serie de Desempleo Colombia Mensual",y="Tasa de Desempleo")
 
 ###Gráfica timetk
 tbl_desempleo%>%plot_time_series(.value=Desempleo,.date_var=Fecha)
@@ -151,9 +151,9 @@ tibble_chicken%>%timetk::plot_time_series(Fecha, Pollo,
                    .interactive = interactive,
                    .plotly_slider = TRUE)
 ###Usa Loess para hacer el ajuste de la tendencia, es decir usar smooth_vec() como versión simplificada de stats::loess()
-tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.75, degree = 2))
+tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.35, degree = 2))
 
-tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.5, degree = 1))%>%
+tibble_chicken%>%mutate(Pollo_ajus=smooth_vec(Pollo,span = 0.75, degree = 2))%>%
   ggplot(aes(Fecha, Pollo)) +
     geom_line() +
     geom_line(aes(y = Pollo_ajus), color = "red")
@@ -172,7 +172,7 @@ chicken_decompo$trend
 ```
 Simule unos datos III, crear un objeto con periodicidad s=12, y extraer la descomposición, qué puede observar?
 ```{r}
-y=ts(rnorm(1000,0,1),start=c(2000,01),frequency = 4)
+y=ts(rnorm(1000,0,1),start=c(2000,01),frequency = 12)
 plot(decompose(y))
 ```
 
@@ -211,6 +211,10 @@ $$\nabla^1 Y_t=(1-B)^1 Y_t=Y_t-Y_{t-1}$$
 ```{r aplicacion de la diferenciacion}
 dx=diff(x)
 plot.ts(dx, ylim=c(-5,5), main="Serie Diferenciada", ylab='')
+
+####Con drift
+dxd=diff(xd)
+plot.ts(dxd, ylim=c(-5,5), main="Serie con drift Diferenciada", ylab='')
 ```
 
 
@@ -247,12 +251,12 @@ $$
 data("AirPassengers")
 plot(AirPassengers)
 #####Transformación Box-Cox
-library(FitAR)
+#library(FitAR)
 library(forecast)
-forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = -1, upper = 3) ###Me entrega el valor de lambda 
+forecast::BoxCox.lambda(AirPassengers, method ="loglik", lower = -1, upper = 3) ###Me entrega el valor de lambda 
 ##method="loglik"
-FitAR::BoxCox(AirPassengers)###Me entrega una gráfica
-plot(forecast::BoxCox(AirPassengers,lambda=-0.294731))###
+#FitAR::BoxCox(AirPassengers)###Me entrega una gráfica
+plot(forecast::BoxCox(AirPassengers,lambda=0.2))###
 lAirPass=log(AirPassengers)
 x11()
 par(mar = c(1,1,1,1))
@@ -260,13 +264,16 @@ par(mfrow=c(2,1))
 plot(AirPassengers,main="Serie de Pasajeros sin Transformar")
 plot(lAirPass,main="Series con Transformación BoxCox")
 
+forecast::BoxCox.lambda(lAirPass, method ="guerrero", lower = -1, upper = 3)
+
+
 ##Box-Cox con timetk
 timetk::box_cox_vec(AirPassengers,lambda = 'auto',silent = F)
 ```
 Note que ahora usamos la misma función para verificar si en verdad la varianza fue estabilizada.
 
 ```{r R BoxCox chequeo Series transformada}
-FitAR::BoxCox(lAirPass)
+#FitAR::BoxCox(lAirPass)
 forecast::BoxCox.lambda(lAirPass, method = "guerrero", lower = -1, upper = 2)
 ```
 
@@ -514,6 +521,8 @@ ts_heatmap(unemployment,title = "Mapa de Calor - Tasa de Desempleo EEUU Subserie
 ```
 En este ejemplo, el flujo de color de la Tasa de Desempleo es vertical, lo que indica el estado del ciclo. En este caso, las franjas verticales más claras representan el final de un ciclo y el comienzo del siguiente. Asimismo, las franjas verticales más oscuras representan los picos del ciclo.
 
+Vale la pena decir que es necesario eliminar la tendencia de la serie para pasar a detectar la estacionalidad.
+
 # Explorando mas herramientas para detección de Estacionalidad
 
 ## Medidas descriptivas
@@ -694,11 +703,13 @@ require(timetk)
 UKgrid_tbl
 UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","week","wday.lbl","month.lbl"),.geom="boxplot") ##Chequear si se desea un diagrama de caja o violín .geom 
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("hour"),.geom="violin")
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_time_series(TIMESTAMP,diff_ND)
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("wday.lbl"),.geom="violin")
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("hour"),.geom="boxplot")
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("month.lbl"),.geom="violin")
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("wday.lbl"),.geom="boxplot")
+
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("month.lbl"),.geom="boxplot")
 
 ```
 
@@ -956,8 +967,12 @@ Veamos ahora con una serie de tiempo real. Usaremos la serie SOi y Recruitment p
 ```{r espectral_soi}
 library(astsa)
 data(soi)
+plot(soi)
 soi.per = astsa::mvspec(soi, log="no")
+aux.per=spectrum(soi[1:453])
+ubicacionsoi.aux=which.max(aux.per$spec)
 ubicacionsoi=which.max(soi.per$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para SOI es: %s",aux.per$freq[ubicacionsoi.aux])
 sprintf("El valor de la frecuencia donde se máximiza el periodograma para SOI es: %s",soi.per$freq[ubicacionsoi])
 n_soi <- length(soi.per$spec)
 valor_seg_per=sort(soi.per$spec,partial=n_soi-1)[n_soi-1]
