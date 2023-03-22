@@ -1,0 +1,213 @@
+---
+title: "Ejemplo Completo de Descriptiva y Modelamiento mediante ETS"
+format: html
+editor: visual
+---
+
+## Ejemplo Descriptiva Pasajeros y Modelos ETS
+
+Vamos a llevara a cabo un ejemplo con los pasos de la estadística descriptiva en series de tiempo para la serie de pasajeros y un primer modelamiento desde suavizamiento exponencial.
+
+## Visualización de la Serie de Tiempo
+
+Vamos primero a visualizar la serie de tiempo de pasajeros.
+
+```{r visual pasajeros}
+data("AirPassengers")
+plot(AirPassengers)
+```
+
+Recuerden que la serie presenta:
+
+-   **Heterocedasticidad Marginal:** *ya que visualmente el rango de valores que va tomando la variable se va haciendo cada vez mayor. Se debe estabilizar vía transformación Box-Cox.*
+
+-   **Tendencia:** *La serie es creciente con el tiempo aparentemente de forma lineal. Se puede estimar la tendencia(determinística lineal) y despúes eliminar la tendencia. También se puede eliminar la tendencia mediante diferencia ordinaria y posterior*
+
+-    **Componente estacional:** *Hay claridad de la existencia de una componente estacional de periodo s=12. Debido a que la serie es mensual y usualmente de haber esta componente, ella es de periodo s=12 , sin embargo vamos a proceder a identificarla usando las herramientas, basadas en una serie sin tendencia.*
+
+Primero procedemos a estabilizar la varianza.
+
+```{r estabilización de la varianza}
+class(AirPassengers) ###Clase del objeto.
+
+library(forecast)
+library(MASS)
+forecast::BoxCox.lambda(AirPassengers, method ="loglik", lower = -1, upper = 3)
+##Recordar que la funcion nos entrega el valor de lambda
+
+MASS::boxcox(lm(AirPassengers ~ 1),seq(-2, 3, length = 50))  ##Coincide con el anterior valor de lambda.
+lAirPass<-log(AirPassengers)
+plot(lAirPass)
+
+MASS::boxcox(lm(lAirPass ~ 1),seq(-5, 5, length = 50))  ##Coincide con el anterior
+forecast::BoxCox.lambda(lAirPass, method ="loglik", lower = -5, upper = 5)
+
+```
+
+Note que el valor de $\lambda$ para estabilizar la varianza es 0.2, el cual está cerca de 0, axemás note que el IC para $\lambda$ no captura el 1. Por lo tanto usaremos $\lambda=0$, es decir, transformación logarítmica. Note que después de la transformación logarítmica volvemos a evaluar el IC para $\lambda$ ahora para la serie transformada, y podemos ver que ahora es mas grande pero captura el 1, con lo cual la transformación logarítmica parece haber estabilizado la varianza.
+
+# Tendencia(estimación y/o eliminación)
+
+Segundo procederemos a estimar la tendencia de forma preliminar. Iniciamos con una tendencia lineal determinística.
+
+```{r Estimacion de la tendencia}
+
+summary(fit_pasajero <- lm(lAirPass~time(lAirPass), na.action=NULL))
+plot(lAirPass, ylab="Número de Pasajeros en escala logarítmica") 
+abline(fit_pasajero,col = "red") # Se añade la recta ajusta
+###Eliminamos la tendencia con la predicción la recta
+NoTendlAirPass=lAirPass-predict(fit_pasajero)
+plot(NoTendlAirPass,main="Serie Log Pasajeros Sin tendencia")
+acf(NoTendlAirPass,lag.max =length(NoTendlAirPass) )
+```
+
+Note que la serie, obtenida después de haber eliminado la tendencia lineal manifiesta hay un lento de su acf, en especial en rezagos múltiplos de 12. Esto podría sugerir la presencia de una componente estacional.
+
+Veamos ahora la estimación de la tendencia desde filtro de promedio móviles y mediante STL. Recuerde que no hemos identificado la componente estacional, por lo tanto, lo obtenido descomposición de filtro de promedio móviles es una estimación preliminar.
+
+```{r Promedio movil}
+descomposicion_lAirPass=decompose(lAirPass)
+plot(descomposicion_lAirPass)
+
+```
+
+Note que por filtro de promedio móvil, la tendencia estimada es aproximadamente lineal. La componente estacional parece haberse estimada de forma idónea. Sin embargo, la componente residual presenta aún patrones estacionales.
+
+Ahora procedamos a estimar la tenencia desde STL.
+
+```{r STL}
+library(tidyverse)
+library(lubridate)
+library(timetk)
+library(tibble)
+library(zoo)
+
+
+indice_logpasajeros=as.Date(as.yearmon(tk_index(lAirPass)))
+## Otra forma de extraer el indice estimetk::tk_index(lAirPass)
+df_logpasajeros=data.frame(Fecha=indice_logpasajeros,Logpasa=as.matrix(lAirPass))
+str(df_logpasajeros)
+tibble_logpasajeros=tibble(df_logpasajeros)
+#duplicates(tibble_logpasajeros, key = NULL, index=Fecha)   ##Mirar si hay registros duplicados
+####Primera aproximación del ajuste STL
+
+tibble_logpasajeros%>%timetk::plot_time_series(Fecha, Logpasa, 
+                   .interactive = TRUE,
+                   .plotly_slider = TRUE)
+
+#####Ajuste STL
+#Note que obtenemos un objeto adicional en tibble_logpasajeros con Logpasa_ajus con parámetros que se pueden mover.
+tibble_logpasajeros%>%mutate(Logpasa_ajus=smooth_vec(Logpasa,span = 0.75, degree = 2))
+
+
+###Ajuste STL moviendo los parámetros
+tibble_logpasajeros%>%mutate(Logpasa_ajus=smooth_vec(Logpasa,span = 0.75, degree = 2))%>%
+  ggplot(aes(Fecha, Logpasa)) +
+    geom_line() +
+    geom_line(aes(y = Logpasa_ajus), color = "red")
+```
+
+Usted puede usar el objeto tibble_logpasajeros\$Logpasa para eliminar la tendencia obtenida de STL. Recuerde que puede hacer un procedimiento similar a STL para obtener una estimación de la componente de tendencia y estacional de forma automática sin controlar los parámetros de la tendencia. Note que los parámetros para estimar la tendencia y la componente estacional son distintos ahora que se usa la función STL.
+
+```{r STL trend y estacional}
+library(feasts)
+library(fable)
+
+tsibble_lAirPass<-as_tsibble(lAirPass)
+str(tsibble_lAirPass)
+tsibble_lAirPass %>%
+  model(
+    STL(value ~ trend() +
+                   season(window = "periodic"),
+    robust = TRUE)) %>%
+  components() %>%
+  autoplot()
+```
+
+Veamos ahora la serie de los pasajeros en escala logarítmica después de la diferenciación ordinaria para eliminar la tendencia.
+
+```{r diferencia ordinaria}
+###Usando objeto tsibble
+tsibble_lAirPass|>mutate(diff_lAirPass=difference(value,lag=1,differences = 1))|>
+  autoplot(.vars =diff_lAirPass ) + labs(subtitle = "Cambios en escala logarítmica de los pasajeros")
+
+tsibble_lAirPass<-tsibble_lAirPass|>mutate(diff_lAirPass=difference(value,lag=1,differences = 1))
+
+###Diferenciando basado en el objeto tibble
+tibble_logpasajeros%>%mutate(diff_Logpasa=Logpasa-lag(Logpasa))%>%plot_time_series(Fecha,diff_Logpasa)
+
+tibble_logpasajeros<-tibble_logpasajeros%>%mutate(diff_Logpasa=Logpasa-lag(Logpasa))
+###Diferenciando con base en el objeto ts
+
+dlAirPass<-diff(lAirPass)
+plot(DlAirPass)
+
+
+
+```
+
+Note que todos los objetos dejan NA cuando se usa aplioca la diferenciación excepto cuando el objeto es ts.
+
+# Detección de la estacionalidad
+
+Recordemos que la idea de la detección de la estacionalidad consiste en ver si en ciertos periodos de tiempo las medias en esos periodos son distintos, adicionalmente hay que encontrar el periodo del ciclo estacional(**s**), es decir cuantos periodos de tiempo pasan hasta ver que la media sea análoga.
+
+Iniciaremos con la la gráfica de subseries de la serie sin tendencia.
+
+```{r explorando estacionalidad subseries}
+###Dado que la serie es mensual, monthplot permite hacer los gráficos de las subseries.
+monthplot(dlAirPass). ##Note hay meses muchas subseries están centradas alrededor de valores diferentes usando el objeto ts
+
+tsibble_lAirPass%>%na.omit()|>gg_subseries(diff_lAirPass,period=12). ##Gráfico de subseries usando el objeto tibble
+
+tibble_logpasajeros %>%na.omit()|>
+    mutate(
+        Mes = str_c("", as.character(lubridate::month(Fecha,label=TRUE)))
+    ) %>%
+    plot_time_series(
+        .date_var = Fecha,
+        .value = diff_Logpasa,
+        .facet_vars = Mes,
+        .facet_ncol = 4, 
+        .color_var = Mes, 
+        .facet_scales = "fixed",
+        .interactive = FALSE,
+        .legend_show = FALSE,
+        .smooth = FALSE
+    )
+library(forecast)
+ggseasonplot(dlAirPass)
+
+```
+
+Explorando la estacionalidad con gráficos de cajas
+
+```{r gráfico de cajas}
+##Basado en el objeto tibble
+tibble_logpasajeros%>%na.omit()%>%plot_seasonal_diagnostics(.date_var = Fecha,.value = diff_Logpasa,.feature_set = c("month.lbl"),.geom="boxplot")
+
+ggplot(tibble_logpasajeros %>%na.omit()|>
+    mutate(
+        Mes = str_c("Mes ", as.character(lubridate::month(Fecha)))
+    ), aes(x = diff_Logpasa)) +
+      geom_density(aes(fill = Mes)) +
+      ggtitle("LosPass - Estimación de la densidad vía Kernel por mes") +
+      facet_grid(rows = vars(as.factor(Mes)))
+
+
+
+```
+
+# Periodograma
+
+```{r periodograma}
+spectrum(as.numeric(dlAirPass),log='no')
+
+PeriodgramadlAirPass=spectrum(as.numeric(dlAirPass),log='no')
+ubicacionlogAir=which.max(PeriodgramadlAirPass$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramadlAirPass$freq[ubicacionlogAir])
+
+sprintf("El periodo correspondiente es aproximadamente: %s",1/PeriodgramadlAirPass$freq[ubicacionlogAir])
+```
+
+Note que e periodo es 6, sin embargo 6 no es periodo principal para este caso, sería 12 ya que 6 es un múltiplo racional de 12.

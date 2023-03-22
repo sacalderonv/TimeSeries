@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.335">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Ejemplo Completo de Descriptiva y Modelamiento mediante ETS</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="EjemploDescriptiva_files/libs/clipboard/clipboard.min.js"></script>
+<script src="EjemploDescriptiva_files/libs/quarto-html/quarto.js"></script>
+<script src="EjemploDescriptiva_files/libs/quarto-html/popper.min.js"></script>
+<script src="EjemploDescriptiva_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="EjemploDescriptiva_files/libs/quarto-html/anchor.min.js"></script>
+<link href="EjemploDescriptiva_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="EjemploDescriptiva_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="EjemploDescriptiva_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="EjemploDescriptiva_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="EjemploDescriptiva_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="EjemploDescriptiva_files/libs/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+<script src="EjemploDescriptiva_files/libs/plotly-binding-4.10.0/plotly.js"></script>
+<script src="EjemploDescriptiva_files/libs/typedarray-0.1/typedarray.min.js"></script>
+<script src="EjemploDescriptiva_files/libs/jquery-3.5.1/jquery.min.js"></script>
+<link href="EjemploDescriptiva_files/libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet">
+<script src="EjemploDescriptiva_files/libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="EjemploDescriptiva_files/libs/plotly-htmlwidgets-css-2.5.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="EjemploDescriptiva_files/libs/plotly-main-2.5.1/plotly-latest.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Ejemplo Completo de Descriptiva y Modelamiento mediante ETS</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="ejemplo-descriptiva-pasajeros-y-modelos-ets" class="level2">
+<h2 class="anchored" data-anchor-id="ejemplo-descriptiva-pasajeros-y-modelos-ets">Ejemplo Descriptiva Pasajeros y Modelos ETS</h2>
+<p>Vamos a llevara a cabo un ejemplo con los pasos de la estadística descriptiva en series de tiempo para la serie de pasajeros y un primer modelamiento desde suavizamiento exponencial.</p>
+</section>
+<section id="visualización-de-la-serie-de-tiempo" class="level2">
+<h2 class="anchored" data-anchor-id="visualización-de-la-serie-de-tiempo">Visualización de la Serie de Tiempo</h2>
+<p>Vamos primero a visualizar la serie de tiempo de pasajeros.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"AirPassengers"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(AirPassengers)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/visual%20pasajeros-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Recuerden que la serie presenta:</p>
+<ul>
+<li><p><strong>Heterocedasticidad Marginal:</strong> <em>ya que visualmente el rango de valores que va tomando la variable se va haciendo cada vez mayor. Se debe estabilizar vía transformación Box-Cox.</em></p></li>
+<li><p><strong>Tendencia:</strong> <em>La serie es creciente con el tiempo aparentemente de forma lineal. Se puede estimar la tendencia(determinística lineal) y despúes eliminar la tendencia. También se puede eliminar la tendencia mediante diferencia ordinaria y posterior</em></p></li>
+<li><p><strong>Componente estacional:</strong> <em>Hay claridad de la existencia de una componente estacional de periodo s=12. Debido a que la serie es mensual y usualmente de haber esta componente, ella es de periodo s=12 , sin embargo vamos a proceder a identificarla usando las herramientas, basadas en una serie sin tendencia.</em></p></li>
+</ul>
+<p>Primero procedemos a estabilizar la varianza.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(AirPassengers) <span class="do">###Clase del objeto.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "ts"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forecast)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Registered S3 method overwritten by 'quantmod':
+  method            from
+  as.zoo.data.frame zoo </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>forecast<span class="sc">::</span><span class="fu">BoxCox.lambda</span>(AirPassengers, <span class="at">method =</span><span class="st">"loglik"</span>, <span class="at">lower =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">upper =</span> <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="do">##Recordar que la funcion nos entrega el valor de lambda</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>MASS<span class="sc">::</span><span class="fu">boxcox</span>(<span class="fu">lm</span>(AirPassengers <span class="sc">~</span> <span class="dv">1</span>),<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">3</span>, <span class="at">length =</span> <span class="dv">50</span>))  <span class="do">##Coincide con el anterior valor de lambda.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/estabilización%20de%20la%20varianza-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lAirPass<span class="ot">&lt;-</span><span class="fu">log</span>(AirPassengers)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lAirPass)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/estabilización%20de%20la%20varianza-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>MASS<span class="sc">::</span><span class="fu">boxcox</span>(<span class="fu">lm</span>(lAirPass <span class="sc">~</span> <span class="dv">1</span>),<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="at">length =</span> <span class="dv">50</span>))  <span class="do">##Coincide con el anterior</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/estabilización%20de%20la%20varianza-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>forecast<span class="sc">::</span><span class="fu">BoxCox.lambda</span>(lAirPass, <span class="at">method =</span><span class="st">"loglik"</span>, <span class="at">lower =</span> <span class="sc">-</span><span class="dv">5</span>, <span class="at">upper =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.1</code></pre>
+</div>
+</div>
+<p>Note que el valor de <span class="math inline">\(\lambda\)</span> para estabilizar la varianza es 0.2, el cual está cerca de 0, axemás note que el IC para <span class="math inline">\(\lambda\)</span> no captura el 1. Por lo tanto usaremos <span class="math inline">\(\lambda=0\)</span>, es decir, transformación logarítmica. Note que después de la transformación logarítmica volvemos a evaluar el IC para <span class="math inline">\(\lambda\)</span> ahora para la serie transformada, y podemos ver que ahora es mas grande pero captura el 1, con lo cual la transformación logarítmica parece haber estabilizado la varianza.</p>
+</section>
+<section id="tendenciaestimación-yo-eliminación" class="level1">
+<h1>Tendencia(estimación y/o eliminación)</h1>
+<p>Segundo procederemos a estimar la tendencia de forma preliminar. Iniciamos con una tendencia lineal determinística.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_pasajero <span class="ot">&lt;-</span> <span class="fu">lm</span>(lAirPass<span class="sc">~</span><span class="fu">time</span>(lAirPass), <span class="at">na.action=</span><span class="cn">NULL</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = lAirPass ~ time(lAirPass), na.action = NULL)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.30858 -0.10388 -0.01796  0.09738  0.29538 
+
+Coefficients:
+                 Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    -2.302e+02  6.539e+00  -35.20   &lt;2e-16 ***
+time(lAirPass)  1.206e-01  3.345e-03   36.05   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.139 on 142 degrees of freedom
+Multiple R-squared:  0.9015,    Adjusted R-squared:  0.9008 
+F-statistic:  1300 on 1 and 142 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lAirPass, <span class="at">ylab=</span><span class="st">"Número de Pasajeros en escala logarítmica"</span>) </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(fit_pasajero,<span class="at">col =</span> <span class="st">"red"</span>) <span class="co"># Se añade la recta ajusta</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/Estimacion%20de%20la%20tendencia-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="do">###Eliminamos la tendencia con la predicción la recta</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>NoTendlAirPass<span class="ot">=</span>lAirPass<span class="sc">-</span><span class="fu">predict</span>(fit_pasajero)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(NoTendlAirPass,<span class="at">main=</span><span class="st">"Serie Log Pasajeros Sin tendencia"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/Estimacion%20de%20la%20tendencia-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">acf</span>(NoTendlAirPass,<span class="at">lag.max =</span><span class="fu">length</span>(NoTendlAirPass) )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/Estimacion%20de%20la%20tendencia-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Note que la serie, obtenida después de haber eliminado la tendencia lineal manifiesta hay un lento de su acf, en especial en rezagos múltiplos de 12. Esto podría sugerir la presencia de una componente estacional.</p>
+<p>Veamos ahora la estimación de la tendencia desde filtro de promedio móviles y mediante STL. Recuerde que no hemos identificado la componente estacional, por lo tanto, lo obtenido descomposición de filtro de promedio móviles es una estimación preliminar.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>descomposicion_lAirPass<span class="ot">=</span><span class="fu">decompose</span>(lAirPass)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(descomposicion_lAirPass)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/Promedio%20movil-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Note que por filtro de promedio móvil, la tendencia estimada es aproximadamente lineal. La componente estacional parece haberse estimada de forma idónea. Sin embargo, la componente residual presenta aún patrones estacionales.</p>
+<p>Ahora procedamos a estimar la tenencia desde STL.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+✔ tibble  3.1.8     ✔ dplyr   1.0.9
+✔ tidyr   1.2.0     ✔ stringr 1.4.1
+✔ readr   2.1.2     ✔ forcats 0.5.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+✖ dplyr::select() masks MASS::select()</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'lubridate'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(timetk)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(zoo)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'zoo'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>indice_logpasajeros<span class="ot">=</span><span class="fu">as.Date</span>(<span class="fu">as.yearmon</span>(<span class="fu">tk_index</span>(lAirPass)))</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Otra forma de extraer el indice estimetk::tk_index(chicken)</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>df_logpasajeros<span class="ot">=</span><span class="fu">data.frame</span>(<span class="at">Fecha=</span>indice_logpasajeros,<span class="at">Logpasa=</span><span class="fu">as.matrix</span>(lAirPass))</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(df_logpasajeros)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   144 obs. of  2 variables:
+ $ Fecha  : Date, format: "1949-01-01" "1949-02-01" ...
+ $ Logpasa: num  4.72 4.77 4.88 4.86 4.8 ...</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>tibble_logpasajeros<span class="ot">=</span><span class="fu">tibble</span>(df_logpasajeros)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co">#duplicates(tibble_logpasajeros, key = NULL, index=Fecha)   ##Mirar si hay registros duplicados</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="do">####Primera aproximación del ajuste STL</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>tibble_logpasajeros<span class="sc">%&gt;%</span>timetk<span class="sc">::</span><span class="fu">plot_time_series</span>(Fecha, Logpasa, </span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">.interactive =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">.plotly_slider =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="htmlwidget-f0ab97ce570cc940ecff" style="width:100%;height:464px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f0ab97ce570cc940ecff">{"x":{"data":[{"x":["1949-01-01","1949-02-01","1949-03-01","1949-04-01","1949-05-01","1949-06-01","1949-07-01","1949-08-01","1949-09-01","1949-10-01","1949-11-01","1949-12-01","1950-01-01","1950-02-01","1950-03-01","1950-04-01","1950-05-01","1950-06-01","1950-07-01","1950-08-01","1950-09-01","1950-10-01","1950-11-01","1950-12-01","1951-01-01","1951-02-01","1951-03-01","1951-04-01","1951-05-01","1951-06-01","1951-07-01","1951-08-01","1951-09-01","1951-10-01","1951-11-01","1951-12-01","1952-01-01","1952-02-01","1952-03-01","1952-04-01","1952-05-01","1952-06-01","1952-07-01","1952-08-01","1952-09-01","1952-10-01","1952-11-01","1952-12-01","1953-01-01","1953-02-01","1953-03-01","1953-04-01","1953-05-01","1953-06-01","1953-07-01","1953-08-01","1953-09-01","1953-10-01","1953-11-01","1953-12-01","1954-01-01","1954-02-01","1954-03-01","1954-04-01","1954-05-01","1954-06-01","1954-07-01","1954-08-01","1954-09-01","1954-10-01","1954-11-01","1954-12-01","1955-01-01","1955-02-01","1955-03-01","1955-04-01","1955-05-01","1955-06-01","1955-07-01","1955-08-01","1955-09-01","1955-10-01","1955-11-01","1955-12-01","1956-01-01","1956-02-01","1956-03-01","1956-04-01","1956-05-01","1956-06-01","1956-07-01","1956-08-01","1956-09-01","1956-10-01","1956-11-01","1956-12-01","1957-01-01","1957-02-01","1957-03-01","1957-04-01","1957-05-01","1957-06-01","1957-07-01","1957-08-01","1957-09-01","1957-10-01","1957-11-01","1957-12-01","1958-01-01","1958-02-01","1958-03-01","1958-04-01","1958-05-01","1958-06-01","1958-07-01","1958-08-01","1958-09-01","1958-10-01","1958-11-01","1958-12-01","1959-01-01","1959-02-01","1959-03-01","1959-04-01","1959-05-01","1959-06-01","1959-07-01","1959-08-01","1959-09-01","1959-10-01","1959-11-01","1959-12-01","1960-01-01","1960-02-01","1960-03-01","1960-04-01","1960-05-01","1960-06-01","1960-07-01","1960-08-01","1960-09-01","1960-10-01","1960-11-01","1960-12-01"],"y":[4.71849887129509,4.77068462446567,4.88280192258637,4.85981240436167,4.79579054559674,4.90527477843843,4.99721227376411,4.99721227376411,4.91265488573605,4.77912349311153,4.64439089914137,4.77068462446567,4.74493212836325,4.83628190695148,4.94875989037817,4.90527477843843,4.8283137373023,5.00394630594546,5.13579843705026,5.13579843705026,5.06259503302697,4.89034912822175,4.7361984483945,4.9416424226093,4.97673374242057,5.01063529409626,5.18178355029209,5.09375020080676,5.14749447681345,5.18178355029209,5.29330482472449,5.29330482472449,5.21493575760899,5.08759633523238,4.98360662170834,5.11198778835654,5.14166355650266,5.19295685089021,5.26269018890489,5.19849703126583,5.20948615284142,5.38449506278909,5.4380793089232,5.48893772615669,5.34233425196481,5.25227342804663,5.14749447681345,5.26785815906333,5.27811465923052,5.27811465923052,5.46383180502561,5.45958551414416,5.43372200355424,5.49306144334055,5.57594910314632,5.605802066296,5.46806014113513,5.35185813347607,5.19295685089021,5.30330490805908,5.31811999384422,5.23644196282995,5.45958551414416,5.4249500174814,5.4553211153577,5.57594910314632,5.71042701737487,5.68017260901707,5.55682806169954,5.43372200355424,5.31320597904179,5.43372200355424,5.48893772615669,5.4510384535657,5.58724865840025,5.59471137960184,5.59842195899838,5.75257263882563,5.89715386763674,5.84932477994686,5.74300318780948,5.61312810638807,5.46806014113513,5.62762111369064,5.64897423816121,5.62401750618734,5.75890177387728,5.74620319054015,5.76205138278018,5.92425579741453,6.02344759296103,6.00388706710654,5.87211778947542,5.72358510195238,5.6021188208797,5.72358510195238,5.75257263882563,5.70711026474888,5.87493073085203,5.85220247977447,5.87211778947542,6.04500531403601,6.14203740558736,6.1463292576689,6.00141487796115,5.84932477994686,5.72031177660741,5.8171111599632,5.82894561761021,5.76205138278018,5.89164421182577,5.85220247977447,5.89440283426485,6.07534603108868,6.19644412779452,6.22455842927536,6.00141487796115,5.88332238848828,5.73657229747919,5.82008293035236,5.88610403145016,5.8348107370626,6.00635315960173,5.98141421125448,6.04025471127741,6.15697898558556,6.30627528694802,6.3261494731551,6.13772705408623,6.00881318544259,5.89164421182577,6.00388706710654,6.0330862217988,5.96870755998537,6.03787091992214,6.13339804299665,6.15697898558556,6.28226674689601,6.43294009273918,6.40687998606931,6.23048144757848,6.13339804299665,5.96614673912369,6.06842558824411],"text":["Fecha: 1949-01-01<br />.value: 4.718499","Fecha: 1949-02-01<br />.value: 4.770685","Fecha: 1949-03-01<br />.value: 4.882802","Fecha: 1949-04-01<br />.value: 4.859812","Fecha: 1949-05-01<br />.value: 4.795791","Fecha: 1949-06-01<br />.value: 4.905275","Fecha: 1949-07-01<br />.value: 4.997212","Fecha: 1949-08-01<br />.value: 4.997212","Fecha: 1949-09-01<br />.value: 4.912655","Fecha: 1949-10-01<br />.value: 4.779123","Fecha: 1949-11-01<br />.value: 4.644391","Fecha: 1949-12-01<br />.value: 4.770685","Fecha: 1950-01-01<br />.value: 4.744932","Fecha: 1950-02-01<br />.value: 4.836282","Fecha: 1950-03-01<br />.value: 4.948760","Fecha: 1950-04-01<br />.value: 4.905275","Fecha: 1950-05-01<br />.value: 4.828314","Fecha: 1950-06-01<br />.value: 5.003946","Fecha: 1950-07-01<br />.value: 5.135798","Fecha: 1950-08-01<br />.value: 5.135798","Fecha: 1950-09-01<br />.value: 5.062595","Fecha: 1950-10-01<br />.value: 4.890349","Fecha: 1950-11-01<br />.value: 4.736198","Fecha: 1950-12-01<br />.value: 4.941642","Fecha: 1951-01-01<br />.value: 4.976734","Fecha: 1951-02-01<br />.value: 5.010635","Fecha: 1951-03-01<br />.value: 5.181784","Fecha: 1951-04-01<br />.value: 5.093750","Fecha: 1951-05-01<br />.value: 5.147494","Fecha: 1951-06-01<br />.value: 5.181784","Fecha: 1951-07-01<br />.value: 5.293305","Fecha: 1951-08-01<br />.value: 5.293305","Fecha: 1951-09-01<br />.value: 5.214936","Fecha: 1951-10-01<br />.value: 5.087596","Fecha: 1951-11-01<br />.value: 4.983607","Fecha: 1951-12-01<br />.value: 5.111988","Fecha: 1952-01-01<br />.value: 5.141664","Fecha: 1952-02-01<br />.value: 5.192957","Fecha: 1952-03-01<br />.value: 5.262690","Fecha: 1952-04-01<br />.value: 5.198497","Fecha: 1952-05-01<br />.value: 5.209486","Fecha: 1952-06-01<br />.value: 5.384495","Fecha: 1952-07-01<br />.value: 5.438079","Fecha: 1952-08-01<br />.value: 5.488938","Fecha: 1952-09-01<br />.value: 5.342334","Fecha: 1952-10-01<br />.value: 5.252273","Fecha: 1952-11-01<br />.value: 5.147494","Fecha: 1952-12-01<br />.value: 5.267858","Fecha: 1953-01-01<br />.value: 5.278115","Fecha: 1953-02-01<br />.value: 5.278115","Fecha: 1953-03-01<br />.value: 5.463832","Fecha: 1953-04-01<br />.value: 5.459586","Fecha: 1953-05-01<br />.value: 5.433722","Fecha: 1953-06-01<br />.value: 5.493061","Fecha: 1953-07-01<br />.value: 5.575949","Fecha: 1953-08-01<br />.value: 5.605802","Fecha: 1953-09-01<br />.value: 5.468060","Fecha: 1953-10-01<br />.value: 5.351858","Fecha: 1953-11-01<br />.value: 5.192957","Fecha: 1953-12-01<br />.value: 5.303305","Fecha: 1954-01-01<br />.value: 5.318120","Fecha: 1954-02-01<br />.value: 5.236442","Fecha: 1954-03-01<br />.value: 5.459586","Fecha: 1954-04-01<br />.value: 5.424950","Fecha: 1954-05-01<br />.value: 5.455321","Fecha: 1954-06-01<br />.value: 5.575949","Fecha: 1954-07-01<br />.value: 5.710427","Fecha: 1954-08-01<br />.value: 5.680173","Fecha: 1954-09-01<br />.value: 5.556828","Fecha: 1954-10-01<br />.value: 5.433722","Fecha: 1954-11-01<br />.value: 5.313206","Fecha: 1954-12-01<br />.value: 5.433722","Fecha: 1955-01-01<br />.value: 5.488938","Fecha: 1955-02-01<br />.value: 5.451038","Fecha: 1955-03-01<br />.value: 5.587249","Fecha: 1955-04-01<br />.value: 5.594711","Fecha: 1955-05-01<br />.value: 5.598422","Fecha: 1955-06-01<br />.value: 5.752573","Fecha: 1955-07-01<br />.value: 5.897154","Fecha: 1955-08-01<br />.value: 5.849325","Fecha: 1955-09-01<br />.value: 5.743003","Fecha: 1955-10-01<br />.value: 5.613128","Fecha: 1955-11-01<br />.value: 5.468060","Fecha: 1955-12-01<br />.value: 5.627621","Fecha: 1956-01-01<br />.value: 5.648974","Fecha: 1956-02-01<br />.value: 5.624018","Fecha: 1956-03-01<br />.value: 5.758902","Fecha: 1956-04-01<br />.value: 5.746203","Fecha: 1956-05-01<br />.value: 5.762051","Fecha: 1956-06-01<br />.value: 5.924256","Fecha: 1956-07-01<br />.value: 6.023448","Fecha: 1956-08-01<br />.value: 6.003887","Fecha: 1956-09-01<br />.value: 5.872118","Fecha: 1956-10-01<br />.value: 5.723585","Fecha: 1956-11-01<br />.value: 5.602119","Fecha: 1956-12-01<br />.value: 5.723585","Fecha: 1957-01-01<br />.value: 5.752573","Fecha: 1957-02-01<br />.value: 5.707110","Fecha: 1957-03-01<br />.value: 5.874931","Fecha: 1957-04-01<br />.value: 5.852202","Fecha: 1957-05-01<br />.value: 5.872118","Fecha: 1957-06-01<br />.value: 6.045005","Fecha: 1957-07-01<br />.value: 6.142037","Fecha: 1957-08-01<br />.value: 6.146329","Fecha: 1957-09-01<br />.value: 6.001415","Fecha: 1957-10-01<br />.value: 5.849325","Fecha: 1957-11-01<br />.value: 5.720312","Fecha: 1957-12-01<br />.value: 5.817111","Fecha: 1958-01-01<br />.value: 5.828946","Fecha: 1958-02-01<br />.value: 5.762051","Fecha: 1958-03-01<br />.value: 5.891644","Fecha: 1958-04-01<br />.value: 5.852202","Fecha: 1958-05-01<br />.value: 5.894403","Fecha: 1958-06-01<br />.value: 6.075346","Fecha: 1958-07-01<br />.value: 6.196444","Fecha: 1958-08-01<br />.value: 6.224558","Fecha: 1958-09-01<br />.value: 6.001415","Fecha: 1958-10-01<br />.value: 5.883322","Fecha: 1958-11-01<br />.value: 5.736572","Fecha: 1958-12-01<br />.value: 5.820083","Fecha: 1959-01-01<br />.value: 5.886104","Fecha: 1959-02-01<br />.value: 5.834811","Fecha: 1959-03-01<br />.value: 6.006353","Fecha: 1959-04-01<br />.value: 5.981414","Fecha: 1959-05-01<br />.value: 6.040255","Fecha: 1959-06-01<br />.value: 6.156979","Fecha: 1959-07-01<br />.value: 6.306275","Fecha: 1959-08-01<br />.value: 6.326149","Fecha: 1959-09-01<br />.value: 6.137727","Fecha: 1959-10-01<br />.value: 6.008813","Fecha: 1959-11-01<br />.value: 5.891644","Fecha: 1959-12-01<br />.value: 6.003887","Fecha: 1960-01-01<br />.value: 6.033086","Fecha: 1960-02-01<br />.value: 5.968708","Fecha: 1960-03-01<br />.value: 6.037871","Fecha: 1960-04-01<br />.value: 6.133398","Fecha: 1960-05-01<br />.value: 6.156979","Fecha: 1960-06-01<br />.value: 6.282267","Fecha: 1960-07-01<br />.value: 6.432940","Fecha: 1960-08-01<br />.value: 6.406880","Fecha: 1960-09-01<br />.value: 6.230481","Fecha: 1960-10-01<br />.value: 6.133398","Fecha: 1960-11-01<br />.value: 5.966147","Fecha: 1960-12-01<br />.value: 6.068426"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(44,62,80,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":["1949-01-01","1949-02-01","1949-03-01","1949-04-01","1949-05-01","1949-06-01","1949-07-01","1949-08-01","1949-09-01","1949-10-01","1949-11-01","1949-12-01","1950-01-01","1950-02-01","1950-03-01","1950-04-01","1950-05-01","1950-06-01","1950-07-01","1950-08-01","1950-09-01","1950-10-01","1950-11-01","1950-12-01","1951-01-01","1951-02-01","1951-03-01","1951-04-01","1951-05-01","1951-06-01","1951-07-01","1951-08-01","1951-09-01","1951-10-01","1951-11-01","1951-12-01","1952-01-01","1952-02-01","1952-03-01","1952-04-01","1952-05-01","1952-06-01","1952-07-01","1952-08-01","1952-09-01","1952-10-01","1952-11-01","1952-12-01","1953-01-01","1953-02-01","1953-03-01","1953-04-01","1953-05-01","1953-06-01","1953-07-01","1953-08-01","1953-09-01","1953-10-01","1953-11-01","1953-12-01","1954-01-01","1954-02-01","1954-03-01","1954-04-01","1954-05-01","1954-06-01","1954-07-01","1954-08-01","1954-09-01","1954-10-01","1954-11-01","1954-12-01","1955-01-01","1955-02-01","1955-03-01","1955-04-01","1955-05-01","1955-06-01","1955-07-01","1955-08-01","1955-09-01","1955-10-01","1955-11-01","1955-12-01","1956-01-01","1956-02-01","1956-03-01","1956-04-01","1956-05-01","1956-06-01","1956-07-01","1956-08-01","1956-09-01","1956-10-01","1956-11-01","1956-12-01","1957-01-01","1957-02-01","1957-03-01","1957-04-01","1957-05-01","1957-06-01","1957-07-01","1957-08-01","1957-09-01","1957-10-01","1957-11-01","1957-12-01","1958-01-01","1958-02-01","1958-03-01","1958-04-01","1958-05-01","1958-06-01","1958-07-01","1958-08-01","1958-09-01","1958-10-01","1958-11-01","1958-12-01","1959-01-01","1959-02-01","1959-03-01","1959-04-01","1959-05-01","1959-06-01","1959-07-01","1959-08-01","1959-09-01","1959-10-01","1959-11-01","1959-12-01","1960-01-01","1960-02-01","1960-03-01","1960-04-01","1960-05-01","1960-06-01","1960-07-01","1960-08-01","1960-09-01","1960-10-01","1960-11-01","1960-12-01"],"y":[4.75559705947957,4.76842241894586,4.78121303813538,4.7939683220621,4.80668767574003,4.81937050418315,4.83201621240547,4.84462420542096,4.85719388824364,4.86972466588748,4.88221594336649,4.89466712569465,4.90707761788596,4.91944682495441,4.93177415191399,4.94405900377871,4.95630078556254,4.96849890227949,4.98064794182067,4.99274418418377,5.00478957254268,5.01678605007126,5.0287355599434,5.04064004533297,5.05250144941385,5.06432171535991,5.07610278634503,5.08784660554308,5.09955511612795,5.1112302612735,5.12287398415361,5.13448822794217,5.14607493581304,5.15763605094009,5.16917351649722,5.18068927565829,5.19218877011297,5.20367408551894,5.21514213100214,5.22658981568845,5.2380140487038,5.2494117391741,5.26077979622525,5.27211512898318,5.28341464657379,5.294675258123,5.30589387275671,5.31706739960083,5.32819274778129,5.33926682642399,5.35028654465485,5.36124881159977,5.37215053638466,5.38298862813545,5.39371857448306,5.40430753279025,5.41476991678059,5.42512014017769,5.43537261670513,5.44554176008651,5.45564198404542,5.46568770230545,5.4756933285902,5.48567327662327,5.49564196012824,5.5056137928287,5.51560318844826,5.5256245607105,5.53569232333902,5.5458208900574,5.55602467458925,5.56631809065816,5.57678245137451,5.58746722121803,5.59833904096638,5.60936455139719,5.62051039328809,5.63174320741673,5.64302963456073,5.65433631549775,5.66562989100541,5.67687700186136,5.68804428884322,5.69909839272865,5.71000595429527,5.72073361432073,5.73124801358266,5.7415157928587,5.75150359292649,5.76117805456366,5.77061522803323,5.7799190508579,5.78909799470484,5.79816053124123,5.80711513213425,5.81597026905107,5.82473441365887,5.83341603762482,5.8420236126161,5.85056561029989,5.85905050234335,5.86748676041368,5.87588285617803,5.8842472613036,5.89258844745755,5.90091488630706,5.9092350495193,5.91755740876146,5.92584658502947,5.93406196748535,5.94220418004535,5.95027384662572,5.95827159114271,5.96619803751258,5.97405380965159,5.98183953147599,5.98955582690204,5.99720331984598,6.00478263422408,6.01229439395259,6.01973922294777,6.02711774512586,6.03443058440313,6.04167836469582,6.0488617099202,6.05598124399252,6.06304085264982,6.07004371072557,6.0769893757806,6.08387740537578,6.09070735707196,6.09747878842999,6.10419125701072,6.11084432037501,6.11743753608371,6.12397046169767,6.13044265477774,6.13685367288478,6.14320307357965,6.14949041442318,6.15571525297625,6.16187714679969,6.16797565345436,6.17401033050112],"text":["Fecha: 1949-01-01<br />.value_smooth: 4.755597","Fecha: 1949-02-01<br />.value_smooth: 4.768422","Fecha: 1949-03-01<br />.value_smooth: 4.781213","Fecha: 1949-04-01<br />.value_smooth: 4.793968","Fecha: 1949-05-01<br />.value_smooth: 4.806688","Fecha: 1949-06-01<br />.value_smooth: 4.819371","Fecha: 1949-07-01<br />.value_smooth: 4.832016","Fecha: 1949-08-01<br />.value_smooth: 4.844624","Fecha: 1949-09-01<br />.value_smooth: 4.857194","Fecha: 1949-10-01<br />.value_smooth: 4.869725","Fecha: 1949-11-01<br />.value_smooth: 4.882216","Fecha: 1949-12-01<br />.value_smooth: 4.894667","Fecha: 1950-01-01<br />.value_smooth: 4.907078","Fecha: 1950-02-01<br />.value_smooth: 4.919447","Fecha: 1950-03-01<br />.value_smooth: 4.931774","Fecha: 1950-04-01<br />.value_smooth: 4.944059","Fecha: 1950-05-01<br />.value_smooth: 4.956301","Fecha: 1950-06-01<br />.value_smooth: 4.968499","Fecha: 1950-07-01<br />.value_smooth: 4.980648","Fecha: 1950-08-01<br />.value_smooth: 4.992744","Fecha: 1950-09-01<br />.value_smooth: 5.004790","Fecha: 1950-10-01<br />.value_smooth: 5.016786","Fecha: 1950-11-01<br />.value_smooth: 5.028736","Fecha: 1950-12-01<br />.value_smooth: 5.040640","Fecha: 1951-01-01<br />.value_smooth: 5.052501","Fecha: 1951-02-01<br />.value_smooth: 5.064322","Fecha: 1951-03-01<br />.value_smooth: 5.076103","Fecha: 1951-04-01<br />.value_smooth: 5.087847","Fecha: 1951-05-01<br />.value_smooth: 5.099555","Fecha: 1951-06-01<br />.value_smooth: 5.111230","Fecha: 1951-07-01<br />.value_smooth: 5.122874","Fecha: 1951-08-01<br />.value_smooth: 5.134488","Fecha: 1951-09-01<br />.value_smooth: 5.146075","Fecha: 1951-10-01<br />.value_smooth: 5.157636","Fecha: 1951-11-01<br />.value_smooth: 5.169174","Fecha: 1951-12-01<br />.value_smooth: 5.180689","Fecha: 1952-01-01<br />.value_smooth: 5.192189","Fecha: 1952-02-01<br />.value_smooth: 5.203674","Fecha: 1952-03-01<br />.value_smooth: 5.215142","Fecha: 1952-04-01<br />.value_smooth: 5.226590","Fecha: 1952-05-01<br />.value_smooth: 5.238014","Fecha: 1952-06-01<br />.value_smooth: 5.249412","Fecha: 1952-07-01<br />.value_smooth: 5.260780","Fecha: 1952-08-01<br />.value_smooth: 5.272115","Fecha: 1952-09-01<br />.value_smooth: 5.283415","Fecha: 1952-10-01<br />.value_smooth: 5.294675","Fecha: 1952-11-01<br />.value_smooth: 5.305894","Fecha: 1952-12-01<br />.value_smooth: 5.317067","Fecha: 1953-01-01<br />.value_smooth: 5.328193","Fecha: 1953-02-01<br />.value_smooth: 5.339267","Fecha: 1953-03-01<br />.value_smooth: 5.350287","Fecha: 1953-04-01<br />.value_smooth: 5.361249","Fecha: 1953-05-01<br />.value_smooth: 5.372151","Fecha: 1953-06-01<br />.value_smooth: 5.382989","Fecha: 1953-07-01<br />.value_smooth: 5.393719","Fecha: 1953-08-01<br />.value_smooth: 5.404308","Fecha: 1953-09-01<br />.value_smooth: 5.414770","Fecha: 1953-10-01<br />.value_smooth: 5.425120","Fecha: 1953-11-01<br />.value_smooth: 5.435373","Fecha: 1953-12-01<br />.value_smooth: 5.445542","Fecha: 1954-01-01<br />.value_smooth: 5.455642","Fecha: 1954-02-01<br />.value_smooth: 5.465688","Fecha: 1954-03-01<br />.value_smooth: 5.475693","Fecha: 1954-04-01<br />.value_smooth: 5.485673","Fecha: 1954-05-01<br />.value_smooth: 5.495642","Fecha: 1954-06-01<br />.value_smooth: 5.505614","Fecha: 1954-07-01<br />.value_smooth: 5.515603","Fecha: 1954-08-01<br />.value_smooth: 5.525625","Fecha: 1954-09-01<br />.value_smooth: 5.535692","Fecha: 1954-10-01<br />.value_smooth: 5.545821","Fecha: 1954-11-01<br />.value_smooth: 5.556025","Fecha: 1954-12-01<br />.value_smooth: 5.566318","Fecha: 1955-01-01<br />.value_smooth: 5.576782","Fecha: 1955-02-01<br />.value_smooth: 5.587467","Fecha: 1955-03-01<br />.value_smooth: 5.598339","Fecha: 1955-04-01<br />.value_smooth: 5.609365","Fecha: 1955-05-01<br />.value_smooth: 5.620510","Fecha: 1955-06-01<br />.value_smooth: 5.631743","Fecha: 1955-07-01<br />.value_smooth: 5.643030","Fecha: 1955-08-01<br />.value_smooth: 5.654336","Fecha: 1955-09-01<br />.value_smooth: 5.665630","Fecha: 1955-10-01<br />.value_smooth: 5.676877","Fecha: 1955-11-01<br />.value_smooth: 5.688044","Fecha: 1955-12-01<br />.value_smooth: 5.699098","Fecha: 1956-01-01<br />.value_smooth: 5.710006","Fecha: 1956-02-01<br />.value_smooth: 5.720734","Fecha: 1956-03-01<br />.value_smooth: 5.731248","Fecha: 1956-04-01<br />.value_smooth: 5.741516","Fecha: 1956-05-01<br />.value_smooth: 5.751504","Fecha: 1956-06-01<br />.value_smooth: 5.761178","Fecha: 1956-07-01<br />.value_smooth: 5.770615","Fecha: 1956-08-01<br />.value_smooth: 5.779919","Fecha: 1956-09-01<br />.value_smooth: 5.789098","Fecha: 1956-10-01<br />.value_smooth: 5.798161","Fecha: 1956-11-01<br />.value_smooth: 5.807115","Fecha: 1956-12-01<br />.value_smooth: 5.815970","Fecha: 1957-01-01<br />.value_smooth: 5.824734","Fecha: 1957-02-01<br />.value_smooth: 5.833416","Fecha: 1957-03-01<br />.value_smooth: 5.842024","Fecha: 1957-04-01<br />.value_smooth: 5.850566","Fecha: 1957-05-01<br />.value_smooth: 5.859051","Fecha: 1957-06-01<br />.value_smooth: 5.867487","Fecha: 1957-07-01<br />.value_smooth: 5.875883","Fecha: 1957-08-01<br />.value_smooth: 5.884247","Fecha: 1957-09-01<br />.value_smooth: 5.892588","Fecha: 1957-10-01<br />.value_smooth: 5.900915","Fecha: 1957-11-01<br />.value_smooth: 5.909235","Fecha: 1957-12-01<br />.value_smooth: 5.917557","Fecha: 1958-01-01<br />.value_smooth: 5.925847","Fecha: 1958-02-01<br />.value_smooth: 5.934062","Fecha: 1958-03-01<br />.value_smooth: 5.942204","Fecha: 1958-04-01<br />.value_smooth: 5.950274","Fecha: 1958-05-01<br />.value_smooth: 5.958272","Fecha: 1958-06-01<br />.value_smooth: 5.966198","Fecha: 1958-07-01<br />.value_smooth: 5.974054","Fecha: 1958-08-01<br />.value_smooth: 5.981840","Fecha: 1958-09-01<br />.value_smooth: 5.989556","Fecha: 1958-10-01<br />.value_smooth: 5.997203","Fecha: 1958-11-01<br />.value_smooth: 6.004783","Fecha: 1958-12-01<br />.value_smooth: 6.012294","Fecha: 1959-01-01<br />.value_smooth: 6.019739","Fecha: 1959-02-01<br />.value_smooth: 6.027118","Fecha: 1959-03-01<br />.value_smooth: 6.034431","Fecha: 1959-04-01<br />.value_smooth: 6.041678","Fecha: 1959-05-01<br />.value_smooth: 6.048862","Fecha: 1959-06-01<br />.value_smooth: 6.055981","Fecha: 1959-07-01<br />.value_smooth: 6.063041","Fecha: 1959-08-01<br />.value_smooth: 6.070044","Fecha: 1959-09-01<br />.value_smooth: 6.076989","Fecha: 1959-10-01<br />.value_smooth: 6.083877","Fecha: 1959-11-01<br />.value_smooth: 6.090707","Fecha: 1959-12-01<br />.value_smooth: 6.097479","Fecha: 1960-01-01<br />.value_smooth: 6.104191","Fecha: 1960-02-01<br />.value_smooth: 6.110844","Fecha: 1960-03-01<br />.value_smooth: 6.117438","Fecha: 1960-04-01<br />.value_smooth: 6.123970","Fecha: 1960-05-01<br />.value_smooth: 6.130443","Fecha: 1960-06-01<br />.value_smooth: 6.136854","Fecha: 1960-07-01<br />.value_smooth: 6.143203","Fecha: 1960-08-01<br />.value_smooth: 6.149490","Fecha: 1960-09-01<br />.value_smooth: 6.155715","Fecha: 1960-10-01<br />.value_smooth: 6.161877","Fecha: 1960-11-01<br />.value_smooth: 6.167976","Fecha: 1960-12-01<br />.value_smooth: 6.174010"],"type":"scatter","mode":"lines","line":{"width":3.77952755905512,"color":"rgba(51,102,255,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":43.7625570776256,"r":7.30593607305936,"b":25.5707762557078,"l":28.4931506849315},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(44,62,80,1)","family":"","size":14.6118721461187},"title":{"text":"Time Series Plot","font":{"color":"rgba(44,62,80,1)","family":"","size":17.5342465753425},"x":0,"xref":"paper"},"xaxis":{"domain":[0,1],"automargin":true,"type":"date","autorange":true,"range":["1948-05-28","1961-07-06"],"tickmode":"auto","ticktext":["1950","1955","1960"],"tickvals":[-7305,-5479,-3653],"categoryorder":"array","categoryarray":["1950","1955","1960"],"nticks":null,"ticks":"outside","tickcolor":"rgba(204,204,204,1)","ticklen":3.65296803652968,"tickwidth":0.22139200221392,"showticklabels":true,"tickfont":{"color":"rgba(44,62,80,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(204,204,204,1)","gridwidth":0.22139200221392,"zeroline":false,"anchor":"y","title":{"text":"","font":{"color":"rgba(44,62,80,1)","family":"","size":14.6118721461187}},"hoverformat":".2f","rangeslider":{"type":"date"}},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":true,"range":[4.55496343946148,6.52236755241907],"tickmode":"auto","ticktext":["5.0","5.5","6.0","6.5"],"tickvals":[5,5.5,6,6.5],"categoryorder":"array","categoryarray":["5.0","5.5","6.0","6.5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(204,204,204,1)","ticklen":3.65296803652968,"tickwidth":0.22139200221392,"showticklabels":true,"tickfont":{"color":"rgba(44,62,80,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(204,204,204,1)","gridwidth":0.22139200221392,"zeroline":false,"anchor":"x","title":{"text":"","font":{"color":"rgba(44,62,80,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(44,62,80,1)","width":0.33208800332088,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(44,62,80,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"source":"A","attrs":{"4cab6d368058":{"x":{},"y":{},"type":"scatter"},"4cab1524496c":{"x":{},"y":{}}},"cur_data":"4cab6d368058","visdat":{"4cab6d368058":["function (y) ","x"],"4cab1524496c":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="do">#####Ajuste STL</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Note que obtenemos un objeto adicional en tibble_logpasajeros con Logpasa_ajus con parámetros que se pueden mover.</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>tibble_logpasajeros<span class="sc">%&gt;%</span><span class="fu">mutate</span>(<span class="at">Logpasa_ajus=</span><span class="fu">smooth_vec</span>(Logpasa,<span class="at">span =</span> <span class="fl">0.75</span>, <span class="at">degree =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 144 × 3
+   Fecha      Logpasa Logpasa_ajus
+   &lt;date&gt;       &lt;dbl&gt;        &lt;dbl&gt;
+ 1 1949-01-01    4.72         4.76
+ 2 1949-02-01    4.77         4.77
+ 3 1949-03-01    4.88         4.78
+ 4 1949-04-01    4.86         4.79
+ 5 1949-05-01    4.80         4.81
+ 6 1949-06-01    4.91         4.82
+ 7 1949-07-01    5.00         4.83
+ 8 1949-08-01    5.00         4.84
+ 9 1949-09-01    4.91         4.86
+10 1949-10-01    4.78         4.87
+# … with 134 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="do">###Ajuste STL moviendo los parámetros</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>tibble_logpasajeros<span class="sc">%&gt;%</span><span class="fu">mutate</span>(<span class="at">Logpasa_ajus=</span><span class="fu">smooth_vec</span>(Logpasa,<span class="at">span =</span> <span class="fl">0.75</span>, <span class="at">degree =</span> <span class="dv">2</span>))<span class="sc">%&gt;%</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Fecha, Logpasa)) <span class="sc">+</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> Logpasa_ajus), <span class="at">color =</span> <span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="EjemploDescriptiva_files/figure-html/STL-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
