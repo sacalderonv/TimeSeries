@@ -439,7 +439,7 @@ Ahora utilizaremos los paquetes nonlinearTseries y tseriesChaos para computar el
 
 $$I(X;Y)=\sum_{i}\sum_{j}p(x_i,y_j)\log_2(\frac{p(x_i,y_j)}{p(x_i)p(y_j)}).$$ En el contexto del análisis de series de tiempo, AMI ayuda a cuantificar la cantidad de conocimiento obtenido sobre el valor de $X_{t+d}$ al observar $X_t$. Equivalentemente, el AMI es una medida de qué tanto el conocimiento de $X$ reduce la incertidumbre acerca de $Y$. Esto implica que $I(X,Y)=0$ si y sólo si $X$ y $Y$ son variables aletorias independientes. I(X; Y ) describe la información que la medición $X_t$ en el tiempo $t$ aporta a la medición $X_{t+d}$ en el tiempo $t + d$. Si se elige d como el valor alrededor del primer mínimo del AMI, entonces $Y{t}$ e $y_{t+d}$ son parcialmente pero no totalmente independientes.
 
-Vamos a simular una serie de la forma $$x_t=\frac{x_t-1}{x_{t-12}^2+1}+\epsilon_t$$ y a trabajar con la serie de linces Candienses del paquete astsa lynx.
+Vamos a simular una serie de la forma $$x_t=\frac{x_{t-1}}{x_{t-12}^2+1}+\epsilon_t$$ y a trabajar con la serie de linces Candienses del paquete astsa lynx.
 
 ```{r AMI}
 library(nonlinearTseries)

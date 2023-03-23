@@ -23,7 +23,7 @@ Recuerden que la serie presenta:
 
 -   **Tendencia:** *La serie es creciente con el tiempo aparentemente de forma lineal. Se puede estimar la tendencia(determinística lineal) y despúes eliminar la tendencia. También se puede eliminar la tendencia mediante diferencia ordinaria y posterior*
 
--    **Componente estacional:** *Hay claridad de la existencia de una componente estacional de periodo s=12. Debido a que la serie es mensual y usualmente de haber esta componente, ella es de periodo s=12 , sin embargo vamos a proceder a identificarla usando las herramientas, basadas en una serie sin tendencia.*
+-   **Componente estacional:** *Hay claridad de la existencia de una componente estacional de periodo s=12. Debido a que la serie es mensual y usualmente de haber esta componente, ella es de periodo s=12 , sin embargo vamos a proceder a identificarla usando las herramientas, basadas en una serie sin tendencia.*
 
 Primero procedemos a estabilizar la varianza.
 
@@ -112,6 +112,7 @@ Usted puede usar el objeto tibble_logpasajeros\$Logpasa para eliminar la tendenc
 ```{r STL trend y estacional}
 library(feasts)
 library(fable)
+library(tsibble)
 
 tsibble_lAirPass<-as_tsibble(lAirPass)
 str(tsibble_lAirPass)
@@ -128,10 +129,10 @@ Veamos ahora la serie de los pasajeros en escala logarítmica después de la dif
 
 ```{r diferencia ordinaria}
 ###Usando objeto tsibble
-tsibble_lAirPass|>mutate(diff_lAirPass=difference(value,lag=1,differences = 1))|>
+tsibble_lAirPass|>mutate(diff_lAirPass=tsibble::difference(value,lag=1,differences = 1))|>
   autoplot(.vars =diff_lAirPass ) + labs(subtitle = "Cambios en escala logarítmica de los pasajeros")
 
-tsibble_lAirPass<-tsibble_lAirPass|>mutate(diff_lAirPass=difference(value,lag=1,differences = 1))
+tsibble_lAirPass<-tsibble_lAirPass|>mutate(diff_lAirPass=tsibble::difference(value,lag=1,differences = 1))
 
 ###Diferenciando basado en el objeto tibble
 tibble_logpasajeros%>%mutate(diff_Logpasa=Logpasa-lag(Logpasa))%>%plot_time_series(Fecha,diff_Logpasa)
@@ -140,7 +141,7 @@ tibble_logpasajeros<-tibble_logpasajeros%>%mutate(diff_Logpasa=Logpasa-lag(Logpa
 ###Diferenciando con base en el objeto ts
 
 dlAirPass<-diff(lAirPass)
-plot(DlAirPass)
+plot(dlAirPass)
 
 
 
@@ -156,9 +157,9 @@ Iniciaremos con la la gráfica de subseries de la serie sin tendencia.
 
 ```{r explorando estacionalidad subseries}
 ###Dado que la serie es mensual, monthplot permite hacer los gráficos de las subseries.
-monthplot(dlAirPass). ##Note hay meses muchas subseries están centradas alrededor de valores diferentes usando el objeto ts
+monthplot(dlAirPass) ##Note hay meses muchas subseries están centradas alrededor de valores diferentes usando el objeto ts
 
-tsibble_lAirPass%>%na.omit()|>gg_subseries(diff_lAirPass,period=12). ##Gráfico de subseries usando el objeto tibble
+tsibble_lAirPass%>%na.omit()|>gg_subseries(diff_lAirPass,period=12) ##Gráfico de subseries usando el objeto tibble
 
 tibble_logpasajeros %>%na.omit()|>
     mutate(
