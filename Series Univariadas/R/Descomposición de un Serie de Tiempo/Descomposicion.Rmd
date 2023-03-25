@@ -2,6 +2,9 @@
 title: "Descomposición"
 output: github_document
 #output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -10,29 +13,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Métodos de Descomposición de Series de tiempo
 
-Vamos a hacer un análisis Inicial a la serie de pasajeros. Un análisis similar deberá hacerse para las series ISE y ACC de la Base de datos Base_Accidentes.xlsx,
+Vamos a hacer un análisis Inicial a la serie de pasajeros. Un análisis
+similar deberá hacerse para las series ISE y ACC de la Base de datos
+Base_Accidentes.xlsx,
 
- Las primeras tres metodologías se basarán en el supuesto que una serie de tiempo observable puede ser descompuesta en una componente de  tendencia y una componente estacional, es decir, $\{X_{t}\}$ puede descomponerse de la siguiente forma aditiva
-$$
+Las primeras tres metodologías se basarán en el supuesto que una serie
+de tiempo observable puede ser descompuesta en una componente de
+tendencia y una componente estacional, es decir, $\{X_{t}\}$ puede
+descomponerse de la siguiente forma aditiva $$
 X_{t}=m_{t}+S_{t}+Y_{t},
-$$
-donde $$m_{t}:\text{función que cambia suavemente,}$$\\
+$$ donde $$m_{t}:\text{función que cambia suavemente,}$$\\
 $$S_{t}:\text{función de periodo conocido d,}$$\\
-$$Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}$$\\
-Un modelo multiplicativo  puede ser considerado como modelo alternativo al aditivo,
-$$
+$$Y_{t}:\text{ruido aleatorio estacionario en el sentido débil.}$$\\ Un
+modelo multiplicativo puede ser considerado como modelo alternativo al
+aditivo, $$
 X_{t}=m_{t}\times S_{t} \times Y_{t}.
-$$
-Sin embargo es necesario primero hacer una transformación de Box-Cox para Estabilizar la varianza marginal.
+$$ Sin embargo es necesario primero hacer una transformación de Box-Cox
+para Estabilizar la varianza marginal.
 
- $$
+$$
  f_{\lambda}(u_{t})= 
  \lambda^{-1}(u^{\lambda}_{t}-1),   si \ u_{t} \geq 0, para\  \lambda>0
- $$
- o
- $$
+ $$ o $$
  f_{\lambda}(u_{t})= \ln(u_{t}), \ si\  u_{t}>0, \ para\  \lambda=0
  $$
+
 ```{r importación y Gráficas}
 
 
@@ -52,8 +57,11 @@ par(mfrow=c(2,1))
 plot(AirPassengers)
 plot(lAirPass)
 ```
+
 # Descomposición usando promedios Móviles
+
 ## Para tendencia
+
 ```{r PMtendencia}
 fltr <- c(1/2, rep(1, times = 11), 1/2)/12   ##q=6
 fltr
@@ -66,6 +74,7 @@ plot(lAirPass)
 plot.ts(lAirPass.trend, ylab = "Trend", cex = 1)
 
 ```
+
 # Efecto estacional a través del tiempo
 
 ```{r PM Estacional}
@@ -106,9 +115,13 @@ lAirPass.err <- lAirPass - lAirPass.trend - lAirPass.seas
 plot(cbind(lAirPass, lAirPass.trend, lAirPass.seas, lAirPass.err), main = "", yax.flip = TRUE)
 
 ```
+
 # Dos funciones que hacen la descomposición de forma interna y automática
-Una función específica para filtros de promedios móviles también puede ser usada y es 
-ma del paquete forecast, donde order=d, note que hay una ligera diferencia por el 1/2 de los datos en los extremos
+
+Una función específica para filtros de promedios móviles también puede
+ser usada y es ma del paquete forecast, donde order=d, note que hay una
+ligera diferencia por el 1/2 de los datos en los extremos
+
 ```{r dos funciones}
 lAirPass.trendma=forecast::ma(lAirPass,order=13)
 lAirPass.trendma-lAirPass.trend
@@ -121,9 +134,11 @@ deslAirPass
 
 # Otras ténicas de descomposición
 
-Existe mas formas de hacer de descomposición de series de tiempo, por ejemplo está
-Descomposción X11 usando el paquete seasonal, cuyo argumento teórico se puede ver el libro Seasonal Adjustment Methods and Real Time Trend-Cycle Estimation (Statistics for Social and Behavioral Sciences)
-Estela Bee Dagum, Silvia Bianconcini
+Existe mas formas de hacer de descomposición de series de tiempo, por
+ejemplo está Descomposción X11 usando el paquete seasonal, cuyo
+argumento teórico se puede ver el libro Seasonal Adjustment Methods and
+Real Time Trend-Cycle Estimation (Statistics for Social and Behavioral
+Sciences) Estela Bee Dagum, Silvia Bianconcini
 
 ```{r X11}
 library(seasonal)
@@ -145,6 +160,7 @@ autoplot(elecequip, series="Data") +
   scale_colour_manual(values=c("gray","blue","red"),
                       breaks=c("Data","Seasonally Adjusted","Trend"))
 ```
+
 # Descomposición STL
 
 ```{r STL}
@@ -186,6 +202,7 @@ elecequip_tsibble %>%
 ```
 
 # Pronóstico basados en descomposición
+
 ```{r Pronósticos Basados en Descomposición}
 fit <- stl(elecequip, t.window=13, s.window="periodic",
            robust=TRUE)
@@ -217,12 +234,21 @@ Pronostico
 ###Por defecto hace el pronóstico para el doble del ciclo estacional 
 ```
 
-#Suavizamiento Exponencial
-Si no se desea alguna componente, hay que establecer los parámetros en FALSE.
+# Suavizamiento Exponencial 
+
+Si no se desea alguna componente, hay que establecer los parámetros en
+FALSE.
 
 ```{r Suavizamiento exponencial}
 library(forecast)
+plot(lAirPass)
 tsibble_lAirPass=as_tsibble(lAirPass)
+HWAP_inic=stats::HoltWinters(lAirPass,alpha=NULL,beta=FALSE,gamma=FALSE)
+plot(HWAP_inic)
+HWAP_inic
+forecast::forecast(HWAP_inic,h=12,level =0.95,lambda = 0)
+plot(forecast::forecast(HWAP_inic,h=12,level =0.95,lambda = 0))
+
 HWAP=stats::HoltWinters(lAirPass,seasonal="additive") ##Puede establecer beta=F y/0 gamma=F, además el objeto debe ser de clase ts.
 HWAP_1=forecast::hw(lAirPass,seasonal="additive",damped=TRUE)  ###También se puede usar holt
 
@@ -254,7 +280,8 @@ pronostico
 pronostico%>%autoplot(tsibble_lAirPass)+geom_line(aes(y=.fitted),col="#D55E00",data=augment(ajustepass))+labs(y=" ",title="Pronóstico u ajustados")+guides(colour="none")
 ```
 
-la función ets,ses, holt y hw de forecast también permiten hacer suavizamiento exponencial.
+la función ets,ses, holt y hw de forecast también permiten hacer
+suavizamiento exponencial.
 
 ```{r dos modelos usando fable}
 modelos<-tsibble_lAirPass%>%
@@ -268,24 +295,30 @@ modelos<-tsibble_lAirPass%>%
    autoplot(tsibble_lAirPass)
 ```
 
-
-
 ## Modeltime para ETS
 
-El flujo de trabajo en modeltime es como sigue:
-* Creación de una tabla con el(los) modelo(s) de modeltime. Es decir crear un tabla con el modelo ajustado usando los datos de entrenamiento.
-* Etapa de calibración. Cuando el modelo ajustado es aplicado a los datos de prueba. Aquí se buscan los mejores hiperparámetros para calibrar el modelo y que nos entregue el modelo con la mejor capaciadad predictiva. Los siguientes dos pasos hacen parte de la etapa de calibración:
-    * Pronóstico sobre los datos de prueba para compararlo con los reales.
-    * Con el modelo "calibrado" sobre el conjunto de entrenamiento procedemos a computar las medidas de precisión del pronóstico.
-    * Nota: Se pueden comparar las medidas de precisión sobre el conjunto de entrenamiento y  con las del conjunto de prueba.
+El flujo de trabajo en modeltime es como sigue: \* Creación de una tabla
+con el(los) modelo(s) de modeltime. Es decir crear un tabla con el
+modelo ajustado usando los datos de entrenamiento. \* Etapa de
+calibración. Cuando el modelo ajustado es aplicado a los datos de
+prueba. Aquí se buscan los mejores hiperparámetros para calibrar el
+modelo y que nos entregue el modelo con la mejor capaciadad predictiva.
+Los siguientes dos pasos hacen parte de la etapa de calibración: \*
+Pronóstico sobre los datos de prueba para compararlo con los reales. \*
+Con el modelo "calibrado" sobre el conjunto de entrenamiento procedemos
+a computar las medidas de precisión del pronóstico. \* Nota: Se pueden
+comparar las medidas de precisión sobre el conjunto de entrenamiento y
+con las del conjunto de prueba.
 
-* Una vez escogido el modelo final(con los hiperparámetros o variables regresoras finales), el que posiblemente tenga mejor capacidad predictiva, debemos reajustar el modelo sobre todos los datos(re-estimar los parámetros con todos los datos: los de entrenamineto y de prueba)
+-   Una vez escogido el modelo final(con los hiperparámetros o variables
+    regresoras finales), el que posiblemente tenga mejor capacidad
+    predictiva, debemos reajustar el modelo sobre todos los
+    datos(re-estimar los parámetros con todos los datos: los de
+    entrenamineto y de prueba)
 
-* Usar le modelo para hacer los pronósticos del futuro.
+-   Usar le modelo para hacer los pronósticos del futuro.
 
-
-
-* 
+-   
 
 ```{r ets modeltime preparacion}
 
@@ -312,7 +345,11 @@ splits_lAirPass_tbl
 
 
 ```
-El caso que trataremos consiste en la estimación de los parámetros, smooth_level($\alpha$), smooth_trend($\beta$), smooth_seasonal($\gamma$) de un modelo de suavizamineto exponencial.
+
+El caso que trataremos consiste en la estimación de los parámetros,
+smooth_level($\alpha$), smooth_trend($\beta$), smooth_seasonal($\gamma$)
+de un modelo de suavizamineto exponencial.
+
 ```{r ets modeltime}
 
 #Ajuste del modelo suavizamineto exponencial
@@ -385,8 +422,9 @@ re_ajuste%>%
 
 ```
 
-Podemos establecer(fijar) los valores de los parámetros : smooth_level($\alpha$), smooth_trend($\beta$), smooth_seasonal($\gamma$).
-
+Podemos establecer(fijar) los valores de los parámetros :
+smooth_level($\alpha$), smooth_trend($\beta$),
+smooth_seasonal($\gamma$).
 
 ```{r ets fijando valores}
 ?modeltime::exp_smoothing
@@ -429,11 +467,11 @@ pronostico_ets
     modeltime_accuracy()
 ```
 
+Tarea: Del libro electrónico fpp3 por favor complementar el tema de
+descomposición y suavizamiento exponencial con la lectura de todas las
+secciones: <https://otexts.com/fpp3/decomposition.html>
 
-Tarea: Del libro electrónico fpp3 por favor complementar el tema de descomposición y suavizamiento exponencial con la lectura de todas las secciones:
-https://otexts.com/fpp3/decomposition.html
-
-https://otexts.com/fpp3/expsmooth.html
+<https://otexts.com/fpp3/expsmooth.html>
 
 ```{r Series irregularmente espaciadas}
 library(readxl)
@@ -465,22 +503,39 @@ modeltime_table(ets_Colcap) %>%
 ```
 
 # Evaluación de los pronósticos
-Antes de hablar de la evaluación de los pronósticos, hablaremos que hay dos tiempos de pronósticos, como los define Hydman en el libro fpp3:
-* Los pronósticos ex-ante son aquellos que se realizan utilizando únicamente la información que está disponible de antemano. Estos son pronósticos genuinos, hechos con anticipación utilizando cualquier información disponible en ese momento.
 
-* Las previsiones ex-post son aquellas que se realizan utilizando información posterior sobre los predictores. Estos no son pronósticos genuinos, pero son útiles para estudiar el comportamiento de los modelos de pronóstico.
+Antes de hablar de la evaluación de los pronósticos, hablaremos que hay
+dos tiempos de pronósticos, como los define Hydman en el libro fpp3: \*
+Los pronósticos ex-ante son aquellos que se realizan utilizando
+únicamente la información que está disponible de antemano. Estos son
+pronósticos genuinos, hechos con anticipación utilizando cualquier
+información disponible en ese momento.
 
-El Rolling es un método que permite computar medidas de precisión de los pronósticos. La idea es basada en validación cruzada para series de tiempo, en donde el origen de pronóstico va rodando.
-Ver ejemplo en https://otexts.com/fpp3/tscv.html.
+-   Las previsiones ex-post son aquellas que se realizan utilizando
+    información posterior sobre los predictores. Estos no son
+    pronósticos genuinos, pero son útiles para estudiar el
+    comportamiento de los modelos de pronóstico.
+
+El Rolling es un método que permite computar medidas de precisión de los
+pronósticos. La idea es basada en validación cruzada para series de
+tiempo, en donde el origen de pronóstico va rodando. Ver ejemplo en
+<https://otexts.com/fpp3/tscv.html>.
 
 ## Medidas de Presición.
-La medida mas usada es el error cuadrático medio de predicción $h-$pasos adelante, es decir, 
+
+La medida mas usada es el error cuadrático medio de predicción $h-$pasos
+adelante, es decir,
 $$ECM[\hat{X}_{T+h|T}]=E[(X_{T+h}-\hat{X}_{T+h|T})^2]=E[e^{2}_{T+h|T}],$$
-donde $X_{T+h}-\hat{X}_{T+h|T}=e_{T+h|T}$ es el error de predicción $h-$pasos adelante y el cual estima mediante $\frac{1}{T-l-h+1}\sum_{t=1}^{t-h+1}e^{2}_{t,h}$. También existen mas medidas de precisión, por ejemplo el error medio absoluto el cual se define como:
+donde $X_{T+h}-\hat{X}_{T+h|T}=e_{T+h|T}$ es el error de predicción
+$h-$pasos adelante y el cual estima mediante
+$\frac{1}{T-l-h+1}\sum_{t=1}^{t-h+1}e^{2}_{t,h}$. También existen mas
+medidas de precisión, por ejemplo el error medio absoluto el cual se
+define como:
 
 $$\frac{1}{T-l-h+1}\sum_{t=1}^{l-h+1}|e_{t,h}|.$$
 
 Vamos a crear el procedimiento de rolling de forma manual.
+
 ```{r Rolling 1}
 h=3
 lAirPass
@@ -523,9 +578,14 @@ RECM
 ```
 
 ### Rolling
-Se puede consultar mas detalles en  https://www.openforecast.org/adam/rollingOrigin.html#fig:ROProcessAnimation y https://cran.r-project.org/web/packages/greybox/index.html.
 
-Haremos rolling unsando la función "ro()"  programada en R del paquete greybox.
+Se puede consultar mas detalles en
+<https://www.openforecast.org/adam/rollingOrigin.html#fig:ROProcessAnimation>
+y <https://cran.r-project.org/web/packages/greybox/index.html>.
+
+Haremos rolling unsando la función "ro()" programada en R del paquete
+greybox.
+
 ```{r rolling 2}
 library(forecast)
 library(greybox)
@@ -543,7 +603,6 @@ sqrt(apply((Valoresretornados1$holdout -Valoresretornados1$mean)^2,1,mean,na.rm=
 apply(abs(Valoresretornados1$holdout - -Valoresretornados1$mean),1,mean,na.rm=TRUE) / mean(Valoresretornados1$actuals) ### Error medio absoluto escalado
 ```
 
-
 ```{r rolling 3}
 library(forecast)
 library(greybox)
@@ -560,8 +619,3 @@ apply(sqrt((Valoresretornados1$holdout -Valoresretornados1$mean)^2),1,mean,na.rm
 
 apply(abs(Valoresretornados1$holdout - -Valoresretornados1$mean),1,mean,na.rm=TRUE) / mean(Valoresretornados1$actuals) ### Error medio absoluto escalado
 ```
-
-
-
-
-
