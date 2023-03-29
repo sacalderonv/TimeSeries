@@ -234,7 +234,7 @@ Pronostico
 ###Por defecto hace el pronóstico para el doble del ciclo estacional 
 ```
 
-# Suavizamiento Exponencial 
+# Suavizamiento Exponencial
 
 Si no se desea alguna componente, hay que establecer los parámetros en
 FALSE.
@@ -253,6 +253,8 @@ HWAP=stats::HoltWinters(lAirPass,seasonal="additive") ##Puede establecer beta=F 
 HWAP_1=forecast::hw(lAirPass,seasonal="additive",damped=TRUE)  ###También se puede usar holt
 
 plot(HWAP)
+plot(forecast::forecast(HWAP,h=12,level =0.95,lambda = 0))
+
 plot(HWAP_1)
 
 ajustados=fitted(HWAP)
@@ -329,7 +331,7 @@ library(timetk)
 library(modeltime)
 library(tsibble)
 library(tidymodels)
-###Creación del objeto sibble
+###Creación del objeto tibble
 lAirPass_tbl<-as_tibble(as_tsibble(lAirPass))
 lAirPass_tbl$index=as.Date(lAirPass_tbl$index)
 lAirPass_tbl=rename(lAirPass_tbl,Fecha=index,logAirpass=value)
@@ -552,17 +554,26 @@ length(train)
 ntest=length(test)
 ntest
 lserie ### Comparar los valores
-fchstepahe=matrix(0,nrow=ntest,ncol=h)
+fchstepahe=matrix(0,nrow=ntest,ncol=h) ##Crea una Columna para los h-pasos adelante
+### verval contiene los verdaderos valores de la serie con los que se compararán los pronósticos
 verval=cbind(test[1:ntest])
 for(j in 2:h){
   verval=cbind(verval,c(test[j:ntest],rep(NA,j-1)))
 }
+
 verval=cbind(test[1:ntest],c(test[2:ntest],NA),c(test[3:ntest],NA,NA))
 ####Ajuste del modelo con los datos de entrenamiento
 HWAP_train=stats::HoltWinters(train,seasonal="additive")
 HWAP_train$alpha
 HWAP_train$beta
 HWAP_train$gamma
+###Observación: Note que que esos son las estimaciones de los parámetros de suavizamineto. Se puede también hacer una grilla de valores para explorar si hay unos valores mejores.
+# por ejemplo como sigue:
+require(utils)
+suav_inputs=cbind(seq(0.001,0.999,0.1),seq(0.001,0.999,0.1),seq(0.001,0.999,0.1))
+colnames(suav_inputs)<-c("alpha","beta","gamma")
+suav_inputs_tbl=tibble::as_tibble(suav_inputs)
+grilla_suav=expand.grid(alpha=suav_inputs_tbl$alpha,beta=suav_inputs_tbl$beta,gamma=suav_inputs_tbl$gamma) ##Grilla de Valores
 for(i in 1:(ntest))
 {
   x=window(lAirPass,end=time(lAirPass)[ntrain]+(i-1)/12)
@@ -584,7 +595,8 @@ Se puede consultar mas detalles en
 y <https://cran.r-project.org/web/packages/greybox/index.html>.
 
 Haremos rolling unsando la función "ro()" programada en R del paquete
-greybox.
+greybox. Note que los resultados son prácticamente iguales a los hechos
+manualmente.
 
 ```{r rolling 2}
 library(forecast)
@@ -593,11 +605,12 @@ HWAP_train=stats::HoltWinters(train,seasonal="additive")
 ?ro
 
 h=3
-ourCallETS <- "forecast::forecast(stats::HoltWinters(train,alpha=HWAP_train$alpha,beta=HWAP_train$beta,gamma=HWAP_train$gamma),h=h,level=95)"
+ourCallETS <- "forecast::forecast(stats::HoltWinters(x=data,alpha=HWAP_train$alpha,beta=HWAP_train$beta,gamma=HWAP_train$gamma),h=h,level=95)"
 ourValueETS <- c("mean","lower","upper")
 origins=22   ##número de rolling windows
 Valoresretornados1 <- ro(lAirPass, h=h, origins=origins, call=ourCallETS, value=ourValueETS,ci=FALSE,co=FALSE)
-Valoresretornados1$holdout## Permiten verificar los verdaderos valores h-pasos adelante. 
+t(Valoresretornados1$holdout)## Permiten verificar los verdaderos valores h-pasos adelante. 
+t(Valoresretornados1$mean)
 sqrt(apply((Valoresretornados1$holdout -Valoresretornados1$mean)^2,1,mean,na.rm=TRUE)) ### Se calcula la raíz del error cudrático medio de predicción
 
 apply(abs(Valoresretornados1$holdout - -Valoresretornados1$mean),1,mean,na.rm=TRUE) / mean(Valoresretornados1$actuals) ### Error medio absoluto escalado

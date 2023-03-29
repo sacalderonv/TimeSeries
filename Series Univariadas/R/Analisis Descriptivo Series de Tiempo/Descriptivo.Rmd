@@ -992,6 +992,7 @@ Note que la primera frecuencia mas alta se encuentra en $\omega=1\cdot \frac{1}{
 
 ```{r espectral_rec}
 data("rec")
+plot(rec)
 rec.per = astsa::mvspec(rec, log="no")
 ubicacionrec=which.max(rec.per$spec)
 sprintf("El valor de la frecuencia donde se máximiza el periodograma para REC es: %s",rec.per$freq[ubicacionrec])
@@ -1013,14 +1014,14 @@ Note que la primera frecuencia mas alta se encuentra en $\omega=1\cdot \frac{1}{
 
 La componente estacional $S_t^{(s)}$ puede ser estocástica y no determinística. Consideremos el primer caso, donde la evolución es estacionaria, es decir los estacionales no son constante, pero siguen un proceso estacionario, oscilando alrededor de un valor medio de acuerdo con la representación propuesta en [@Pena2010]: $$S_t^{(s)}=\mu^{(s)}+\nu_t$$ donde $\nu_t$ es un proceso estacionario de media cero y $\mu^{(s)}$ es una constante que depende del mes o de las componentes de los $s$ periodos.
 
-Otra forma de introducir la estacionalidad de forma estocástica es permitir que sea cambiante en el tiempo sin ningún valor fijo medio. En este caso la estacionalidad puede proponerse que siga un porceso no estacionario por ejemplo que siga una caminata aleatoria: $$S_t^{(s)}=S_{t-s}^{(s)}+\nu_t$$ siendo $\nu_t$ es un proceso estacionario de media cero.
+Otra forma de introducir la estacionalidad de forma estocástica es permitir que sea cambiante en el tiempo sin ningún valor fijo medio. En este caso la estacionalidad puede proponerse que siga un proceso no estacionario por ejemplo que siga una caminata aleatoria: $$S_t^{(s)}=S_{t-s}^{(s)}+\nu_t$$ siendo $\nu_t$ es un proceso estacionario de media cero.
 
 ```{r simular SARIMA con componente estacional no-estacionario}
 library(sarima) 
 x <- ts(sarima::sim_sarima(n=144, model = list(siorder=1,
                                       nseasons=12, sigma2 = 1)),frequency = 12 )#(1-B)^{12} X_t = e_t
 plot(x)
-acf(x)
+acf(x,lag.max = 48)
 monthplot(x)
 ts_seasonal(x, type = "all")
 spectrum(x,log='no',span=5)
