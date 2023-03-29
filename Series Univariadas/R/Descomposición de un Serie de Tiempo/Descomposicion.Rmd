@@ -594,7 +594,7 @@ Se puede consultar mas detalles en
 <https://www.openforecast.org/adam/rollingOrigin.html#fig:ROProcessAnimation>
 y <https://cran.r-project.org/web/packages/greybox/index.html>.
 
-Haremos rolling unsando la función "ro()" programada en R del paquete
+Haremos rolling usando la función "ro()" programada en R del paquete
 greybox. Note que los resultados son prácticamente iguales a los hechos
 manualmente.
 
@@ -606,6 +606,7 @@ HWAP_train=stats::HoltWinters(train,seasonal="additive")
 
 h=3
 ourCallETS <- "forecast::forecast(stats::HoltWinters(x=data,alpha=HWAP_train$alpha,beta=HWAP_train$beta,gamma=HWAP_train$gamma),h=h,level=95)"
+###Note que x=data es solo un argumento indeterminado.
 ourValueETS <- c("mean","lower","upper")
 origins=22   ##número de rolling windows
 Valoresretornados1 <- ro(lAirPass, h=h, origins=origins, call=ourCallETS, value=ourValueETS,ci=FALSE,co=FALSE)
