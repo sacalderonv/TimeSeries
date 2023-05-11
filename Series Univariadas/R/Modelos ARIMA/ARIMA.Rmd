@@ -217,7 +217,11 @@ library(tidyverse)
 library(tsibble)
 library(fable)
 library(fabletools)
+library(TSA)
 tsibble_Airpass=as_tsibble(AirPassengers)
+###Variables Dummy
+forecast::seasonaldummy(AirPassengers)
+Armonicos=TSA::harmonic(AirPassengers, m = 1)
 
 ajuste_final<-tsibble_Airpass%>%model(
   `Dummy`=ARIMA(log(value)~1+season()+pdq(12,1,0)+PDQ(0,0,0))                              )
@@ -244,6 +248,20 @@ ajuste_final %>%
 
 
 #####Varios Modelos
+
+###Armónicos
+forecast::fourier(AirPassengers,K=1)
+tiempo=1
+sin(2*pi*tiempo/12)
+cos(2*pi*tiempo/12)
+
+###Gráfica de los armónicos
+harmonics = fourier(AirPassengers, K = 6)
+par(mar = c(1,4,1,1), mfrow = c(6,2))
+for(i in 1:ncol(harmonics)){
+  plot(harmonics[,i], type = 'l', xlab = "Time", ylab = colnames(harmonics)[i])
+}
+par(mar = rep(4, 4), mfrow=c(1,1))
 
 ajuste_final_models<-tsibble_Airpass%>%model(
   `FourierK=1`=ARIMA(log(value)~1+fourier(K=1)+pdq(12,1,0)+PDQ(0,0,0)),
