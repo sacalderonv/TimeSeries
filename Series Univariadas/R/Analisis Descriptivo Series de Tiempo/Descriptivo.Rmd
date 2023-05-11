@@ -374,7 +374,7 @@ ts_info(soi)
 par(mar = c(2,2,2,2))
 plot(soi, main="Indice soi")
 par(mar = c(3,2,3,2))
-astsa::lag1.plot(soi, 12)  ###El 12 indica cuantos retardos y_t-k contra y_t 
+astsa::lag1.plot(soi, 12,corr=F)  ###El 12 indica cuantos retardos y_t-k contra y_t 
 ###Hacer la gráfica con x11()
 
 
@@ -432,6 +432,8 @@ tibble_soi_rec%>%plot_acf_diagnostics(Fecha_soi_rec,soi,.ccf_vars = rec,.lags = 
 ```
 
 En ambas gráficas podemos ver que se muestran periodicidades en las correlaciones que corresponden a valores separados por 12 unidades. También podemos ver que las observaciones con 12 meses o un año de diferencia están fuertemente correlacionadas positivamente, al igual que las observaciones en múltiplos como 24, 36, 48,$\cdots$ Las observaciones separadas por seis meses están correlacionadas negativamente, lo que muestra que las excursiones positivas tienden a asociarse con las excursiones negativas a los seis meses ver Shumway2017 capítulo 1.
+
+# Índice AMI
 
 ###AMI Del los libros H. Kantz and T. Schreiber: Nonlinear Time series Analysis (Cambridge university press) H. Abarbanel: Analysis of observed chaotic data (Springer, 1996) y NONLINEAR TIME SERIES ANALYSIS HOLGER KANTZ AND THOMAS SCHREIBER. Cambrige University Press 2003.
 

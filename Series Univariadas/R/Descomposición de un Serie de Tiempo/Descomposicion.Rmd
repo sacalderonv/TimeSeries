@@ -44,11 +44,11 @@ $$
 data("AirPassengers")
 plot(AirPassengers)
 #####Transformación Box-Cox
-library(FitAR)
+#library(FitAR)
 library(forecast)
 forecast::BoxCox.lambda(AirPassengers, method = "guerrero", lower = 0, upper = 2)  
 ##method="loglik"
-FitAR::BoxCox(AirPassengers)
+#FitAR::BoxCox(AirPassengers)
 
 #air.arima<-arima(AirPassengers, c(0,1,1), seasonal=list(order=c(0,1,1), period=12))
 #FitAR::BoxCox(air.arima)
@@ -539,13 +539,13 @@ $$\frac{1}{T-l-h+1}\sum_{t=1}^{l-h+1}|e_{t,h}|.$$
 Vamos a crear el procedimiento de rolling de forma manual.
 
 ```{r Rolling 1}
-h=3
+h=1
 lAirPass ###Vamos a trabajar con la serie en escala logarítmica 
 
 #HWAP=stats::HoltWinters(lAirPass,seasonal="additive")
 ### Definición o creación del conjunto de entrenamiento y de Prueba##
 lserie=length(lAirPass)
-ntrain=trunc(length(lAirPass)*0.85). ##% del datos en el conjunto de entrenamiento es del 85%.
+ntrain=trunc(length(lAirPass)*0.85) ##% del datos en el conjunto de entrenamiento es del 85%.
 ntrain
 time(lAirPass)
 time(lAirPass)[ntrain]###Me entrega la ultima fecha de la posición ntrain
