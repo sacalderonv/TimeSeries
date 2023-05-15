@@ -224,7 +224,7 @@ forecast::seasonaldummy(AirPassengers)
 Armonicos=TSA::harmonic(AirPassengers, m = 1)
 
 ajuste_final<-tsibble_Airpass%>%model(
-  `Dummy`=ARIMA(log(value)~1+season()+pdq(12,1,0)+PDQ(0,0,0))                              )
+  `Dummy`=ARIMA(log(value)~1+season()+pdq(2,1,0,fixed=list(ar1=0,ar2=NA))+PDQ(0,0,0))                              )
 
 glance(ajuste_final)
 
