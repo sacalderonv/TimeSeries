@@ -219,12 +219,14 @@ ECM=mean(fcmat^2)
 ```
 
 ```{r LLuvia}
+library(tidyverse)
 library(readxl)
 library(tibble)
 Lluvia <- read_excel("Lluvia.xlsx", 
      col_types = c("date", "numeric"))
 class(Lluvia)
 Lluvia$Fecha=as.Date(Lluvia$Fecha,"%Y-%m-%d")
-tsibble_Lluvia<-as_tsibble(Lluvia)
+tsibble_Lluvia<-tsibble(fecha =yearmonth(Lluvia$Fecha),Precipitacion=Lluvia$lluvia )
+tsibble_Lluvia%>%autoplot()
 
 ```
