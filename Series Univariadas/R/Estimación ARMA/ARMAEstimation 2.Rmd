@@ -217,3 +217,14 @@ ECM=mean(fcmat^2)
 
 ##Falta elevar al cudrado y hacer le promedio.
 ```
+
+```{r LLuvia}
+library(readxl)
+library(tibble)
+Lluvia <- read_excel("Lluvia.xlsx", 
+     col_types = c("date", "numeric"))
+class(Lluvia)
+Lluvia$Fecha=as.Date(Lluvia$Fecha,"%Y-%m-%d")
+tsibble_Lluvia<-as_tsibble(Lluvia)
+
+```

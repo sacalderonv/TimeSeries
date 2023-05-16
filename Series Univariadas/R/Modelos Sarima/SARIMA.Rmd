@@ -136,6 +136,10 @@ tseries::adf.test(dlAirpassengers,k = 15)  ###No se debe diferenciar más###
 
 fUnitRoots::adfTest(dlAirpassengers,lags = 12,type='nc') 
 
+df_ur=urca::ur.df(dlAirpassengers, lags = 15)
+
+df_ur
+
 ```
 
 ## Identificación de la componente ARMA estacional y la componente ARMA ordinaria
@@ -146,6 +150,8 @@ library(uroot)
 require(forecast)
 ######Diferencia Estacional(continuación AirPassengers)#######
 monthplot(dlAirpassengers)
+acf(dlAirpassengers,lag.max = 36)
+spectrum(dlAirpassengers)
 nsdiffs(dlAirpassengers)
 nsdiffs(AirPassengers)
 
@@ -155,6 +161,8 @@ par(mfrow=c(2,1))
 plot(dlAirpassengers)
 plot(DdlAirpassengers)
 monthplot(DdlAirpassengers)
+acf(DdlAirpassengers,lag.max = 36)
+spectrum(DdlAirpassengers)
 nsdiffs(DdlAirpassengers)
 
 
@@ -202,6 +210,7 @@ LS=Af*sqrt(N)+2*Af*c(1:length(res))/sqrt(N)
 LI=-LS
 LQS=co+(1:length(res))/N
 LQI=-co+(1:length(res))/N
+x11()
 par(mfrow=c(2,1))
 plot(cum,type="l",ylim=c(min(LI),max(LS)),xlab="t",ylab="",main="CUSUM")
 lines(LS,type="S",col="red")
