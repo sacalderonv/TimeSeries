@@ -3,6 +3,9 @@ title: "SARIMA"
 output: 
   github_document: default
   html_notebook: default
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Ejercicio de Simulación
 
-Vamos a hacer un ejercicio de simulación para ver como se identifica la componente estacional.
+Vamos a hacer un ejercicio de simulación para ver como se identifica la
+componente estacional.
 
 ```{r Simulacion}
 library(urca)
@@ -95,9 +99,11 @@ nsdiffs(Dx3)
 
 ## Ejemplo Pasajeros
 
-Vamos a ver como se hace el modelamiento completo de la serie de pasajeros.
+Vamos a ver como se hace el modelamiento completo de la serie de
+pasajeros.
 
-Iniciaremos con la transformación Box-Cox y las pruebas de raíces Unitarias
+Iniciaremos con la transformación Box-Cox y las pruebas de raíces
+Unitarias
 
 ```{r passengers, echo=FALSE}
 ######Ajuste Serie datos AirPassengers por medio del
@@ -174,8 +180,8 @@ pacf(DdlAirpassengers,lag.max = 48) # p=0,1,2,...,9, P=0,1
 #SARIMA(p=0,d=1,q=1)x(P=0,D=1,Q=1)s=12
 ```
 
-
 ## Ajuste del Modelo y Análisis de Residuales
+
 ```{r Ajustes y Residuales}
 ##Ajuste del modelo
 ###Arima Estacional o SARIMA(p=0,d=1,q=3)x(P=0,D=1,Q=1)s=12 con transformación logaritmica
@@ -304,28 +310,44 @@ Ajuste_tsibble_Pass %>%
   autoplot(AirPassengers_tsb)
 
 ```
-Vale la pena decir que si los residuales son no correlacionados pero ellos no tiene distribución normal, se puede usar los intervalos bootatrap ver sección 5.5 libro fpp3. Esto se hace añadiendo bootstrap=TRUE en la función  forecast().
 
+Vale la pena decir que si los residuales son no correlacionados pero
+ellos no tiene distribución normal, se puede usar los intervalos
+bootatrap ver sección 5.5 libro fpp3. Esto se hace añadiendo
+bootstrap=TRUE en la función forecast().
 
 # Intervenciones
 
-Accidentes laborales desde enero de 1979 hasta diciembre de 1998. Aquí vamos a tener en cuenta tres variables de intervención:
-* $D_t:$ número de días laborales.
-* $I_{1t}^{(h)}:$ variable de impulso que toma el valor 1 si la semana santa cae en ese mes, y cero en otro caso.
-* $I_{2t}^{(h)}:$ Variable  que toma el valor de 1 cuando febrero tiene un día más por ser un año bisiesto.
+Accidentes laborales desde enero de 1979 hasta diciembre de 1998. Aquí
+vamos a tener en cuenta tres variables de intervención: \* $D_t:$ número
+de días laborales. \* $I_{1t}^{(h)}:$ variable de impulso que toma el
+valor 1 si la semana santa cae en ese mes, y cero en otro caso. \*
+$I_{2t}^{(h)}:$ Variable que toma el valor de 1 cuando febrero tiene un
+día más por ser un año bisiesto.
 
-La razón por la cual es razonable incluir estas variables es porque el número de accidentes laborales puede estar siendo afectado por estos sucesos.
-Sin embargo, hay mas formas de incluir tales efectos, por ejemplo la función calendar.effects del paquete tsoutliers extrae estos efectos pero desde otra respectiva. Por ejemplo, para los días laborales se calcula una variable asociada llamada día laboral($td_t$), la cual es como sigue: Sea $wd_t$ el número de días laborales por ejemplo en un mes t. $nwd_t$ es el número de días no laborales en el mes $t$. La variable $td_t$ es como sigue:
-$$wd_t=\# \text{días laborales}-festivos$$
+La razón por la cual es razonable incluir estas variables es porque el
+número de accidentes laborales puede estar siendo afectado por estos
+sucesos. Sin embargo, hay mas formas de incluir tales efectos, por
+ejemplo la función calendar.effects del paquete tsoutliers extrae estos
+efectos pero desde otra respectiva. Por ejemplo, para los días laborales
+se calcula una variable asociada llamada día laboral($td_t$), la cual es
+como sigue: Sea $wd_t$ el número de días laborales por ejemplo en un mes
+t. $nwd_t$ es el número de días no laborales en el mes $t$. La variable
+$td_t$ es como sigue: $$wd_t=\# \text{días laborales}-festivos$$
 
-$$nwd_t=\# \text{días no laborales}+festivos$$
-y así
+$$nwd_t=\# \text{días no laborales}+festivos$$ y así
 
-$$td_t=wd_t-(5/2)nwd_t.$$
-Los días laborales son los días de lunes a viernes, y los días no laborales son los sábados y domingos. El número de días festivos en el tiempo $t$ se pasan como un objeto para la función a través del argumento holidays. El efecto de semana santa se define como la porción de días antes de la semana santa(de un total de 6 por defecto) que caen en marzo y abril.Los restantes meses se les asigna el valor de cero.
+$$td_t=wd_t-(5/2)nwd_t.$$ Los días laborales son los días de lunes a
+viernes, y los días no laborales son los sábados y domingos. El número
+de días festivos en el tiempo $t$ se pasan como un objeto para la
+función a través del argumento holidays. El efecto de semana santa se
+define como la porción de días antes de la semana santa(de un total de 6
+por defecto) que caen en marzo y abril.Los restantes meses se les asigna
+el valor de cero.
 
-El año bisiesto se asocia con un valor de 0.75 al mes de febrero si el año es bisiesto, en caso contrario es -0.25. Los demás meses se definen con cero.
-
+El año bisiesto se asocia con un valor de 0.75 al mes de febrero si el
+año es bisiesto, en caso contrario es -0.25. Los demás meses se definen
+con cero.
 
 ```{r Intervención 1}
 library(tsoutliers)
@@ -348,18 +370,23 @@ Accidentes_tsibble%>%autoplot()
 
 
 ```
-Acá construimos las variables para los efectos de calendario. Adicionalmente, vamos a incluir una variable cambio de nivel para febrero de 1988, ya que se introdujo una nueva definición de accidente laboral en la ley Española. Esta variable de paso se define como sigue:
+
+Acá construimos las variables para los efectos de calendario.
+Adicionalmente, vamos a incluir una variable cambio de nivel para
+febrero de 1988, ya que se introdujo una nueva definición de accidente
+laboral en la ley Española. Esta variable de paso se define como sigue:
 $$S_t^{(110)}=\begin{cases}
 0 & \text{si } t<110,\\
 1 & \text{si } t\geq 110.
 \end{cases}
-$$
-El valor de 110 es porque corresponde a la observación número 110 en el tiempo. Esta variable se puede crear usando la función filter.
+$$ El valor de 110 es porque corresponde a la observación número 110 en
+el tiempo. Esta variable se puede crear usando la función filter.
 
 Una función cambio transitorio, tambien puede incluirse
 $$C(t)=\frac{\omega B}{1-\delta B}S_{t}^{(h)}$$
 
-como sigue "tc_0_4 <- filter(tc, filter = 0.4, method = "recursive")"
+como sigue "tc_0\_4 \<- filter(tc, filter = 0.4, method ="recursive")"
+
 ```{r efectos de calendario}
 x <- ts(frequency = 12, start = c(1979, 1), end = c(1998, 12))
 ce <- calendar.effects(x, leap.year = TRUE)
@@ -385,7 +412,8 @@ efectos<-cbind(ce,ley)
 efectos
 ```
 
-Vamos ajustar un modelo basado en el logaritmo del número de accidentes. Un modelo incial propuesto sin las regresoras es:
+Vamos ajustar un modelo basado en el logaritmo del número de accidentes.
+Un modelo incial propuesto sin las regresoras es:
 $$SARIMA((2,1,0)\times(1,1,1))$$
 
 ```{r ajuste del modelo 1}
@@ -412,7 +440,3 @@ ajuste_final<-aus_cafe%>%model(
   `FourierK=3`=ARIMA(log(Turnover)~fourier(K=3)+pdq(1,1,0)+PDQ(0,0,0)),
   `Dummy`=ARIMA(log(Turnover)~season()+pdq(1,1,0)+PDQ(0,0,0))                              )
 ```
-
-
-
-
