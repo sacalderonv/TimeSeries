@@ -12,12 +12,12 @@ knitr::opts_chunk$set(echo = TRUE)
 Vamos a considerar la simulación de una Caminata Aleatoria $S_t=X_0+X_1+\cdots+X_t$ con $\{X_{t}\}\sim I.I.D(0,\sigma^2)$
 
 ```{r Caminata}
-T=1000
+T=1100
 media_X=0
 Sigma_X=2
 x_t=rnorm(n=T,mean = media_X, sd = Sigma_X)
-St=cumsum(x_t)
-
+St=cumsum(x_t)[101:T]
+mean(St)
 ```
 
 ## Gráficas de la Caminata Aletoria
@@ -33,5 +33,25 @@ plot(as.ts(St), ylab='Valores',xlab='Tiempo',main='Simulación de una Caminata A
 ```{r ACF}
 acf(St,lag.max = 30)
 acf(St,plot = F)
+```
+
+## Filtro Lineal Invariante
+Veamos ahora la simulación de un un filtro lineal invariante y ver tanto la gráfica como el acf muestral.
+
+```{r Filtro Lineal}
+T=550
+inic=30
+k=2
+x=rnorm(T,0,1) ##Proceso IID de entrada
+#a=rnorm(2*k+1,0,1)
+a=c(-2,-1,1,2,3) ###Están en el orden a_{-k}....a_{0}...a_{k}
+## Es decir, -2X_{t+2}-1X_{t+1}+1X_{t}+2X_{t-1}+3X{t-2}
+sal=na.omit(stats::filter(x,a,method = "convolution"))
+y=ts(sal[inic:length(sal)])
+#x11()
+plot(y)
+acf(y)
+acf(y,plot = F)
+mean(y)
 ```
 

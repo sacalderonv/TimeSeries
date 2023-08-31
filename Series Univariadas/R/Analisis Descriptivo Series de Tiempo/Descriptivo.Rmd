@@ -1,9 +1,9 @@
 ---
 title: "Analisis Descriptivo de Series de Tiempo en R"
-output: github_document
+#output: github_document
 output: html_document
 #always_allow_html: true
-bibliography:bibliodescriptiva.bib
+#bibliography:bibliodescriptiva.bib
 editor_options: 
   markdown: 
     wrap: 72
@@ -82,6 +82,7 @@ require(feasts)
 require(fable)
 require(timetk)
 require(tsibble)
+require(lubridate)
 ###Creación objeto tssible a partir de un objeto tibble
 df_desempleo=data.frame(Desempleo=DesempleoyEmpleo_1$Tasa_de_desempleo,Fecha=DesempleoyEmpleo_1$Fecha)
 tbl_desempleo=tibble(df_desempleo)
@@ -93,7 +94,8 @@ tsbl_desempleo=as_tsibble(tbl_desempleo_format_fecha,index=Fecha)   ####La fecha
 
 ##Gráfica de tsibble
 autoplot(tsbl_desempleo,Desempleo)+labs(tittle="Serie de Desempleo Colombia Mensual",y="Tasa de Desempleo")
-
+tbl_desempleo$Fecha<-as.Date(zoo::as.yearmon(tbl_desempleo$Fecha))
+tbl_desempleo
 ###Gráfica timetk
 tbl_desempleo%>%plot_time_series(.value=Desempleo,.date_var=Fecha)
 
@@ -266,7 +268,7 @@ forecast::BoxCox.lambda(AirPassengers, method ="loglik", lower = -1, upper = 3) 
 #FitAR::BoxCox(AirPassengers)###Me entrega una gráfica
 plot(forecast::BoxCox(AirPassengers,lambda=0.2))###
 lAirPass=log(AirPassengers)
-x11()
+#x11()
 par(mar = c(1,1,1,1))
 par(mfrow=c(2,1))
 plot(AirPassengers,main="Serie de Pasajeros sin Transformar")
@@ -302,41 +304,41 @@ Ejercicio: Use la serie <i>varve</i> del paquete <b>astsa</b> para chequear si e
 
 Vamos a correr lo mismo pero en Python para la transformación de BoxCox
 
-```{r configuración, include=FALSE}
-library(knitr) 
-library(reticulate)
+#```{r configuración, include=FALSE}
+#library(knitr) 
+#library(reticulate)
 ###Nos ubicamos en el ambiente dentro de la terminal y damos which python y copiamos la ruta "/opt/anaconda3/envs/Python38andR/bin/python"
 ##"/Users/macbook/opt/anaconda3/envs/Ambiente38/bin/python"
-##/Users/sergiocalderonunal/opt/anaconda3/envs/Ambiente3104/bin/python
+#/Users/sergiocalderonunal/opt/anaconda3/envs/Ambiente3104/bin/python
 #use_python("/Users/macbook/opt/anaconda3/envs/Ambiente38/bin/python")
-use_python("/opt/anaconda3/envs/Python38andR/bin/python")
+#use_python("/Users/sergiocalderonunal/opt/anaconda3/envs/Ambiente3104/bin/python")
 #use_virtualenv("~/Python38andR")
-py_config()
-pd <- import("pandas")
-arreglo<-pd$array(c(1, 2, 3))
-print(arreglo)
-arreglo$shape
+#py_config()
+#pd <- import("pandas")
+#arreglo<-pd$array(c(1, 2, 3))
+#print(arreglo)
+#arreglo$shape
 
-```
+#```
 
-```{python inicio}
-import sys
-print(sys.path)
-import pandas as pd
-import matplotlib.pylab as plt
-data = pd.read_csv('AirPassengers.csv')
-print(data)
-print('\n Data Types:')
-print(data.dtypes)
-con=data['Month']
-data['Month']=pd.to_datetime(data['Month'])
-data
-pasajeros=data.set_index('Month')
+#```{python inicio}
+#import sys
+#print(sys.path)
+#import pandas as pd
+#import matplotlib.pylab as plt
+#data = pd.read_csv('AirPassengers.csv')
+#print(data)
+#print('\n Data Types:')
+#print(data.dtypes)
+#con=data['Month']
+#data['Month']=pd.to_datetime(data['Month'])
+#data
+#pasajeros=data.set_index('Month')
 #check datatype of index
 
 #convert to time series:
-ts = pasajeros['NPassengers']
-ts.head(10)
+#ts = pasajeros['NPassengers']
+#ts.head(10)
 
 ####Graficar la Serie#####
 #plt.plot(ts)
@@ -346,20 +348,20 @@ ts.head(10)
 
 
 
-```
+#```
 
-```{python inicio_1}
-print(r.AirPassengers)
-print(r.lAirPass)
-```
+#```{python inicio_1}
+#print(r.AirPassengers)
+#print(r.lAirPass)
+#```
 
-```{r uso de objeto creado en python}
+#```{r uso de objeto creado en python}
 
-py$data
-library(ggplot2)
-ggplot2::ggplot(data = py$data,aes(x=Month,y=NPassengers) )+geom_line()
+#py$data
+#library(ggplot2)
+#ggplot2::ggplot(data = py$data,aes(x=Month,y=NPassengers) #)+geom_line()
 
-```
+#```
 
 ## Gráficas de Retardos
 
