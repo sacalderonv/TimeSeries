@@ -860,7 +860,7 @@ UKgrid_tbl
 UKgrid_diff<-diff(UKgrid_tbl$ND)
 which(is.na(UKgrid_diff))
 UKgrid_diff_sub=na.omit(UKgrid_diff)
-UKgrid_diff_sub
+str(UKgrid_diff_sub)
 
 
 UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_time_series(TIMESTAMP,diff_ND,.smooth=F)
@@ -884,193 +884,6 @@ UKgrid_tstbl%>%gg_season(ND,period=24*7)
 
 
 ```
-
-```{r Periodograma UKgrid}
-
-spectrum(UKgrid_tbl$ND,log='no')
-spectrum(UKgrid_diff_sub,log='no')
-
-PeriodgramaUKgrid_diff=spectrum(UKgrid_diff_sub,log='no')
-ubicacionUKgrid_diff=which.max(PeriodgramaUKgrid_diff$spec)
-sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
-
-sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
-###Ubicando el segundo valor mas grande
-n.spec=length(PeriodgramaUKgrid_diff$spec)
-valor_seg_per=sort(PeriodgramaUKgrid_diff$spec,partial=n.spec-1)[n.spec-1]
-ubica_segundo_frec=which(PeriodgramaUKgrid_diff$spec==valor_seg_per)
-1/PeriodgramaUKgrid_diff$freq[ubica_segundo_frec]
-```
-
-```{r Spectrum Serie Original UkGrid}
-spectrum(UKgrid_tbl$ND,log='no')
-PeriodgramaUKgrid=spectrum(UKgrid_tbl$ND,log='no')
-ubicacionUKgrid=which.max(PeriodgramaUKgrid$spec)
-sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
-
-sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid_diff$freq[ubicacionUKgrid])
-###Ubicando el segundo valor mas grande
-n.spec=length(PeriodgramaUKgrid$spec)
-valor_seg_per=sort(PeriodgramaUKgrid$spec,partial=n.spec-1)[n.spec-1]
-ubica_segundo_frec=which(PeriodgramaUKgrid$spec==valor_seg_per)
-
-sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid$freq[ubica_segundo_frec])
-
-#Está bastante cerca de 24*365=8760 el cual es un periodo anual
-
-
-
-```
-Tarea: Por favor hacer los análisis descritos anteriormente,es decir los gráficos de barras de las medias por horas, días de la semana, y meses para detectar la estacionalidad tanto para serie diferenciada, como para la serie cuando se estima la tendencia y luego se elimina(Use fitro de promedios móviles o STL).
-
-
-```{r exploración estacionalidad ggplot2_1 }
- library(ggplot2)
-    ggplot(USgas_df, aes(x = USgas)) +
-      geom_density(aes(fill = month)) +
-      ggtitle("USgas - Kernel Density Estimates by Month") +
-      facet_grid(rows = vars(as.factor(month)))
-```
-
-Podemos ver algunos indicios de un patrón estacional en la serie, ya que
-las gráficas de densidad no se superponen entre sí (con la excepción de
-algunos meses consecutivos, como mayo y junio). Además, podemos ver que,
-durante algunos meses, la forma de las distribuciones es más plana con
-colas largas (principalmente durante los meses de invierno, noviembre,
-diciembre y enero). Sin embargo, no olvidemos el efecto de la tendencia
-o el crecimiento de un año a otro (como sabemos del capítulo anterior,
-la serie de gas de Estados Unidos tuvo una tendencia lineal desde el año
-2010) ya que no la eliminamos de la serie. Repitamos este proceso; esta
-vez quitando la tendencia de la serie USgas antes de graficarla. Vamos a
-eliminarle la tendencia, posteriormente los explicaremos.
-
-```{r exploración estacionalidad ggplot2_2 }
-USgas_df$USgas_detrend <- USgas_df$USgas - decompose(USgas)$trend
-    ggplot(USgas_df, aes(x = USgas_detrend)) +
-      geom_density(aes(fill = month)) +
-      ggtitle("USgas - Estimación de la densidad vía Kernel por mes") +
-      facet_grid(rows = vars(as.factor(month)))
-```
-
-Podemos ver que hay un comportamiento similar pero ahora las colas de
-las densidades estimadas son mas cortas.Pueden hacer lo mismo pero en
-vez de quitar la tendencia, hacemos una diferenciación.
-
-En el caso de que la distribución de la mayoría de las unidades de
-frecuencia sea plana con una cola larga, podría ser una indicación de
-múltiples patrones estacionales en la serie. Regresemos a la serie
-UKgrid y tracemos las gráficas de densidad de 24 horas:
-
-```{r exploración de múltiples estacionalidades ggplot2_1}
-UKgrid_df$hour <- as.factor(UKgrid_df$hour)
-    ggplot(UKgrid_df, aes(x = UKgrid)) +
-      geom_density(aes(fill = hour)) +
-      ggtitle("UKgrid - Kernel Density Estimates by Hour of the day") +
-      facet_grid(rows = vars(as.factor(hour)))
-```
-
-Como observamos anteriormente con las tablas de resúmenes estadísticos,
-la distribución de la demanda neta de electricidad durante la noche es
-relativamente estable (de ahí la distribución no plana con colas cortas
-en contraposición a la distribución plana con cola larga durante el
-día). Si ahora hacemos un subconjunto con una de las horas durante el
-día y trazamos su distribución por el día de la semana, deberíamos
-esperar una superposición durante la noche y poder distinguir entre la
-distribución durante los días de la semana y el fin de semana, en
-contraposición a solo el día de la semana.
-
-Por ejemplo, la siguiente gráfica representa la distribución de la
-demanda a las 9 a.m. a lo largo de los días de la semana. Puede ver que
-la distribución durante los días de la semana se distingue de la del fin
-de semana:
-
-```{r exploración de múltiples estacionalidades ggplot2_2}
-UKgrid_df$weekday <- as.factor(UKgrid_df$weekday)
-    UKgrid_df %>% dplyr::filter(hour == 0) %>%
-    ggplot(aes(x = UKgrid)) +
-      geom_density(aes(fill = as.factor(weekday))) +
-      ggtitle("UKgrid - Kernel Density Estimates by Hour of the day") +
-      facet_grid(rows = vars(as.factor(weekday)))
-
-```
-
-## Más herramientas del análisis de la estacionalidad
-
-Vamos a usar el paquete forecast. Note que extraemos las subseries de
-los años. Lo cual demuestra un fuerte patrón estacional mensual.
-
-```{r mas acerca estacionalidad_1}
-library(forecast)
-   ggseasonplot(USgas,year.labels=TRUE,continuous=TRUE)
-   
-ggseasonplot(USgas,  polar = TRUE)
-```
-
-Note que con el paquete TSstudio se puede hacer algo análogo.
-
-```{r mas acerca estacionalidad_2}
-ts_seasonal(USgas,type ="normal")
-
-ts_seasonal(USgas, type = "cycle")
-
-ts_seasonal(USgas, type = "box")
-
-ts_seasonal(USgas, type = "all")
-```
-
-ts_seasonal con type="cycle" añade un orden cronológico, en este caso
-por mes. Esto puede permitir la identificación de un patrón estacional
-sin tener que quitar la tendencia.
-
-Cuando en el argumento type="box", elabora un gráfico de caja por unidad
-de frecuencia.
-
-Finalmente cuando en el argumento type="all", elabora todos los gráficos
-anteriores.
-
-El mapa de calor ya lo vimos anteriormente.
-
-```{r mapa de calor}
-ts_heatmap(USgas, color = "Reds")
-```
-
-Gráficos basados en cuantiles también son de utilidad.De forma
-predeterminada, la función devuelve un gráfico de cuantiles de las
-unidades de frecuencia de la serie, donde la línea media representa la
-mediana y las líneas inferior y superior representan los percentiles 25
-y 75.
-
-```{r mapa de Gráficos de Cuantiles}
-ts_quantile(UKgrid)
-```
-
-El argumento <em> period </em> permite examinar si los patrones
-estacionales de la serie están cambiando cuando se usa un subconjunto de
-tiempo diferente. Esto le permite examinar si la serie tiene patrones
-estacionales adicionales. Por ejemplo, podemos trazar el ciclo de 24
-horas de la serie UKgrid por día de la semana estableciendo el argumento
-de período en días de la semana:
-
-```{r mapa de Gráficos de Cuantiles_1}
-ts_quantile(UKgrid, period = "weekdays", n = 2)
-```
-
-Como vimos anteriormente con las gráficas de densidad, la demanda de
-electricidad durante el día es relativamente mayor durante los días de
-semana en comparación con los fines de semana. De la misma manera, puede
-trazar el ciclo de 24 horas por mes:
-
-```{r mapa de Gráficos de Cuantiles_2}
- ts_quantile(UKgrid, period = "monthly", n = 2)
-```
-
-La principal ventaja de las gráficas de cuantiles de múltiples períodos
-(por ejemplo, días de la semana, meses, etc.) sobre la gráfica de
-densidad que usamos anteriormente es que la primera representa todas las
-unidades de frecuencia (y, en el caso de UKgrid serie, con una
-frecuencia de 24 horas), mientras que el segundo representa una sola
-unidad de frecuencia (por ejemplo, la densidad de las 9 am durante los
-días de semana).
 
 ## Usando Regresión para Descubrir un cíclo
 
@@ -1397,6 +1210,195 @@ y proceder a eliminar la componente estacional.De las series con
 estacionalidad, usar el operador diferencia estacional y proceder a
 eliminar la componente estacional usando la función
 diff(series,lag=s,differences=D).
+
+
+```{r Periodograma UKgrid}
+
+spectrum(UKgrid_tbl$ND,log='no')
+spectrum(UKgrid_diff_sub,log='no')
+
+PeriodgramaUKgrid_diff=spectrum(UKgrid_diff_sub,log='no')
+ubicacionUKgrid_diff=which.max(PeriodgramaUKgrid_diff$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
+
+sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
+###Ubicando el segundo valor mas grande
+n.spec=length(PeriodgramaUKgrid_diff$spec)
+valor_seg_per=sort(PeriodgramaUKgrid_diff$spec,partial=n.spec-1)[n.spec-1]
+ubica_segundo_frec=which(PeriodgramaUKgrid_diff$spec==valor_seg_per)
+1/PeriodgramaUKgrid_diff$freq[ubica_segundo_frec]
+```
+
+```{r Spectrum Serie Original UkGrid}
+spectrum(UKgrid_tbl$ND,log='no')
+PeriodgramaUKgrid=spectrum(UKgrid_tbl$ND,log='no')
+ubicacionUKgrid=which.max(PeriodgramaUKgrid$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
+
+sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid_diff$freq[ubicacionUKgrid])
+###Ubicando el segundo valor mas grande
+n.spec=length(PeriodgramaUKgrid$spec)
+valor_seg_per=sort(PeriodgramaUKgrid$spec,partial=n.spec-1)[n.spec-1]
+ubica_segundo_frec=which(PeriodgramaUKgrid$spec==valor_seg_per)
+
+sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid$freq[ubica_segundo_frec])
+
+#Está bastante cerca de 24*365=8760 el cual es un periodo anual
+
+
+
+```
+Tarea: Por favor hacer los análisis descritos anteriormente,es decir los gráficos de barras de las medias por horas, días de la semana, y meses para detectar la estacionalidad tanto para serie diferenciada, como para la serie cuando se estima la tendencia y luego se elimina(Use fitro de promedios móviles o STL).
+
+
+```{r exploración estacionalidad ggplot2_1 }
+ library(ggplot2)
+    ggplot(USgas_df, aes(x = USgas)) +
+      geom_density(aes(fill = month)) +
+      ggtitle("USgas - Kernel Density Estimates by Month") +
+      facet_grid(rows = vars(as.factor(month)))
+```
+
+Podemos ver algunos indicios de un patrón estacional en la serie, ya que
+las gráficas de densidad no se superponen entre sí (con la excepción de
+algunos meses consecutivos, como mayo y junio). Además, podemos ver que,
+durante algunos meses, la forma de las distribuciones es más plana con
+colas largas (principalmente durante los meses de invierno, noviembre,
+diciembre y enero). Sin embargo, no olvidemos el efecto de la tendencia
+o el crecimiento de un año a otro (como sabemos del capítulo anterior,
+la serie de gas de Estados Unidos tuvo una tendencia lineal desde el año
+2010) ya que no la eliminamos de la serie. Repitamos este proceso; esta
+vez quitando la tendencia de la serie USgas antes de graficarla. Vamos a
+eliminarle la tendencia, posteriormente los explicaremos.
+
+```{r exploración estacionalidad ggplot2_2 }
+USgas_df$USgas_detrend <- USgas_df$USgas - decompose(USgas)$trend
+    ggplot(USgas_df, aes(x = USgas_detrend)) +
+      geom_density(aes(fill = month)) +
+      ggtitle("USgas - Estimación de la densidad vía Kernel por mes") +
+      facet_grid(rows = vars(as.factor(month)))
+```
+
+Podemos ver que hay un comportamiento similar pero ahora las colas de
+las densidades estimadas son mas cortas.Pueden hacer lo mismo pero en
+vez de quitar la tendencia, hacemos una diferenciación.
+
+En el caso de que la distribución de la mayoría de las unidades de
+frecuencia sea plana con una cola larga, podría ser una indicación de
+múltiples patrones estacionales en la serie. Regresemos a la serie
+UKgrid y tracemos las gráficas de densidad de 24 horas:
+
+```{r exploración de múltiples estacionalidades ggplot2_1}
+UKgrid_df$hour <- as.factor(UKgrid_df$hour)
+    ggplot(UKgrid_df, aes(x = UKgrid)) +
+      geom_density(aes(fill = hour)) +
+      ggtitle("UKgrid - Kernel Density Estimates by Hour of the day") +
+      facet_grid(rows = vars(as.factor(hour)))
+```
+
+Como observamos anteriormente con las tablas de resúmenes estadísticos,
+la distribución de la demanda neta de electricidad durante la noche es
+relativamente estable (de ahí la distribución no plana con colas cortas
+en contraposición a la distribución plana con cola larga durante el
+día). Si ahora hacemos un subconjunto con una de las horas durante el
+día y trazamos su distribución por el día de la semana, deberíamos
+esperar una superposición durante la noche y poder distinguir entre la
+distribución durante los días de la semana y el fin de semana, en
+contraposición a solo el día de la semana.
+
+Por ejemplo, la siguiente gráfica representa la distribución de la
+demanda a las 9 a.m. a lo largo de los días de la semana. Puede ver que
+la distribución durante los días de la semana se distingue de la del fin
+de semana:
+
+```{r exploración de múltiples estacionalidades ggplot2_2}
+UKgrid_df$weekday <- as.factor(UKgrid_df$weekday)
+    UKgrid_df %>% dplyr::filter(hour == 0) %>%
+    ggplot(aes(x = UKgrid)) +
+      geom_density(aes(fill = as.factor(weekday))) +
+      ggtitle("UKgrid - Kernel Density Estimates by Hour of the day") +
+      facet_grid(rows = vars(as.factor(weekday)))
+
+```
+
+## Más herramientas del análisis de la estacionalidad
+
+Vamos a usar el paquete forecast. Note que extraemos las subseries de
+los años. Lo cual demuestra un fuerte patrón estacional mensual.
+
+```{r mas acerca estacionalidad_1}
+library(forecast)
+   ggseasonplot(USgas,year.labels=TRUE,continuous=TRUE)
+   
+ggseasonplot(USgas,  polar = TRUE)
+```
+
+Note que con el paquete TSstudio se puede hacer algo análogo.
+
+```{r mas acerca estacionalidad_2}
+ts_seasonal(USgas,type ="normal")
+
+ts_seasonal(USgas, type = "cycle")
+
+ts_seasonal(USgas, type = "box")
+
+ts_seasonal(USgas, type = "all")
+```
+
+ts_seasonal con type="cycle" añade un orden cronológico, en este caso
+por mes. Esto puede permitir la identificación de un patrón estacional
+sin tener que quitar la tendencia.
+
+Cuando en el argumento type="box", elabora un gráfico de caja por unidad
+de frecuencia.
+
+Finalmente cuando en el argumento type="all", elabora todos los gráficos
+anteriores.
+
+El mapa de calor ya lo vimos anteriormente.
+
+```{r mapa de calor}
+ts_heatmap(USgas, color = "Reds")
+```
+
+Gráficos basados en cuantiles también son de utilidad.De forma
+predeterminada, la función devuelve un gráfico de cuantiles de las
+unidades de frecuencia de la serie, donde la línea media representa la
+mediana y las líneas inferior y superior representan los percentiles 25
+y 75.
+
+```{r mapa de Gráficos de Cuantiles}
+ts_quantile(UKgrid)
+```
+
+El argumento <em> period </em> permite examinar si los patrones
+estacionales de la serie están cambiando cuando se usa un subconjunto de
+tiempo diferente. Esto le permite examinar si la serie tiene patrones
+estacionales adicionales. Por ejemplo, podemos trazar el ciclo de 24
+horas de la serie UKgrid por día de la semana estableciendo el argumento
+de período en días de la semana:
+
+```{r mapa de Gráficos de Cuantiles_1}
+ts_quantile(UKgrid, period = "weekdays", n = 2)
+```
+
+Como vimos anteriormente con las gráficas de densidad, la demanda de
+electricidad durante el día es relativamente mayor durante los días de
+semana en comparación con los fines de semana. De la misma manera, puede
+trazar el ciclo de 24 horas por mes:
+
+```{r mapa de Gráficos de Cuantiles_2}
+ ts_quantile(UKgrid, period = "monthly", n = 2)
+```
+
+La principal ventaja de las gráficas de cuantiles de múltiples períodos
+(por ejemplo, días de la semana, meses, etc.) sobre la gráfica de
+densidad que usamos anteriormente es que la primera representa todas las
+unidades de frecuencia (y, en el caso de UKgrid serie, con una
+frecuencia de 24 horas), mientras que el segundo representa una sola
+unidad de frecuencia (por ejemplo, la densidad de las 9 am durante los
+días de semana).
+
 
 # Suavizamiento en el contexto de Series de Tiempo
 
