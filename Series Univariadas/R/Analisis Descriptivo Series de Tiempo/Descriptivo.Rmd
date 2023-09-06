@@ -675,7 +675,7 @@ UKgrid_tstbl <- extract_grid(type = "tsibble",
                               aggregate = "hourly",
                               na.rm = TRUE)
 
-UKgrid_tbl <-as_tibble(UKgrid_tstbl)
+UKgrid_tbl <-na.omit(as_tibble(UKgrid_tstbl))
 
 
 ```
@@ -831,7 +831,7 @@ por mes (en lugar de días laborables):
 UKgrid_month$hour <- factor(UKgrid_month$hour)
     plot_ly(data = UKgrid_month, x = ~ month, y = ~ mean, type = "bar",color =
    ~ hour) %>%
-      layout(title = "The Hourly Average Demand by Weekday",
+      layout(title = "The Hourly Average Demand by Month",
              yaxis = list(title = "Mean", range = c(30000, 75000)),
              xaxis = list(title = "Month"))
 ```
@@ -855,15 +855,15 @@ puede distinguirla del resto de unidades. Para esto usaremos el paquete
 ```{r explorando estacionalidades con timetk}
 require(timetk)
 UKgrid_tbl
-UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","week","wday.lbl","month.lbl"),.geom="boxplot") ##Chequear si se desea un diagrama de caja o violín .geom 
+#UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","week","wday.lbl","month.lbl"),.geom="boxplot") ##Chequear si se desea un diagrama de caja o violín .geom 
 
 UKgrid_diff<-diff(UKgrid_tbl$ND)
 which(is.na(UKgrid_diff))
-UKgrid_diff_sub=UKgrid_diff[1:8638]
+UKgrid_diff_sub=na.omit(UKgrid_diff)
 UKgrid_diff_sub
 
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_time_series(TIMESTAMP,diff_ND)
+UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_time_series(TIMESTAMP,diff_ND,.smooth=F)
 
 UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("hour"),.geom="boxplot")
 
@@ -877,13 +877,19 @@ UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = 
 
 UKgrid_tstbl%>%gg_subseries(ND,period=24)
 
+UKgrid_tstbl%>%gg_season(ND,period=24)
+
+UKgrid_tstbl%>%gg_season(ND,period=24*7)
+
 
 
 ```
 
 ```{r Periodograma UKgrid}
 
+spectrum(UKgrid_tbl$ND,log='no')
 spectrum(UKgrid_diff_sub,log='no')
+
 PeriodgramaUKgrid_diff=spectrum(UKgrid_diff_sub,log='no')
 ubicacionUKgrid_diff=which.max(PeriodgramaUKgrid_diff$spec)
 sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
@@ -895,6 +901,28 @@ valor_seg_per=sort(PeriodgramaUKgrid_diff$spec,partial=n.spec-1)[n.spec-1]
 ubica_segundo_frec=which(PeriodgramaUKgrid_diff$spec==valor_seg_per)
 1/PeriodgramaUKgrid_diff$freq[ubica_segundo_frec]
 ```
+
+```{r Spectrum Serie Original UkGrid}
+spectrum(UKgrid_tbl$ND,log='no')
+PeriodgramaUKgrid=spectrum(UKgrid_tbl$ND,log='no')
+ubicacionUKgrid=which.max(PeriodgramaUKgrid$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaUKgrid_diff$freq[ubicacionUKgrid_diff])
+
+sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid_diff$freq[ubicacionUKgrid])
+###Ubicando el segundo valor mas grande
+n.spec=length(PeriodgramaUKgrid$spec)
+valor_seg_per=sort(PeriodgramaUKgrid$spec,partial=n.spec-1)[n.spec-1]
+ubica_segundo_frec=which(PeriodgramaUKgrid$spec==valor_seg_per)
+
+sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid$freq[ubica_segundo_frec])
+
+#Está bastante cerca de 24*365=8760 el cual es un periodo anual
+
+
+
+```
+Tarea: Por favor hacer los análisis descritos anteriormente,es decir los gráficos de barras de las medias por horas, días de la semana, y meses para detectar la estacionalidad tanto para serie diferenciada, como para la serie cuando se estima la tendencia y luego se elimina(Use fitro de promedios móviles o STL).
+
 
 ```{r exploración estacionalidad ggplot2_1 }
  library(ggplot2)
