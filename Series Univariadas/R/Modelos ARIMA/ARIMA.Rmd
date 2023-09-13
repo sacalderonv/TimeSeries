@@ -219,6 +219,8 @@ pronosticos12=forecast::forecast(AjusteArima,h=12,level=0.95)
 plot(pronosticos12)
 ```
 
+
+
 ```{r ajuste de la estacionalidad con componentes Fourier y Dummy}
 
 library(tidyverse)

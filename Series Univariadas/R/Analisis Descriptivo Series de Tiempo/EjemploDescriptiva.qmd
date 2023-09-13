@@ -107,7 +107,7 @@ tibble_logpasajeros%>%mutate(Logpasa_ajus=smooth_vec(Logpasa,span = 0.75, degree
     geom_line(aes(y = Logpasa_ajus), color = "red")
 ```
 
-Usted puede usar el objeto tibble_logpasajeros\$Logpasa para eliminar la tendencia obtenida de STL. Recuerde que puede hacer un procedimiento similar a STL para obtener una estimación de la componente de tendencia y estacional de forma automática sin controlar los parámetros de la tendencia. Note que los parámetros para estimar la tendencia y la componente estacional son distintos ahora que se usa la función STL.
+Usted puede usar el objeto $tibble\_logpasajeros\$Logpasa$ para eliminar la tendencia obtenida de STL. Recuerde que puede hacer un procedimiento similar a STL para obtener una estimación de la componente de tendencia y estacional de forma automática sin controlar los parámetros de la tendencia. Note que los parámetros para estimar la tendencia y la componente estacional son distintos ahora que se usa la función STL.
 
 ```{r STL trend y estacional}
 library(feasts)
@@ -212,3 +212,96 @@ sprintf("El periodo correspondiente es aproximadamente: %s",1/PeriodgramadlAirPa
 ```
 
 Note que e periodo es 6, sin embargo 6 no es periodo principal para este caso, sería 12 ya que 6 es un múltiplo racional de 12.
+
+### Modelamiento de la estacionalidad
+
+```{r ajuste de la estacionalidad con componentes Fourier y Dummy}
+
+library(tidyverse)
+library(tsibble)
+library(fable)
+library(fabletools)
+library(TSA)
+tsibble_Airpass=as_tsibble(AirPassengers)
+###Variables Dummy y Armónicos
+forecast::seasonaldummy(AirPassengers)
+Armonicos=TSA::harmonic(AirPassengers, m = 1)
+
+
+###Armónicos
+forecast::fourier(AirPassengers,K=1)
+tiempo=1
+j=1
+sin(2*pi*tiempo*j/12)
+cos(2*pi*tiempo*j/12)
+
+###Gráfica de los armónicos
+harmonics = fourier(AirPassengers, K = 6)
+harmonics
+par(mar = c(1,4,1,1), mfrow = c(6,2))
+for(i in 1:ncol(harmonics)){
+  plot(harmonics[,i], type = 'l', xlab = "Time", ylab = colnames(harmonics)[i])
+}
+par(mar = rep(4, 4), mfrow=c(1,1))
+
+diff_tsibble<-tsibble_Airpass|>mutate(logdiff_air=difference(log(value)))|>select(logdiff_air)
+###Explore diferentes valores de K
+Modelo_serie_diff<-diff_tsibble|>model(
+  `Fourier1Airdiff`=ARIMA(logdiff_air~fourier(K=2)+pdq(0, 0, 0) + PDQ(0, 0, 0))
+  
+)
+
+real_ajustado1<-diff_tsibble%>%left_join(fitted(Modelo_serie_diff,by=index))%>%select(-.model) 
+
+real_ajustado1 %>%
+  autoplot() +
+  geom_line(data=real_ajustado1,aes(y=logdiff_air,colour="real"))+
+  geom_line(data=real_ajustado1,aes(y=.fitted,colour="ajustado"))+
+  scale_color_manual(name = "real/ajustado", values = c("real" = "black", "ajustado" = "red"))
+
+#####Ajuste Dummy
+
+Modelo_serie_diff_Dummy<-diff_tsibble|>model(
+  `DummyAirdiff`=ARIMA(logdiff_air~season()+pdq(0, 0, 0) + PDQ(0, 0, 0))
+  
+)
+
+Modelo_serie_diff_Dummy<-diff_tsibble%>%left_join(fitted(Modelo_serie_diff,by=index))%>%select(-.model) 
+
+Modelo_serie_diff_Dummy %>%
+  autoplot() +
+  geom_line(data=Modelo_serie_diff_Dummy,aes(y=logdiff_air,colour="real"))+
+  geom_line(data=Modelo_serie_diff_Dummy,aes(y=.fitted,colour="ajustado"))+
+  scale_color_manual(name = "real/ajustado", values = c("real" = "black", "ajustado" = "red"))
+#### Varios modelos la mismo tiempo
+
+ajuste_final_models<-diff_tsibble%>%model(
+ `Fourier1Airdiff`=ARIMA(logdiff_air~fourier(K=1)+pdq(0, 0, 0) + PDQ(0, 0, 0)),
+ `Fourier2Airdiff`=ARIMA(logdiff_air~fourier(K=2)+pdq(0, 0, 0) + PDQ(0, 0, 0)),
+ `Fourier3Airdiff`=ARIMA(logdiff_air~fourier(K=3)+pdq(0, 0, 0) + PDQ(0, 0, 0)),
+`DummyAirdiff`=ARIMA(logdiff_air~season()+pdq(0, 0, 0) + PDQ(0, 0, 0))
+                                        )
+
+glance(ajuste_final_models)
+
+ajuste_final_models %>%
+     select(Fourier1Airdiff)%>%coef()
+
+Modelo_serie_diff_models<-diff_tsibble%>%left_join(fitted(ajuste_final_models)|>group_by(.model)%>%
+    pivot_wider(names_from = .model, values_from = .fitted))
+
+
+
+Modelo_serie_diff_models %>%
+  autoplot() +
+  geom_line(data=Modelo_serie_diff_models,aes(y=logdiff_air,colour="real"))+
+  geom_line(data=Modelo_serie_diff_models,aes(y=Fourier1Airdiff,colour="ajustadoFourier1"))+
+geom_line(data=Modelo_serie_diff_models,aes(y=Fourier2Airdiff,colour="ajustadoFourier2"))+ 
+  geom_line(data=Modelo_serie_diff_models,aes(y=Fourier3Airdiff,colour="ajustadoFourier3"))+
+  geom_line(data=Modelo_serie_diff_models,aes(y=DummyAirdiff,colour="ajustadoDummy")) +
+  scale_color_manual(name = "real/ajustado", values = c("real" = "black", "ajustadoFourier1" = "red","ajustadoFourier2" = "blue","ajustadoFourier3"="green","ajustadoDummy"="yellow"))
+
+
+```
+
+\`

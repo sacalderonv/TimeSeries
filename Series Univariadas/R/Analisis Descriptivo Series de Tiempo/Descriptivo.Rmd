@@ -863,13 +863,13 @@ UKgrid_diff_sub=na.omit(UKgrid_diff)
 str(UKgrid_diff_sub)
 
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_time_series(TIMESTAMP,diff_ND,.smooth=F)
+UKgrid_tbl%>%mutate(diff_ND=ND-dplyr::lag(ND))%>%plot_time_series(TIMESTAMP,diff_ND,.smooth=F)
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("hour"),.geom="boxplot")
+UKgrid_tbl%>%mutate(diff_ND=ND-dplyr::lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("hour"),.geom="boxplot")
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("wday.lbl"),.geom="boxplot")
+UKgrid_tbl%>%mutate(diff_ND=ND-dplyr::lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("wday.lbl"),.geom="boxplot")
 
-UKgrid_tbl%>%mutate(diff_ND=ND-lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("month.lbl"),.geom="boxplot")
+UKgrid_tbl%>%mutate(diff_ND=ND-dplyr::lag(ND))%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = diff_ND,.feature_set = c("month.lbl"),.geom="boxplot")
 
 ```
 
@@ -1397,7 +1397,49 @@ densidad que usamos anteriormente es que la primera representa todas las
 unidades de frecuencia (y, en el caso de UKgrid serie, con una
 frecuencia de 24 horas), mientras que el segundo representa una sola
 unidad de frecuencia (por ejemplo, la densidad de las 9 am durante los
-días de semana).
+días de semana)
+
+```{r Modelamiento de algunas componentes estacionales UKgrid }
+library(timetk)
+library(broom)
+UKgrid_tbl_diff<-UKgrid_tbl|>mutate(diff_ND=ND-dplyr::lag(ND))
+num_harmonics=2
+frequency=1/24
+
+
+
+UKgrid_tbl_diff_Fourier<-UKgrid_tbl_diff|>mutate(
+  C1_24=fourier_vec(TIMESTAMP,period=1/frequency,K=1,type="cos"),
+  S1_24=fourier_vec(TIMESTAMP,period=1/frequency,K=1,type="sin")
+  )
+
+UKgrid_tbl_diff_Fourier2<-UKgrid_tbl_diff|>mutate(
+  C1_24=fourier_vec(TIMESTAMP,period=1/frequency,K=1,type="cos"),
+  S1_24=fourier_vec(TIMESTAMP,period=1/frequency,K=1,type="sin"),
+  C2_24=fourier_vec(TIMESTAMP,period=1/frequency,K=2,type="cos"),
+  S2_24=fourier_vec(TIMESTAMP,period=1/frequency,K=2,type="sin")
+  )
+
+####Un Armónico
+Fourier1<-lm(diff_ND~C1_24+S1_24,data = UKgrid_tbl_diff_Fourier)
+
+summary(Fourier1)
+
+plot(UKgrid_tbl_diff_Fourier$TIMESTAMP[2:49],UKgrid_tbl_diff_Fourier$diff_ND[2:49],type="l") 
+
+lines(UKgrid_tbl_diff_Fourier$TIMESTAMP[2:49],Fourier1$fitted.values[1:48],type="l",col = 3) 
+
+####Dos Armónicos Fourier
+Fourier2<-lm(diff_ND~C1_24+S1_24+C2_24 +S2_24,data = UKgrid_tbl_diff_Fourier2)
+
+summary(Fourier2)
+
+plot(UKgrid_tbl_diff_Fourier2$TIMESTAMP[2:49],UKgrid_tbl_diff_Fourier2$diff_ND[2:49],type="l") 
+
+lines(UKgrid_tbl_diff_Fourier2$TIMESTAMP[2:49],Fourier2$fitted.values[1:48],type="l",col = 3) 
+
+```
+
 
 
 # Suavizamiento en el contexto de Series de Tiempo
@@ -1498,11 +1540,3 @@ plot(soi)
 La diferencia entre uan y otra gráfica es es grado de suavizamiento.
 
 \<\> Tarea:</b> Hacer lo mismo para la serie Recruitment.
-
-#\`\`\`{r} #library("readr") #library(zoo)
-
-#write_csv(data.frame(soi=as.matrix(soi),date=as.Date(as.yearmon(time(soi)))),
-file = "soi.csv")
-
-#write_csv(data.frame(rec=as.matrix(rec),date=as.Date(as.yearmon(time(rec)))),
-file = "rec.csv") #\`\`\`
