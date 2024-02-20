@@ -629,9 +629,7 @@ USgas_summary
   
   ####También lo podemos hacer usando el paquete feasts y el objeto tsibble
   USgas_tsbl=as_tsibble(USgas)
-  require(feasts)
-  USgas_tsbl=as_tsibble(USgas)
-  USgas_tsbl%>%gg_subseries(value)###Puede usar el argumento period=12 y da el mismo resultado, lo que significa es que se pueden agrupar las observaciones que están cada 12.
+  ###Puede usar el argumento period=12 y da el mismo resultado, lo que significa es que se pueden agrupar las observaciones que están cada 12.
 ```
 
 Note que basados en las estadísticas descriptivas podemos ver que las

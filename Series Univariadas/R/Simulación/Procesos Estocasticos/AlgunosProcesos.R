@@ -4,6 +4,7 @@ T=100
 iid=ts(rnorm(T,0,1))
 plot(iid)
 acf(iid,ci = 0.99,ci.type = "white",lag.max = 99)
+
 # * Filtro Lineal invariante \sum_{j=-k}{k}a_{j}x_{t-j} ----
 T=550
 inic=30
@@ -16,7 +17,7 @@ sal=na.omit(stats::filter(x,a,method = "convolution"))
 y=ts(sal[inic:length(sal)])
 #x11()
 plot(y)
-acf(y,lag.max = 500)
+acf(y)
 acf(y,plot = F)
 mean(y)
 ####IC. para la media del proceso ----
@@ -47,7 +48,7 @@ Limn_suo_IID
 # * Caminata Aleatoria ----
 
 T=1000
-sigma=1
+sigma=10
 x=rnorm(T,0,sigma)
 St=ts(cumsum(x))
 plot(St)
