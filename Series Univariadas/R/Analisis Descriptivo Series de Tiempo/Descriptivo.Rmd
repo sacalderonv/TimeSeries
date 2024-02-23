@@ -1209,7 +1209,6 @@ estacionalidad, usar el operador diferencia estacional y proceder a
 eliminar la componente estacional usando la función
 diff(series,lag=s,differences=D).
 
-
 ```{r Periodograma UKgrid}
 
 spectrum(UKgrid_tbl$ND,log='no')
@@ -1246,8 +1245,12 @@ sprintf("El periodo correspondiente es aporximadamente: %s",1/PeriodgramaUKgrid$
 
 
 ```
-Tarea: Por favor hacer los análisis descritos anteriormente,es decir los gráficos de barras de las medias por horas, días de la semana, y meses para detectar la estacionalidad tanto para serie diferenciada, como para la serie cuando se estima la tendencia y luego se elimina(Use fitro de promedios móviles o STL).
 
+Tarea: Por favor hacer los análisis descritos anteriormente,es decir los
+gráficos de barras de las medias por horas, días de la semana, y meses
+para detectar la estacionalidad tanto para serie diferenciada, como para
+la serie cuando se estima la tendencia y luego se elimina(Use fitro de
+promedios móviles o STL).
 
 ```{r exploración estacionalidad ggplot2_1 }
  library(ggplot2)
@@ -1437,8 +1440,6 @@ plot(UKgrid_tbl_diff_Fourier2$TIMESTAMP[2:49],UKgrid_tbl_diff_Fourier2$diff_ND[2
 lines(UKgrid_tbl_diff_Fourier2$TIMESTAMP[2:49],Fourier2$fitted.values[1:48],type="l",col = 3) 
 
 ```
-
-
 
 # Suavizamiento en el contexto de Series de Tiempo
 
