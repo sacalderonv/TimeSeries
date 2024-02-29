@@ -47,7 +47,18 @@ forecast::BoxCox.lambda(lAirPass, method ="loglik", lower = -5, upper = 5)
 
 Note que el valor de $\lambda$ para estabilizar la varianza es 0.2, el cual está cerca de 0, axemás note que el IC para $\lambda$ no captura el 1. Por lo tanto usaremos $\lambda=0$, es decir, transformación logarítmica. Note que después de la transformación logarítmica volvemos a evaluar el IC para $\lambda$ ahora para la serie transformada, y podemos ver que ahora es mas grande pero captura el 1, con lo cual la transformación logarítmica parece haber estabilizado la varianza.
 
-**Tarea: Pruebe la transformación Box-Cox para** $\lambda=0.2$
+**Tarea: Pruebe la transformación Box-Cox para** \$\$\\lambda=0.2\$
+
+Note que otro tipo de transformación similar a al de Box-Cox es la de Yeo Jhonson.
+
+```{r Yeo-Jhonson}
+library(VGAM)
+library(car)
+
+
+VGAM::yeo.johnson(AirPassengers, lambda = 0)
+car::yjPower(AirPassengers,lambda=0)
+```
 
 # Tendencia(estimación y/o eliminación)
 
@@ -87,12 +98,14 @@ library(lubridate)
 library(timetk)
 library(tibble)
 library(zoo)
+library(tsibble)
 
 
 indice_logpasajeros=as.Date(as.yearmon(tk_index(lAirPass)))
 indice_logpasajeros1=yearmonth(as.yearmon(tk_index(lAirPass)))
 ## Otra forma de extraer el indice estimetk::tk_index(lAirPass)
 df_logpasajeros=data.frame(Fecha=indice_logpasajeros,Logpasa=as.matrix(lAirPass))
+df_pasajeros=data.frame(Fecha=indice_logpasajeros,pasajeros=as.matrix(AirPassengers))
 str(df_logpasajeros)
 tibble_logpasajeros=tibble(df_logpasajeros)
 
@@ -374,4 +387,283 @@ geom_line(data=Modelo_serie_diff_models,aes(y=Fourier2Airdiff,colour="ajustadoFo
 
 ```
 
-\`
+# Explorando múltiples estacionalidades
+
+Pueden haber múltiples estacionalidades(por lo general ocurren en series de alta frecuencia: diaria, cada hora, cada media y asi sucesivamente.) o una única estacionalidad, o inclusive cíclos que no se ven con facilidad.
+
+Vamos a trabajar la base datos relacionada con el sistema nacional de transmisión de electricidad del Reino Unido. Más específicamente con la demanda de energía de forma horaria.
+
+```{r mas acerca de estacionalidad}
+library(UKgrid)
+require(TSstudio)
+require(timetk)
+require(feasts)
+require(tsibble)
+require(plotly)
+UKgrid_xts <- extract_grid(type = "xts",
+                              columns = "ND",
+                              aggregate = "hourly",
+                              na.rm = TRUE)
+#extract_grid solo funciona para el conjunto de datos UKgrid
+ts_plot(UKgrid_xts,
+            title = "National Hourly Demand UK Grid",
+            Ytitle = "Megawatts",
+            Xtitle = "Year",
+            Xgrid = TRUE,
+            Ygrid = TRUE)
+
+UKgrid_tstbl <- extract_grid(type = "tsibble",
+                              columns = "ND",
+                              aggregate = "hourly",
+                              na.rm = TRUE)
+
+UKgrid_tbl <-extract_grid(type = "tbl",
+                              columns = "ND",
+                              aggregate = "hourly",
+                              na.rm = TRUE)
+
+
+```
+
+Como indicamos anteriormente, la primera indicación de la posible existencia de múltiples patrones estacionales en la serie es una frecuencia alta, como por diaria, horaria y en minutos. En esos casos, hay más de una forma de establecer la frecuencia de la serie. Por ejemplo, si capturamos una serie de tiempo de frecuencia diaria, la frecuencia de la serie se puede configurar de la siguiente manera:
+
+-   Diariamente (o 365), asumiendo que el ciclo más apropiado es un año completo.
+
+-   Días de semana (o 7) siempre que la oscilación del día de la semana sea más dominante que la del ciclo de año completo.
+
+Al utilizar estadísticas descriptivas con este tipo de series, tendrá sentido aplicar este método para cada frecuencia potencial de la serie (o al menos las principales) con el fin de examinar si existe una indicación del patrón estacional.
+
+Por ejemplo, UKgrid es una serie de tiempo por horas, que la marca automáticamente como sospechosa de tener múltiples patrones estacionales. Potencialmente, como se mencionó anteriormente, la demanda horaria de electricidad podría tener tres patrones estacionales diferentes:
+
+-   Horaria: Este es probablemente el principal patrón estacional de la serie, ya que existe una relación directa entre la demanda de energía eléctrica y la hora del día (hay alta demanda durante el día y baja demanda durante la noche o al contrario).
+-   Día de la semana: La demanda de electricidad a lo largo del día se deriva, potencialmente, del día de la semana. Tendría sentido esperar un alto consumo durante los días laborables y una menor tasa de consumo durante el fin de semana.
+-   Mensual: como los patrones climáticos varían a lo largo del año, la cantidad de luz del día y otros factores estacionales podrían afectar la demanda de electricidad.
+
+Usando el paquete **lubridate** crearemos las características.
+
+```{r multiples patrones estacionales_1}
+library(xts)
+UKgrid_df <- data.frame(time = zoo::index(UKgrid_xts), UKgrid=as.numeric(UKgrid_xts))
+str(UKgrid_df)
+```
+
+Ahora crearemos características estacionales basados en los periodos que deseamos explorar, por ejemplo hora del día,o día de la semana, o mes del año.
+
+```{r creando patrones}
+library(lubridate)
+UKgrid_df$hour <- hour(UKgrid_df$time)
+UKgrid_df$weekday <- wday(UKgrid_df$time, label = TRUE, abbr = TRUE)
+UKgrid_df$month <- factor(month.abb[month(UKgrid_df$time)], levels =   month.abb)
+head(UKgrid_df)
+```
+
+Vamos a empezar las exploraciones analizando el ciclo horario.
+
+```{r horario UKgrid}
+UKgrid_hourly <- UKgrid_df %>%
+    dplyr::group_by(hour) %>%
+    dplyr::summarise(mean = mean(UKgrid, na.rm = TRUE), sd = sd(UKgrid, na.rm
+= TRUE))
+str(UKgrid_hourly)
+UKgrid_hourly
+```
+
+Vamos ahora a hacer la gráfica de la media y la desviación estándar con base en las horas. Note que esas gráficas en escalas diferentes, así que hay que usar un gráfico especial.
+
+```{r horario UKgrid_1}
+require(plotly)
+ plot_ly(UKgrid_hourly) %>%
+      add_lines(x = ~ hour, y = ~ mean, name = "Media") %>%
+      add_lines(x = ~ hour, y = ~ sd, name = "Desviación Estándar", yaxis =
+   "y2",
+                line = list(color = "red", dash = "dash", width = 3)) %>%
+      layout(
+        title = "La demanda nacional de electricidad - Promedio horario vs. Desviación Estándar",
+        yaxis = list(title = "Media"),
+        yaxis2 = list(overlaying = "y",
+                      side = "right",
+                      title = "Desviación Estándar"
+        ),
+        xaxis = list(title="Hora del Día"),
+        legend = list(x = 0.05, y = 0.9),
+        margin = list(l = 50, r = 50)
+)
+```
+
+Qué podemos destacar del gráfico y de las estadísticas descriptivas?
+
+-   Hay poca demanda durante la noche (entre la medianoche y las 6 a.m.) y una alta demanda entre las horas de la mañana y la tarde.
+
+-   Existe una fuerte correlación entre la demanda promedio y su desviación estándar.
+
+-   La relativamente baja desviación estándar de la demanda promedio durante la noche podría indicar que existe un fuerte efecto subestacional durante esas horas además de la estacionalidad horaria. Esto debería tener sentido, ya que son horas de sueño normales y, por lo tanto, en promedio, la demanda es razonablemente la misma durante los días de semana.
+
+-   Por otro lado, la alta desviación estándar a lo largo de las horas de alta demanda podría indicar que la demanda se distribuye de manera diferente en diferentes vistas de periodicidad (como día de la semana o mes del año).
+
+Vamos a explorar el último punto, viendo la demanda a la madrugada(3 a.m) y empezando el día(9 a.m) con respecto al día de la semana.
+
+```{r exploracion_1}
+ UKgrid_weekday <- UKgrid_df %>%
+      dplyr::filter(hour == 3 | hour == 9) %>%
+    dplyr::group_by(hour, weekday) %>%
+    dplyr::summarise(mean = mean(UKgrid, na.rm = TRUE),
+                     sd = sd(UKgrid, na.rm = TRUE))
+
+UKgrid_weekday$hour <- factor(UKgrid_weekday$hour)
+    plot_ly(data = UKgrid_weekday, x = ~ weekday, y = ~ mean, type =
+   "bar",color = ~ hour) %>%
+      layout(title = "The Hourly Average Demand by Weekday",
+             yaxis = list(title = "Mean", range = c(30000, 75000)),
+             xaxis = list(title = "Weekday"))
+```
+
+En el gráfico de barras anterior podemos ver que la demanda de electricidad a las 3 a.m. es relativamente estable durante todos los días de la semana, con una ligera diferencia entre el promedio durante los días laborables y los días del fin de semana (alrededor de un 2% diferente). Por otro lado, existe una diferencia entre la demanda del día laborable y el fin de semana a las 9 a.m. (es decir, la demanda del lunes es en promedio un 28% superior a la del domingo). Como era de esperar, esos resultados se alinearon con nuestras expectativas anteriores.
+
+Ahora podemos aprovechar esos conocimientos para examinar si existe un patrón estacional mensual en la serie. Ahora seleccionaremos las mismas horas (3 a.m. y 9 a.m.); sin embargo, esta vez agruparemos estos datos por mes (en lugar de días laborables):
+
+```{r exploracion_2}
+
+ UKgrid_month <- UKgrid_df %>%
+      dplyr::filter(hour == 3 | hour == 9) %>%
+    dplyr::group_by(hour, month) %>%
+    dplyr::summarise(mean = mean(UKgrid, na.rm = TRUE),
+                     sd = sd(UKgrid, na.rm = TRUE))
+UKgrid_month$hour <- factor(UKgrid_month$hour)
+    plot_ly(data = UKgrid_month, x = ~ month, y = ~ mean, type = "bar",color =
+   ~ hour) %>%
+      layout(title = "The Hourly Average Demand by Month",
+             yaxis = list(title = "Mean", range = c(30000, 75000)),
+             xaxis = list(title = "Month"))
+```
+
+Podemos ver en el gráfico de barras del resumen de agregación mensual que, en promedio, la demanda durante la noche (3 a.m.) y la mañana (9 a.m.) varía a lo largo de los meses del año. Además, hay un cambio significativo en la demanda durante la noche en comparación con la agregación entre semana. La variación de la serie de mes a mes indica la existencia de estacionalidad mensual en la serie.
+
+Gráficos de densidades
+
+```{r exploracion_3}
+
+ UKgrid_df$hour<-as.factor(UKgrid_df$hour)
+ ggplot(UKgrid_df,aes(x=UKgrid))+
+   geom_density(aes(fill=hour))+
+   ggtitle("UKgrid-Desidades Kernel estimador para cada hora")+
+   facet_grid(rows=vars(as.factor(hour)))
+```
+
+```{r exploracion_4}
+
+ UKgrid_df$weekday<-as.factor(UKgrid_df$weekday)
+ 
+ # Se está tomando la hora cero
+ UKgrid_df%>%dplyr::filter(hour==0)%>%
+ ggplot(aes(x=UKgrid))+
+   geom_density(aes(fill=as.factor(weekday)))+
+   ggtitle("UKgrid-Desidades Kernel estimadas por hora del día")+
+   facet_grid(rows=vars(as.factor(weekday)))
+ 
+ # Se está tomando la hora 9 a.m
+ UKgrid_df%>%dplyr::filter(hour==9)%>%
+ ggplot(aes(x=UKgrid))+
+   geom_density(aes(fill=as.factor(weekday)))+
+   ggtitle("UKgrid-Desidades Kernel estimadas por hora del día")+
+   facet_grid(rows=vars(as.factor(weekday)))
+ 
+ # Se está tomando la hora 9 a.m
+ UKgrid_df%>%dplyr::filter(hour==17)%>%
+ ggplot(aes(x=UKgrid))+
+   geom_density(aes(fill=as.factor(weekday)))+
+   ggtitle("UKgrid-Desidades Kernel estimadas por hora del día")+
+   facet_grid(rows=vars(as.factor(weekday)))
+```
+
+```{r exploracion_5}
+ts_quantile(UKgrid,period="weekdays",n=2)
+
+ts_quantile(UKgrid,period="monthly",n=2)
+```
+
+**Nota:** Un detalle importante acá es que hay tres tipos de estacionalidad, la horaria, es decir depende de la hora del día en que se esté, el promedio puede diferir. El día de la semana también influye a que el promedio horario pueda cambiar. El mes de año parece también que el promedio horario varíe. Finalmente, Parece haber un cambio anual(que cambia con el mes).
+
+Si se deseara incluir coeficientes de Fourier acá para explicar la estacionalidad, se debería considerar periodos de 365.25\*24/n horas al año, 7\*24 horas a la semana, 30.5\*24 para el efecto mensual. Note que el efecto mensual puede ser pensado mejor como un efecto anual que varía en cada mes.
+
+De otra manera, usted puede pensar en variables de tipo dummy como un factor que puedan explicar la variación media por la hora del día, del día de la semana y del mes de la semana.
+
+**Tarea:** Usted deberá eliminar la tendencia de la serie sin diferenciarla y explorar las estacionalidades sin tendencia. Qué puede usted observar?
+
+```{r elminación de la tendencia}
+UKgrid_tbl_todas<-as_tibble(UKgrid_df)
+UKgrid_tbl_todas<-UKgrid_tbl_todas%>%mutate(UKgrid_trend=smooth_vec(UKgrid,span = 0.75, degree = 2))
+
+UKgrid_tbl_todas%>%ggplot(aes(time, UKgrid)) +
+    geom_line() +
+    geom_line(aes(y = UKgrid_trend), color = "red")
+UKgrid_tbl_todas<-UKgrid_tbl_todas%>%mutate(UKgrid_no_trend=UKgrid-UKgrid_trend)
+
+colnames(UKgrid_tbl_todas)
+UKgrid_tbl_todas%>%ggplot(aes(time, UKgrid_no_trend)) +
+    geom_line()
+
+```
+
+**Periodograma**
+
+```{r periodograma1}
+spectrum(as.numeric(na.omit(UKgrid_tbl_todas$UKgrid_no_trend)),log='no')
+
+PeriodgramaUKgrid_notrend=spectrum(as.numeric(na.omit(UKgrid_tbl_todas$UKgrid_no_trend)),log='no')
+ubicacionUKgrid_notrend=which.max(PeriodgramaUKgrid_notrend$spec)
+sprintf("El valor de la frecuencia donde se máximiza el periodograma para la serie es: %s",PeriodgramaUKgrid_notrend$freq[ubicacionUKgrid_notrend])
+
+sprintf("El periodo correspondiente es aproximadamente: %s",1/PeriodgramaUKgrid_notrend$freq[ubicacionUKgrid_notrend])
+
+ordenar<-sort(PeriodgramaUKgrid_notrend$spec,index.return=TRUE,decreasing = TRUE)
+ordenar$ix[1]
+
+sprintf("El periodo correspondiente a la segunda frecuencia mas pequeña es aproximadamente: %s",1/PeriodgramaUKgrid_notrend$freq[ordenar$ix[2]])
+# 8533.33333333333 es aproximadamente 8766, el cual corresponde a 1 año
+
+sprintf("El periodo correspondiente a la quinta frecuencia mas pequeña es aproximadamente: %s",1/PeriodgramaUKgrid_notrend$freq[ordenar$ix[5]])
+##167.979002624672 la cual es aproximadamente 168 el cual corresponde a 1 semana
+```
+
+```{r creando un objeto de tipo msts}
+library(forecast)
+#na.omit(UKgrid_df$UKgrid)
+#which(is.na(UKgrid_df$UKgrid))
+UKgridmsts<-msts(UKgrid_df$UKgrid,seasonal.periods = c(24,168,8766))
+Ajustes_UKgrid_daily<-tslm(UKgridmsts~fourier(UKgridmsts,K=c(3,0,0)))
+summary(Ajustes_UKgrid_daily)
+prediction_UKgrid_daily<-predict(Ajustes_UKgrid_daily,data.frame(fourier(UKgridmsts,K=c(3,0,0))))
+
+
+points_daily<-24*7
+plot(UKgridmsts[1:points_daily], ylab="UKgrid",type="l",ylim=c(min(UKgridmsts[1:points_daily],prediction_UKgrid_daily[1:points_daily]),max(UKgridmsts[1:points_daily],prediction_UKgrid_daily[1:points_daily])))
+lines(seq(1:points_daily),prediction_UKgrid_daily[1:points_daily],col="blue")
+
+#####Semanal
+Ajustes_UKgrid_weekly<-tslm(UKgridmsts~fourier(UKgridmsts,K=c(0,3,0)))
+summary(Ajustes_UKgrid_weekly)
+prediction_UKgrid_weekly<-predict(Ajustes_UKgrid_weekly,data.frame(fourier(UKgridmsts,K=c(0,3,0))))
+
+
+
+points_weekly<-168*2
+plot(UKgridmsts[1:points_weekly], ylab="UKgrid",type="l",ylim=c(min(UKgridmsts[1:points_weekly],prediction_UKgrid_weekly[1:points_weekly]),max(UKgridmsts[1:points_weekly],prediction_UKgrid_weekly[1:points_weekly])))
+lines(seq(1:points_weekly),prediction_UKgrid_weekly[1:points_weekly],col="blue")
+
+
+#####Yearly
+Ajustes_UKgrid_yearly<-tslm(UKgridmsts~fourier(UKgridmsts,K=c(0,0,3)))
+summary(Ajustes_UKgrid_yearly)
+prediction_UKgrid_yearly<-predict(Ajustes_UKgrid_yearly,data.frame(fourier(UKgridmsts,K=c(0,0,3))))
+
+
+
+points_yearly<-8766
+plot(UKgridmsts[1:points_yearly], ylab="UKgrid",type="l",ylim=c(min(UKgridmsts[1:points_yearly],prediction_UKgrid_yearly[1:points_yearly],na.rm =TRUE),max(UKgridmsts[1:points_yearly],prediction_UKgrid_yearly[1:points_yearly],na.rm =TRUE)))
+lines(seq(1:points_yearly),prediction_UKgrid_yearly[1:points_yearly],col="blue")
+
+
+
+
+
+```

@@ -711,7 +711,7 @@ diferentes:
     cantidad de luz del día y otros factores estacionales podrían
     afectar la demanda de electricidad.
 
-Usando el paquete <b>lubridate</b> crearemos las características.
+Usando el paquete **lubridate** crearemos las características.
 
 ```{r multiples patrones estacionales_1}
 library(xts)
@@ -848,12 +848,17 @@ tiempo es trazar la distribución de las unidades de frecuencia mediante
 el uso de histogramas o gráficos de densidad. Esto nos permitirá
 examinar si cada unidad de frecuencia tiene una distribución única que
 puede distinguirla del resto de unidades. Para esto usaremos el paquete
-<b>ggplot2</b>. Vamos empezar con la serie USgas.
+**ggplot2**. Vamos empezar con la serie USgas.
 
 ```{r explorando estacionalidades con timetk}
 require(timetk)
 UKgrid_tbl
-#UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour","week","wday.lbl","month.lbl"),.geom="boxplot") ##Chequear si se desea un diagrama de caja o violín .geom 
+UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("hour"),.geom="boxplot") ##Chequear si se desea un diagrama de caja o violín .geom  #,"week","wday.lbl","month.lbl"
+UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("wday.lbl"),.geom="boxplot")
+
+UKgrid_tbl%>%plot_seasonal_diagnostics(.date_var = TIMESTAMP,.value = ND,.feature_set = c("month.lbl"),.geom="boxplot")
+
+#Vamos a eliminar la tendencia ----
 
 UKgrid_diff<-diff(UKgrid_tbl$ND)
 which(is.na(UKgrid_diff))
