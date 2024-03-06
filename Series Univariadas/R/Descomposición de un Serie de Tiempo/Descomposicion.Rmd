@@ -242,6 +242,7 @@ FALSE.
 ```{r Suavizamiento exponencial}
 library(forecast)
 plot(lAirPass)
+tsibble_AirPass=as_tsibble(AirPassengers)
 tsibble_lAirPass=as_tsibble(lAirPass)
 HWAP_inic=stats::HoltWinters(lAirPass,alpha=NULL,beta=FALSE,gamma=FALSE)
 plot(HWAP_inic)
@@ -271,7 +272,7 @@ predictionHWAP_2=predict(HWAP,n.ahead = 12, prediction.interval = T, level = 0.9
 predictionHWAP_2=forecast::InvBoxCox(predictionHWAP_2,lambda=0)
 predictionHWAP_2
 
-####Usando objeto tsibble con ETS de fable, "A":additive "M": multiplicative, "N":nada, "Ad" "Md" damped. Note que hay algunos parámetros que se pueden establecer en cero
+####Usando objeto tsibble con ETS de fable, "A":additive "M": multiplicative, "N":nada, "Ad" "Md" damped. Note que hay algunos parámetros que se pueden establecer en cero. Además usted acña puede trabajar con la serie original.
 ajustepass=tsibble_lAirPass%>%
   model(ETS(value~ error("A")+trend("A")+season("A")))
 
@@ -280,6 +281,20 @@ pronostico=ajustepass%>%
 pronostico
 
 pronostico%>%autoplot(tsibble_lAirPass)+geom_line(aes(y=.fitted),col="#D55E00",data=augment(ajustepass))+labs(y=" ",title="Pronóstico u ajustados")+guides(colour="none")
+
+####Datos originales######
+
+ajustepass_orig=tsibble_AirPass%>%
+  model(ETS(log(value)~ error("A")+trend("A")+season("A")))
+
+pronostico_orig=ajustepass_orig%>%
+  fabletools::forecast(h=12)
+pronostico_orig
+
+pronostico_orig%>%autoplot(tsibble_AirPass)+geom_line(aes(y=.fitted),col="#D55E00",data=augment(ajustepass_orig))+labs(y=" ",title="Pronóstico u ajustados")+guides(colour="none")
+
+
+
 ```
 
 la función ets,ses, holt y hw de forecast también permiten hacer
@@ -424,6 +439,8 @@ re_ajuste%>%
 
 ```
 
+# Estableciendo los parámetros 
+
 Podemos establecer(fijar) los valores de los parámetros :
 smooth_level($\alpha$), smooth_trend($\beta$),
 smooth_seasonal($\gamma$).
@@ -537,6 +554,8 @@ define como:
 $$\frac{1}{T-l-h+1}\sum_{t=1}^{l-h+1}|e_{t,h}|.$$
 
 Vamos a crear el procedimiento de rolling de forma manual.
+
+# Encontrando los parámetros de ETS Vía Validación Cruzada Secuencial
 
 ```{r Rolling 1}
 h=1
