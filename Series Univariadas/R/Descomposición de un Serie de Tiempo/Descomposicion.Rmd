@@ -263,7 +263,7 @@ plot(ajustados)
 ajustados
 HWAP
 #####
-summary(HWAP_1)
+summary(HWAP)
 ####
 predictionHWAP_1=forecast::forecast(HWAP,h=12,level =0.95,lambda = 0)
 predictionHWAP_1
@@ -439,7 +439,7 @@ re_ajuste%>%
 
 ```
 
-# Estableciendo los parámetros 
+# Estableciendo los parámetros
 
 Podemos establecer(fijar) los valores de los parámetros :
 smooth_level($\alpha$), smooth_trend($\beta$),
@@ -558,7 +558,7 @@ Vamos a crear el procedimiento de rolling de forma manual.
 # Encontrando los parámetros de ETS Vía Validación Cruzada Secuencial
 
 ```{r Rolling 1}
-h=1
+h=2
 lAirPass ###Vamos a trabajar con la serie en escala logarítmica 
 
 #HWAP=stats::HoltWinters(lAirPass,seasonal="additive")
@@ -581,7 +581,7 @@ for(j in 2:h){
   verval=cbind(verval,c(test[j:ntest],rep(NA,j-1)))
 }
 
-verval=cbind(test[1:ntest],c(test[2:ntest],NA),c(test[3:ntest],NA,NA))
+#verval=cbind(test[1:ntest],c(test[2:ntest],NA),c(test[3:ntest],NA,NA))
 ####Ajuste del modelo con los datos de entrenamiento
 HWAP_train=stats::HoltWinters(train,seasonal="additive")
 HWAP_train$alpha
@@ -604,7 +604,7 @@ for(i in 1:(ntest))
 }
 fchstepahe
 errores_pred=verval -fchstepahe ##Observación: debo devolver los pronósticos y los verdaderos valores a la escala original si es necesario.
-ECM=apply(errores_pred^2,MARGIN = 2,mean,na.rm=TRUE). ##Acá se computa la medida de precisión del pronóstico(en este caso ECM).
+ECM=apply(errores_pred^2,MARGIN = 2,mean,na.rm=TRUE) ##Acá se computa la medida de precisión del pronóstico(en este caso ECM).
 RECM=sqrt(ECM) ##Se le saca raíz 
 RECM ##se lee: Primera fila RECM 1-paso adelante y así sucesivamente.
 ```
@@ -625,7 +625,7 @@ library(greybox)
 HWAP_train=stats::HoltWinters(train,seasonal="additive")
 ?ro
 
-h=3
+h=2
 ourCallETS <- "forecast::forecast(stats::HoltWinters(x=data,alpha=HWAP_train$alpha,beta=HWAP_train$beta,gamma=HWAP_train$gamma),h=h,level=95)"
 ###Note que x=data es solo un argumento indeterminado.
 ourValueETS <- c("mean","lower","upper")
