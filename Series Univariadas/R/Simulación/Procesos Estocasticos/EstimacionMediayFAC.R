@@ -25,6 +25,12 @@ acf(y,plot = F)
 mean(y)
 ####IC. para la media del proceso ----
 ##Para el filtro lineal invariante, la media poblacional del proceso es cero.
+###Pueden tambian simular el procesos usando arima.sim como sigue:
+###
+#y=arima.sim(n=500, list(ar=c(0.7)),sd=sqrt(1)) ##Para simular un AR(1)
+#y=arima.sim(n=500, list(ma=c(0.6)),sd=sqrt(1)) ##Para simular un MA(1)
+####
+###
 n=length(y)
 acf(y,lag.max=n-1)
 xbar=mean(y)
