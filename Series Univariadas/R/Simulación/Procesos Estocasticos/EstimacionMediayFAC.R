@@ -53,7 +53,7 @@ Limn_suo_IID=xbar+qnormal*sqrt(gamma_est_h[0]$acf)/sqrt(n)
 Lim_inf_IID
 Limn_suo_IID
 
-acf()
+acf(y,plot = F)
 
 
 

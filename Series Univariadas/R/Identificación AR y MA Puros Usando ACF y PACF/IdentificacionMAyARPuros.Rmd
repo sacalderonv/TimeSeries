@@ -15,8 +15,8 @@ IID=rnorm(T,4,1)
 ts_IID=as.ts(IID)
 ts_IID
 plot(ts_IID)
-acf(ts_IID,lag.max = T-1)
-pacf(ts_IID)  ###La autocorrelación Parcial mide la asociación estadística en X_{k+1} y X_{1} ajustado por intervención de las observaciones X_2,...,X_k.
+acf(ts_IID,lag.max = sqrt(T))
+pacf(ts_IID,lag.max =sqrt(T) )  ###La autocorrelación Parcial mide la asociación estadística en X_{k+1} y X_{1} ajustado por intervención de las observaciones X_2,...,X_k.
 ```
 
 ###Filtro lineal invariante Se desea simular observaciones que provienen de:
@@ -106,12 +106,12 @@ En este script encontraremos la manera de identificar procesos MA puros y AR Pur
 ```{r Identificación MA Puros}
 #####Identificación MA y AR puros
 ####Identificación de un MA puro
-set.seed(1)
-y=rnorm(200,0,1)
-plot(y,type='l')
-x11()
-acf(y,lag.max=sqrt(length(y)))
-pacf(y)
+#set.seed(1)
+#y=rnorm(200,0,1)
+#plot(y,type='l')
+#x11()
+#acf(y,lag.max=sqrt(length(y)))
+#pacf(y)
 ####Ejemplo MA(1)
 set.seed(12345)
 theta1=0.90
@@ -139,16 +139,7 @@ acf(arimaej,ci.type='ma')
 pacf(arimaej)
 ```
 
-Se simula un proceso ARMA(1,2)
 
-```{r ACF ARMA mixto}
- 
-arimaej=arima.sim(list(order=c(1,0,2),ar=c(0.8),ma=c(theta1,theta2)), n = Tlength)
-plot(arimaej)
-acf(arimaej)
-acf(arimaej,ci.type='ma')
-pacf(arimaej)
-```
 
 ## Identificación AR Puros
 
@@ -162,6 +153,7 @@ phi1=0.8
 Tlength=200
 arimaar1=arima.sim(list(order = c(1,0,0),ar = c(phi1)), n = Tlength)
 plot(arimaar1,main='AR(1)')
+acf(arimaar1)
 acf(arimaar1,ci.type='ma')
 pacf(arimaar1)
 
@@ -176,6 +168,19 @@ acf(arimaar2)
 acf(arimaar2,ci.type="ma")
 pacf(arimaar2)
 ```
+
+# Que pasa con los modelo ARMA mixtos?
+Se simula un proceso ARMA(1,2)
+
+```{r ACF ARMA mixto}
+ 
+arimaej=arima.sim(list(order=c(1,0,2),ar=c(0.8),ma=c(theta1,theta2)), n = Tlength)
+plot(arimaej)
+acf(arimaej)
+acf(arimaej,ci.type='ma')
+pacf(arimaej)
+```
+
 
 ```{r Pasajeros}
 data("AirPassengers")
@@ -201,4 +206,4 @@ pacf(diff_log_airpass_est,lag.max = 60)
 
 ```
 
-# Que pasa con los modelo ARMA mixtos?
+
