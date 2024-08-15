@@ -136,7 +136,7 @@ summary(ARMAmixto_fixed1)
 ##Arima Automático
 
 ```{r arima automatico}
-Arima_automatico_sercam=forecast::auto.arima(sercamrelint,d=0,D=0,max.p=4,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=8,stationary=TRUE,ic="bic",stepwise=FALSE,allowmean = TRUE) 
+Arima_automatico_sercam=forecast::auto.arima(sercamrelint,d=0,D=0,max.p=4,max.q=4,start.p=0, start.q=0,seasonal=FALSE,max.order=5,stationary=TRUE,ic="bic",stepwise=FALSE,allowmean = TRUE) 
 
 Arima_automatico_sercam 
 ```
@@ -155,15 +155,17 @@ plot(LondresPrecip)
 residuales=ARPURO_fixed1$residuals
 plot(residuales)
 acf(residuales)
-acf(residuales^2)
+#acf(residuales^2)
 pacf(residuales)
-#Test de normalidad
-tseries::jarque.bera.test(residuales)
+
 #Test de autocorrelaci?n
 length(residuales)/4
 sqrt(length(residuales))
-sqrt(length(residuales))
 Box.test(residuales, lag =20 , type = "Ljung-Box", fitdf = 2)#No puedo Rechazar la hipótesis de no autocorrelación!
+
+#Test de normalidad
+tseries::jarque.bera.test(residuales)
+
 
 
 ###Estad?sticas CUSUM
@@ -215,7 +217,7 @@ for(i in 1:ntest)
 fcmat
 ECM=mean(fcmat^2)
 
-##Falta elevar al cudrado y hacer le promedio.
+##Falta elevar al cuadrado y hacer le promedio.
 ```
 
 ```{r LLuvia}

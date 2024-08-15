@@ -45,10 +45,12 @@ aus_cafe
 
 aus_cafe%>%autoplot(vars(log_Turnover,diff_log_Turnover))
 
-### Estacionalidad
-aus_cafe%>%select(diff_log_Turnover)%>%gg_season(period = "year")
 
-aus_cafe%>%select(diff_log_Turnover)%>%gg_subseries(period = "year")
+
+### Estacionalidad
+aus_cafe%>%dplyr::select(diff_log_Turnover)%>%gg_season(period="year")
+
+aus_cafe%>%dplyr::select(diff_log_Turnover)%>%feasts::gg_subseries(period = "year")
 
 aus_cafe_tbl<-as_tibble(aus_cafe)
 aus_cafe_tbl$Month<-as.Date(aus_cafe_tbl$Month)
@@ -78,7 +80,7 @@ ajuste
 glance(ajuste)
 
 ajuste
-glance(ajuste) %>% arrange(AICc) %>% select(.model:BIC)
+glance(ajuste) %>% dplyr::arrange(AICc) %>% dplyr::select(.model:BIC)
 
 ajuste %>%
   fabletools::forecast(h = "2 years") %>%
@@ -167,10 +169,10 @@ Esta vez reajustaremos todos los modelos proponiendo un AR(1) a los residuales,a
 ```{r ciclo unicamente modelo final}
 
 ajuste_final<-aus_cafe%>%model(
-  `FourierK=1`=ARIMA(log(Turnover)~fourier(K=1)+pdq(1,1,0)+PDQ(0,0,0)),
-  `FourierK=2`=ARIMA(log(Turnover)~fourier(K=2)+pdq(1,1,0)+PDQ(0,0,0)),
-  `FourierK=3`=ARIMA(log(Turnover)~fourier(K=3)+pdq(1,1,0)+PDQ(0,0,0)),
-  `Dummy`=ARIMA(log(Turnover)~season()+pdq(1,1,0)+PDQ(0,0,0))                              )
+  `FourierK=1`=ARIMA(log(Turnover)~trend()+fourier(K=1)+pdq(1,0,1)+PDQ(0,0,0)),
+  `FourierK=2`=ARIMA(log(Turnover)~trend()+fourier(K=2)+pdq(1,0,1)+PDQ(0,0,0)),
+  `FourierK=3`=ARIMA(log(Turnover)~trend()+fourier(K=3)+pdq(1,0,1)+PDQ(0,0,0)),
+  `Dummy`=ARIMA(log(Turnover)~trend()+season()+pdq(1,0,1)+PDQ(0,0,0))                              )
 ## Podemos agregar la opción fixed como una lista dentro de ARIMA, por ejemplo:
 ###fixed = list(ar1 = 0.3, ma2 = 0).
 
