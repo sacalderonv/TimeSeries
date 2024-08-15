@@ -20,6 +20,8 @@ library(tseries)
 library(lmtest)
 library(uroot)
 library(fUnitRoots)
+library(aTSA)
+
 
 ######Ejercicios de Simulación#####
 ###################################
@@ -58,10 +60,12 @@ plot(linear)  ###Caminata Aleatoria alrededor de una función cuadrática
 
 auto.arima(arimaej,d=0,D=0,max.p=20,max.q=0,start.p=0, start.q=0,seasonal=FALSE,max.order=20,stationary=TRUE,ic="aic",stepwise=FALSE,allowmean = TRUE)
 ar(arimaej)
-fUnitRoots::adfTest(arimaej,lags = 10,type='nc')   ####No hay presencia de Raíz Unitaria
-tseries::adf.test(drift)   ####Note que hay Presencia de Raíz Unitaria
+fUnitRoots::adfTest(arimaej,lags = 10,type='nc')
+aTSA::adf.test(arimaej,nlag = 11)
+####No hay presencia de Raíz Unitaria
+tseries::adf.test(drift,k = 10)   ####Note que esta función no trabaja bien, favor no usar
 fUnitRoots::adfTest(drift,lags = 10,type='c')
-
+aTSA::adf.test(drift,nlag = 11)
 ###Otro Ejemplo
 
 estacionario=arima.sim(list(order = c(1,0,1), ar = 0.7,ma=0.6), n = Tlength)
@@ -70,6 +74,7 @@ trend.estacionario=tendencia+estacionario
 plot(trend.estacionario)
 fUnitRoots::adfTest(trend.estacionario)
 fUnitRoots::adfTest(trend.estacionario,lags=1,type='ct')   ###Cambie 11 rezago hasta 
+aTSA::adf.test(trend.estacionario,nlag = 2)
 
 
 ```
@@ -87,7 +92,7 @@ stats::ar(arimaej_raiz_unit)### Permite Seleccionar el lag
 fUnitRoots::adfTest(arimaej_raiz_unit,lags =1 ,type='nc')  
 fUnitRoots::adfTest(arimaej_raiz_unit,type='nc') 
 ####No hay presencia de Raíz Unitaria
-tseries::adf.test(arimaej_raiz_unit,k=12)   ####Note que hay 
+aTSA::adf.test(arimaej_raiz_unit,nlag=12)   ####Note que hay 
 ######
 prueba_df=ur.df(arimaej_raiz_unit,type="none",lags=5)
 summary(prueba_df)
@@ -99,15 +104,13 @@ summary(prueba_df)
 Vamos a Analizar la Serie de Pasajeros.Iniciamos con las gráficas y transformación de Box-Cox
 
 ```{r Pasajeros1, echo=FALSE}
-library(FitAR)
+
 data("AirPassengers")
 plot(AirPassengers)
 forecast::BoxCox.lambda(AirPassengers,method="guerrero",lower=0)
 forecast::BoxCox.lambda(AirPassengers,method="loglik",lower=0)
 forecast::BoxCox(AirPassengers,lambda="auto")
-#FitAR::BoxCox(AirPassengers,interval = c(-2, 2)) ####hace la búsqueda sobre el intervalo propuesto
 
-#logAirP=BoxCox(AirPassengers,lambda=0)
 logAirP=log(AirPassengers)
 plot(logAirP)
 ```
@@ -122,7 +125,7 @@ ar(logAirP) ##Selecciona un modelo AR usando el crierio de Akaike  a la serie Aa
 
 adf.test(logAirP)
 ar(logAirP)
-adf.test(logAirP,k=13)
+aTSA::adf.test(logAirP,nlag = 14)
 summary(ur.df(logAirP,type="none"))
 summary(ur.df(logAirP,type="drift"))
 
@@ -133,7 +136,7 @@ plot(dlogAirPass)
 pacf(dlogAirPass)
 acf(dlogAirPass,lag.max = 48)
 ar(dlogAirPass)
-adf.test(dlogAirPass,k=12)
+aTSA::adf.test(dlogAirPass,nlag = 13)
 summary(ur.df(dlogAirPass,type="none",lags = 12))
 monthplot(dlogAirPass)
 spectrum(dlogAirPass)
@@ -277,12 +280,16 @@ ajuste_final_models<-tsibble_Airpass%>%model(
   `FourierK=1`=ARIMA(log(value)~1+fourier(K=1)+pdq(12,1,0)+PDQ(0,0,0)),
   `FourierK=2`=ARIMA(log(value)~1+fourier(K=2)+pdq(12,1,0)+PDQ(0,0,0)),
   `FourierK=3`=ARIMA(log(value)~1+fourier(K=3)+pdq(12,1,0)+PDQ(0,0,0)),
-  `Dummy`=ARIMA(log(value)~1+season()+pdq(12,1,0)+PDQ(0,0,0))                              )
+  `Dummy`=ARIMA(log(value)~1+season()+pdq(12,1,0)+PDQ(0,0,0)),
+  `ARIMA`=ARIMA(log(value)~1+pdq(12,1,12)+PDQ(0,0,0)))
 
 glance(ajuste_final_models)
 
 ajuste_final_models %>%
      select(FourierK=1)%>%coef()
+
+ajuste_final_models %>%
+     select(ARIMA)%>%coef()
 
 ajuste_final_models %>%
   fabletools::forecast(h = "2 years") %>%
