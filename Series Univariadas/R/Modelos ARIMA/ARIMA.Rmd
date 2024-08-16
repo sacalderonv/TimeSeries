@@ -49,8 +49,8 @@ caminata=as.ts(cumsum(arimaej))
 drift=as.ts(cumsum(arimaej+a0))
 
 
-x11()
-par(mfrow=c(2,1))
+#x11()
+#par(mfrow=c(2,1))
 plot(caminata)
 plot(drift)   ###Caminata Aleatoria Con Drift
 
@@ -120,14 +120,15 @@ plot(logAirP)
 Ahora avanzamos en el setido de verificar si la serie muestra la presencia de una o varias raíces unitarias
 
 ```{r Pasajeros2}
+acf(logAirP,lag.max = 60)
 pacf(logAirP)
 ar(logAirP) ##Selecciona un modelo AR usando el crierio de Akaike  a la serie Aaa
 
-adf.test(logAirP)
-ar(logAirP)
+
+
 aTSA::adf.test(logAirP,nlag = 14)
-summary(ur.df(logAirP,type="none"))
-summary(ur.df(logAirP,type="drift"))
+summary(ur.df(logAirP,type="none",lags = 13))
+summary(ur.df(logAirP,type="drift",lags = 13))
 
 ######SE debe chequear si hay que diferenciar de nuevo!!!
 dlogAirPass=diff(logAirP)
@@ -136,8 +137,8 @@ plot(dlogAirPass)
 pacf(dlogAirPass)
 acf(dlogAirPass,lag.max = 48)
 ar(dlogAirPass)
-aTSA::adf.test(dlogAirPass,nlag = 13)
-summary(ur.df(dlogAirPass,type="none",lags = 12))
+aTSA::adf.test(dlogAirPass,nlag = 15)
+summary(ur.df(dlogAirPass,type="none",lags = 14))
 monthplot(dlogAirPass)
 spectrum(dlogAirPass)
 
@@ -145,7 +146,7 @@ spectrum(dlogAirPass)
 
 ## Identificación del Modelo Usando ACF y PACF
 
-```{r pasajeros3}
+```{r pasajeros35}
 ####Identificación de los Órdenes Autoregresivos
 acf(dlogAirPass,lag.max = 60,ci.type='ma')  ###Se requiere un MA de orden muy grande
 pacf(dlogAirPass,lag.max = 60)  ####Puede ser un autoregresivo de orden 12
@@ -160,21 +161,21 @@ modelo.automatico1=auto.arima(dlogAirPass,d=0,D=0,max.p=12,max.q=48,start.p=0, s
 #####Ajuste del Modelo
 ####Note que entramos la serie original
 library(TSA)
-AjusteArima=forecast::Arima(AirPassengers,order = c(9,1,3),lambda = 0,include.constant = TRUE)
-summary(AjusteArima)
-coeftest(AjusteArima)
+AjusteArima93=forecast::Arima(AirPassengers,order = c(9,1,3),lambda = 0,include.drift = TRUE)
+summary(AjusteArima93)
+coeftest(AjusteArima93)
 #####Refinando el modelo
-AjusteArima=forecast::Arima(AirPassengers,order = c(12,1,12),lambda = 0,include.constant = TRUE)
+AjusteArima12=forecast::Arima(AirPassengers,order = c(12,1,0),lambda = 0,include.drift = TRUE)
 #,fixed=c(NA,NA,0,NA,NA,NA,NA,NA,NA,NA,0,NA,NA)
-summary(AjusteArima)
-coeftest(AjusteArima)
+summary(AjusteArima12)
+coeftest(AjusteArima12)
 
 ```
 
 ## Análisis de Residuales
 
 ```{r pasajeros5}
-residuales=AjusteArima$residuals
+residuales=AjusteArima12$residuals
 plot(residuales)
 #
 #plot(SDresiduales)
@@ -190,7 +191,7 @@ jarque.bera.test(residuales)
 #Test de autocorrelación
 length(residuales)/4
 sqrt(length(residuales))
-Box.test(residuales, lag =36 , type = "Ljung-Box", fitdf = 25)
+Box.test(residuales, lag =36 , type = "Ljung-Box", fitdf = 12)
 
 
 
@@ -218,7 +219,7 @@ lines(LQI,type="S",col="red")
 
 
 #####Fase de Pronósticos
-pronosticos12=forecast::forecast(AjusteArima,h=12,level=0.95)
+pronosticos12=forecast::forecast(AjusteArima12,h=12,level=0.95)
 plot(pronosticos12)
 ```
 
@@ -289,13 +290,12 @@ ajuste_final_models %>%
      select(FourierK=1)%>%coef()
 
 ajuste_final_models %>%
-     select(ARIMA)%>%coef()
+     select(Dummy)%>%coef()
 
 ajuste_final_models %>%
   fabletools::forecast(h = "2 years") %>%
   autoplot(tsibble_Airpass, level = 95) 
-+
-  facet_wrap(vars(.model), ncol = 2) +
++  facet_wrap(vars(.model), ncol = 2) +
   guides(colour = "none", fill = "none", level = "none") +
   geom_label(
    aes(x = yearmonth("1950 Jan"), y = 750,
